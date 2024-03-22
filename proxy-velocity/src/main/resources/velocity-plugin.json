@@ -1,0 +1,10 @@
+{
+  "id": "simplecloud-proxy",
+  "name": "SimpleCloud-Proxy",
+  "version": "1.0.0",
+  "authors": [
+    "D151l"
+  ],
+  "main": "app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin",
+  "dependencies": []
+}
