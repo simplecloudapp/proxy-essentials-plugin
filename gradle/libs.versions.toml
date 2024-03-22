@@ -6,6 +6,8 @@ bungeecord = "1.19-R0.1-SNAPSHOT"
 adventure = "4.16.0"
 adventurelatform = "4.3.2"
 gson = "2.10.1"
+configurateYaml = "4.0.0"
+configurateKotlin = "4.1.2"
 
 [libraries]
 kotlinJvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
@@ -16,6 +18,8 @@ adventureLegacySerializer = { module = "net.kyori:adventure-text-serializer-lega
 adventureApi = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
 adventureBungeecordPlatform = { module = "net.kyori:adventure-platform-bungeecord", version.ref = "adventurelatform" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+configurateYaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurateYaml" }
+configurateKotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurateKotlin" }
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
