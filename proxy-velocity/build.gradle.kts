@@ -1,7 +1,4 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 dependencies {
-    api(project(":proxy-api"))
     api(project(":proxy-shared"))
 
     compileOnly(rootProject.libs.adventureApi)

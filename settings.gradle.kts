@@ -3,6 +3,5 @@ plugins {
 }
 rootProject.name = "proxy-plugin"
 include("proxy-shared")
-include("proxy-api")
 include("proxy-velocity")
 include("proxy-bungeecord")

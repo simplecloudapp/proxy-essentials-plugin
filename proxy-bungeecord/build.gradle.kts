@@ -1,5 +1,4 @@
 dependencies {
-    api(project(":proxy-api"))
     api(project(":proxy-shared"))
 
     compileOnly(rootProject.libs.bungeecordApi)
