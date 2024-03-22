@@ -12,7 +12,7 @@ class ProxyPingConfigurationListener(
 
     @Subscribe(order = PostOrder.LAST)
     fun onProxyPingConfiguration(proxyPingConfigurationEvent: ProxyPingConfigurationEvent) {
-        var motd = proxyPingConfigurationEvent.messageOfTheDay
+        var motd = proxyPingConfigurationEvent.pingConfiguration.messageOfTheDay
 
         val showMaxPlayers = this.plugin.proxyServer.configuration.showMaxPlayers
         val onlinePlayers = this.plugin.proxyServer.allPlayers.size
@@ -20,6 +20,6 @@ class ProxyPingConfigurationListener(
         motd = motd.replaceText(TextReplacementConfig.builder().match("%ONLINE_PLAYERS%").replacement("$onlinePlayers").build())
         motd = motd.replaceText(TextReplacementConfig.builder().match("%MAX_PLAYERS%").replacement("$showMaxPlayers").build())
 
-        proxyPingConfigurationEvent.messageOfTheDay = motd
+        proxyPingConfigurationEvent.pingConfiguration.messageOfTheDay = motd
     }
 }

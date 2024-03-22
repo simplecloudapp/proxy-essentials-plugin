@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
+import app.simplecloud.plugin.proxy.shared.event.ProxyPingConfiguration
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import app.simplecloud.plugin.proxy.velocity.event.ProxyPingConfigurationEvent
 import com.velocitypowered.api.event.Subscribe
@@ -29,17 +30,20 @@ class ProxyPingListener(
         val messageOfTheDay: Component = this.miniMessage.deserialize(firstLine + "\n" + secondLine)
 
         var proxyPingConfigurationEvent = ProxyPingConfigurationEvent(
-            messageOfTheDay,
-            motdConfiguration.playerInfo,
-            motdConfiguration.versionName,
-            motdConfiguration.maxPlayerDisplayType,
-            motdConfiguration.dynamicPlayerRange
+            ProxyPingConfiguration(
+                messageOfTheDay,
+                motdConfiguration.playerInfo,
+                motdConfiguration.versionName,
+                motdConfiguration.maxPlayerDisplayType,
+                motdConfiguration.dynamicPlayerRange
+            )
         )
 
         proxyPingConfigurationEvent = this.plugin.proxyServer.eventManager.fire(proxyPingConfigurationEvent).get()
+        val pingConfiguration = proxyPingConfigurationEvent.pingConfiguration
 
-        val playerList = proxyPingConfigurationEvent.playerInfo.map { SamplePlayer(it, UUID.randomUUID()) }
-        val players: ServerPing.Players = when(proxyPingConfigurationEvent.maxPlayerDisplayType) {
+        val playerList = pingConfiguration.playerInfo.map { SamplePlayer(it, UUID.randomUUID()) }
+        val players: ServerPing.Players = when(pingConfiguration.maxPlayerDisplayType) {
             null -> ServerPing.Players(
                 serverPing.players.get().online,
                 serverPing.players.get().max,
@@ -52,7 +56,7 @@ class ProxyPingListener(
             )
             else -> ServerPing.Players(
                 serverPing.players.get().online,
-                serverPing.players.get().online + proxyPingConfigurationEvent.dynamicPlayerRange,
+                serverPing.players.get().online + pingConfiguration.dynamicPlayerRange,
                 playerList.ifEmpty { serverPing.players.get().sample }
             )
         }
@@ -68,7 +72,7 @@ class ProxyPingListener(
         val ping = ServerPing(
             versions,
             players,
-            proxyPingConfigurationEvent.messageOfTheDay,
+            pingConfiguration.messageOfTheDay,
             serverPing.favicon.get()
         )
 
