@@ -23,7 +23,7 @@ This proxy plugin provides a variety of features for MOTD and TabList in your se
 
 ## Configuration
 
-Plugin configuration is done via the `config.yml` file. In this file, you will find all options to customize the MOTD and TabList.
+The plugin is configured via the files `proxy-velocity.jar` and `proxy-bungeecord.jar`. In these files you will find all the options for customizing MOTD and TabList.
 
 ## Additional Information
 
