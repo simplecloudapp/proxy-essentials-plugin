@@ -18,12 +18,10 @@ class ProxyVelocityPlugin @Inject constructor(
 ) {
 
     lateinit var motdConfiguration: MotdConfiguration
-    lateinit var maintenanceMotdConfiguration: MotdConfiguration
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         this.motdConfiguration = YamlConfig(this.dataDirectory.pathString).load<MotdConfiguration>("motd-configuration")!!
-        this.maintenanceMotdConfiguration = YamlConfig(this.dataDirectory.pathString).load<MotdConfiguration>("maintenance-motd-configuration")!!
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(this))
         this.proxyServer.eventManager.register(this, ProxyPingConfigurationListener(this))
