@@ -1,47 +1,47 @@
-# Proxy Plugin mit MOTD und TabList Funktionen
-## Beschreibung
+# Proxy Plugin with MOTD and TabList Functions
+## Description
 
-Dieses Proxy Plugin bietet eine Vielzahl von Funktionen für die MOTD und TabList in deinem Servernetzwerk. Es unterstützt BungeeCord/Waterfall und Velocity.
+This proxy plugin provides a variety of features for MOTD and TabList in your server network. It supports BungeeCord/Waterfall and Velocity.
 
 ## Features
 
 ### MOTD
 
-- Konfigurierbare erste und zweite Zeile der MOTD.
-- Möglichkeit, mehrere Optionen für jede Zeile anzugeben, die zufällig ausgewählt werden.
-- Anpassbare PlayerInfo und Serverversion.
-- Dynamische Spielerzahlen mit konfigurierbarem Bereich.
-- Unterstützung für das Adventure Minimessage Format.
-- Standard-Platzhalter: `%ONLINE_PLAYERS%` und `%MAX_PLAYERS%`.
+- Configurable first and second line of the MOTD.
+- Ability to specify multiple options for each line to be randomly selected.
+- Customizable PlayerInfo and server version.
+- Dynamic player counts with configurable range.
+- Support for Adventure Minimessage format.
+- Standard placeholders: `%ONLINE_PLAYERS%` and `%MAX_PLAYERS%`.
 
 ### TabList
 
-- Anpassbares Update-Intervall.
-- Möglichkeit, TabListen basierend auf Servernamen oder Gruppen festzulegen.
-- Nutzung des Adventure Minimessage Formats.
-- Standard-Platzhalter: `%ONLINE_PLAYERS%`, `%MAX_PLAYERS%` und `%SERVICE_NAME%`.
+- Customizable update interval.
+- Ability to set tab lists based on server names or groups.
+- Usage of Adventure Minimessage format.
+- Standard placeholders: `%ONLINE_PLAYERS%`, `%MAX_PLAYERS%`, and `%SERVICE_NAME%`.
 
-## Konfiguration
+## Configuration
 
-Die Konfiguration des Plugins erfolgt über die Datei `config.yml`. In dieser Datei finden Sie alle Optionen, um die MOTD und die TabList anzupassen.
+Plugin configuration is done via the `config.yml` file. In this file, you will find all options to customize the MOTD and TabList.
 
-## Weitere Informationen
+## Additional Information
 
-Weitere Informationen zum Plugin finden Sie auf der Projektseite: <https://wiki.simplecoud.app/plugin/proxy>
+For more information about the plugin, please visit the project page: <https://wiki.simplecoud.app/plugin/proxy>
 
 ## Installation
 
-1. Laden Sie das Plugin von der Projektseite: <https://wiki.simplecoud.app/plugin/proxy> herunter.
-2. Kopieren Sie die Datei `proxy-velocity.jar` oder `proxy-bungeecord.jar` in den Plugin-Ordner Ihres Proxys.
-3. Starten Sie den Proxy neu.
-4. Bearbeiten Sie die Datein `motd-configuration.yml` und `tablist-configuration.yml` nach Ihren Wünschen.
-5. Starten Sie den Proxy erneut.
+1. Download the plugin from the project page: <https://wiki.simplecoud.app/plugin/proxy>.
+2. Copy the file `proxy-velocity.jar` or `proxy-bungeecord.jar` into your proxy's plugin folder.
+3. Restart the proxy.
+4. Edit the files `motd-configuration.yml` and `tablist-configuration.yml` according to your preferences.
+5. Restart the proxy again.
 
-## Unterstützte Plattformen:
+## Supported Platforms:
 
 - BungeeCord/Waterfall
 - Velocity
 
-## Lizenz:
+## License:
 
-Dieses Plugin ist unter der [MIT-Lizenz](https://opensource.org/licenses/MIT) lizenziert. Weitere Informationen findest du in der beigefügten Lizenzdatei.
+This plugin is licensed under the [MIT License](https://opensource.org/licenses/MIT). For more information, refer to the accompanying license file.
