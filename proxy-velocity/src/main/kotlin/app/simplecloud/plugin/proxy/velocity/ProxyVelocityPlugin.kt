@@ -6,6 +6,7 @@ import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingConfigurationListener
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingListener
+import app.simplecloud.plugin.proxy.velocity.listener.TabListConfigurationListener
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
@@ -31,6 +32,7 @@ class ProxyVelocityPlugin @Inject constructor(
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(this))
         this.proxyServer.eventManager.register(this, ProxyPingConfigurationListener(this))
+        this.proxyServer.eventManager.register(this, TabListConfigurationListener(this))
 
         this.tabListHandler.startTabListTask()
     }
