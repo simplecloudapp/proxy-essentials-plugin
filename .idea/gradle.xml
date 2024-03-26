@@ -9,7 +9,6 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/proxy-api" />
             <option value="$PROJECT_DIR$/proxy-bungeecord" />
             <option value="$PROJECT_DIR$/proxy-shared" />
             <option value="$PROJECT_DIR$/proxy-velocity" />

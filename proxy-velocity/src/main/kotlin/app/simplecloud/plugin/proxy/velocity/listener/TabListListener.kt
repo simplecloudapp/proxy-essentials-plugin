@@ -4,8 +4,6 @@ import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import app.simplecloud.plugin.proxy.velocity.event.TabListConfigurationEvent
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.connection.LoginEvent
-import com.velocitypowered.api.event.connection.PostLoginEvent
 import com.velocitypowered.api.event.player.ServerConnectedEvent
 import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component

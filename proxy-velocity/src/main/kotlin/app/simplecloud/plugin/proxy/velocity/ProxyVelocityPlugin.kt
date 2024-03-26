@@ -10,6 +10,7 @@ import app.simplecloud.plugin.proxy.velocity.listener.TabListListener
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
+import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.ProxyServer
 import java.nio.file.Path
@@ -40,5 +41,10 @@ class ProxyVelocityPlugin @Inject constructor(
         this.proxyServer.eventManager.register(this, TabListListener(this))
 
         this.tabListHandler.startTabListTask()
+    }
+
+    @Subscribe
+    fun onProxyShutdown(event: ProxyShutdownEvent) {
+        this.tabListHandler.stopTabListTask()
     }
 }

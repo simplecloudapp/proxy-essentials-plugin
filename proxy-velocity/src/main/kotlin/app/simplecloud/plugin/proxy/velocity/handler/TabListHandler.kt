@@ -68,7 +68,7 @@ class TabListHandler(
             )
         }
 
-        var tabList = tabListGroup.tabLists[tabListIndex.getOrDefault(tabListGroup.groupOrService, 0)]
+        val tabList = tabListGroup.tabLists[tabListIndex.getOrDefault(tabListGroup.groupOrService, 0)]
         if (tabListGroup.tabLists.size <= tabListIndex.getOrDefault(tabListGroup.groupOrService, 0) + 1)
             tabListIndex[tabListGroup.groupOrService] = 0
 

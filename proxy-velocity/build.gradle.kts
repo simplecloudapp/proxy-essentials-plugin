@@ -10,5 +10,5 @@ dependencies {
 }
 
 tasks.named("shadowJar", ShadowJar::class) {
-    relocate("kotlin.", "app.simplecloud.plugin.libs.kotlin.")
+    //relocate("kotlin.", "app.simplecloud.plugin.libs.kotlin.")
 }
