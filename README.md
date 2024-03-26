@@ -27,11 +27,11 @@ Die Konfiguration des Plugins erfolgt über die Datei `config.yml`. In dieser Da
 
 ## Weitere Informationen
 
-Weitere Informationen zum Plugin finden Sie auf der Projektseite: <https://de.squarespace.com/>
+Weitere Informationen zum Plugin finden Sie auf der Projektseite: <https://wiki.simplecoud.app/plugin/proxy>
 
 ## Installation
 
-1. Laden Sie das Plugin von der Projektseite: <https://de.squarespace.com/> herunter.
+1. Laden Sie das Plugin von der Projektseite: <https://wiki.simplecoud.app/plugin/proxy> herunter.
 2. Kopieren Sie die Datei `proxy-velocity.jar` oder `proxy-bungeecord.jar` in den Plugin-Ordner Ihres Proxys.
 3. Starten Sie den Proxy neu.
 4. Bearbeiten Sie die Datein `motd-configuration.yml` und `tablist-configuration.yml` nach Ihren Wünschen.
