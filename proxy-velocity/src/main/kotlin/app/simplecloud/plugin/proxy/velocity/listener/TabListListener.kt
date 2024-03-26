@@ -4,12 +4,15 @@ import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import app.simplecloud.plugin.proxy.velocity.event.TabListConfigurationEvent
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
+import com.velocitypowered.api.event.connection.LoginEvent
+import com.velocitypowered.api.event.connection.PostLoginEvent
+import com.velocitypowered.api.event.player.ServerConnectedEvent
 import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
 import kotlin.jvm.optionals.getOrNull
 
-class TabListConfigurationListener(
+class TabListListener(
     private val plugin: ProxyVelocityPlugin
 ) {
 
@@ -22,6 +25,12 @@ class TabListConfigurationListener(
         var footer = event.tabListConfiguration.footer
         footer = this.replaceText(footer, event.player)
         event.tabListConfiguration.footer = footer
+    }
+
+    @Subscribe(order = PostOrder.LAST)
+    fun onServerConnected(event: ServerConnectedEvent) {
+        val player = event.player
+        this.plugin.tabListHandler.updateTabListForPlayer(player)
     }
 
     private fun replaceText(component: Component, player: Player): Component {
