@@ -62,7 +62,7 @@ class ProxyPingListener(
         }
 
         val versions: ServerPing.Version = when(motdConfiguration.versionName) {
-            null -> serverPing.version
+            "" -> serverPing.version
             else -> ServerPing.Version(
                 serverPing.version.protocol,
                 motdConfiguration.versionName

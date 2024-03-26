@@ -6,7 +6,7 @@ import net.kyori.adventure.text.Component
 data class ProxyPingConfiguration(
     var messageOfTheDay: Component,
     var playerInfo: List<String>,
-    var versionName: String?,
+    var versionName: String,
     var maxPlayerDisplayType: MaxPlayerDisplayType?,
     var dynamicPlayerRange: Int
 ) {
