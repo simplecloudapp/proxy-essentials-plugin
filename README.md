@@ -17,6 +17,7 @@ This proxy plugin provides a variety of features for MOTD and TabList in your se
 ### TabList
 
 - Customizable update interval.
+- Animated header and footer.
 - Ability to set tab lists based on server names or groups.
 - Usage of Adventure Minimessage format.
 - Standard placeholders: `%ONLINE_PLAYERS%`, `%MAX_PLAYERS%`, and `%SERVICE_NAME%`.
