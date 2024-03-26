@@ -8,6 +8,6 @@ data class TabListConfiguration(
     val groups: List<TabListGroup> = listOf(
         TabListGroup()
     ),
-    val tabListUpdateTime: Long = 1000
+    val tabListUpdateTime: Long = 3000
 ) {
 }
