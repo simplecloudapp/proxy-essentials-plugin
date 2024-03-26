@@ -24,6 +24,9 @@ class TabListHandler(
             this.plugin.proxyServer.allPlayers.forEach {
                 this.updateTabListForPlayer(it)
             }
+            this.tabListIndex.forEach { (key, value) ->
+                this.tabListIndex[key] = value + 1
+            }
         }.repeat(this.plugin.tabListConfiguration.tabListUpdateTime, java.util.concurrent.TimeUnit.MILLISECONDS).schedule()
     }
 
@@ -69,8 +72,12 @@ class TabListHandler(
         }
 
         val tabList = tabListGroup.tabLists[tabListIndex.getOrDefault(tabListGroup.groupOrService, 0)]
+
         if (tabListGroup.tabLists.size <= tabListIndex.getOrDefault(tabListGroup.groupOrService, 0) + 1)
-            tabListIndex[tabListGroup.groupOrService] = 0
+            tabListIndex[tabListGroup.groupOrService] = -1
+
+        if (!tabListIndex.containsKey(tabListGroup.groupOrService))
+            tabListIndex[tabListGroup.groupOrService] = -1
 
 
         val header = this.miniMessage.deserialize(tabList.header.joinToString("<newline>"))
