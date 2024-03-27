@@ -71,14 +71,13 @@ class TabListHandler(
             )
         }
 
-        val tabList = tabListGroup.tabLists[tabListIndex.getOrDefault(tabListGroup.groupOrService, 0)]
-
         if (tabListGroup.tabLists.size <= tabListIndex.getOrDefault(tabListGroup.groupOrService, 0) + 1)
-            tabListIndex[tabListGroup.groupOrService] = -1
+            tabListIndex[tabListGroup.groupOrService] = 0
 
         if (!tabListIndex.containsKey(tabListGroup.groupOrService))
-            tabListIndex[tabListGroup.groupOrService] = -1
+            tabListIndex[tabListGroup.groupOrService] = 0
 
+        val tabList = tabListGroup.tabLists[tabListIndex.getOrDefault(tabListGroup.groupOrService, 0)]
 
         val header = this.miniMessage.deserialize(tabList.header.joinToString("<newline>"))
         val footer = this.miniMessage.deserialize(tabList.footer.joinToString("<newline>"))
