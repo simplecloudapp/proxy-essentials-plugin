@@ -8,11 +8,18 @@ import com.velocitypowered.api.event.player.ServerConnectedEvent
 import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
+import net.kyori.adventure.text.minimessage.MiniMessage
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import kotlin.jvm.optionals.getOrNull
 
 class TabListListener(
     private val plugin: ProxyVelocityPlugin
 ) {
+
+    private val miniMessage = MiniMessage.miniMessage()
 
     @Subscribe(order = PostOrder.LAST)
     fun onTabListConfiguration(event: TabListConfigurationEvent) {
@@ -32,18 +39,74 @@ class TabListListener(
     }
 
     private fun replaceText(component: Component, player: Player): Component {
+        val placeHolderConfiguration = this.plugin.placeHolderConfiguration
+
         val showMaxPlayers = this.plugin.proxyServer.configuration.showMaxPlayers
         val onlinePlayers = this.plugin.proxyServer.allPlayers.size
+        val currentTime = SimpleDateFormat(placeHolderConfiguration.currentTimeFormat).format(Calendar.getInstance().time)
+        val currentDate = SimpleDateFormat(placeHolderConfiguration.currentDateFormat).format(Calendar.getInstance().time)
 
         val serverConnection = player.currentServer.getOrNull()
         val service = serverConnection?.serverInfo?.name ?: "Unknown"
 
+        val ping = player.ping
+        val pingColors = placeHolderConfiguration.pingColors
+        val pingColor = pingColors.firstOrNull { it.ping >= ping }?.color ?: "<dark_red>"
+
         var replacedComponent = component
 
-        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%ONLINE_PLAYERS%").replacement("$onlinePlayers").build())
-        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%MAX_PLAYERS%").replacement("$showMaxPlayers").build())
-        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%SERVICE_NAME%").replacement(service).build())
+        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%ONLINE_PLAYERS%").replacement(
+            "$onlinePlayers"
+        ).build())
+        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%MAX_PLAYERS%").replacement(
+            "$showMaxPlayers"
+        ).build())
+        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%SERVICE_NAME%").replacement(
+            service
+        ).build())
+        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%CURRENT_TIME%").replacement(
+            currentTime
+        ).build())
+        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%CURRENT_DATE%").replacement(
+            currentDate
+        ).build())
+        replacedComponent = replacedComponent.replaceText(TextReplacementConfig.builder().match("%PING%").replacement(
+            this.miniMessage.deserialize(pingColor + ping)
+        ).build())
 
         return replacedComponent
+    }
+
+    private fun replaceText123(component: Component, player: Player): Component {
+        val placeHolderConfiguration = this.plugin.placeHolderConfiguration
+
+        val showMaxPlayers = this.plugin.proxyServer.configuration.showMaxPlayers
+        val onlinePlayers = this.plugin.proxyServer.allPlayers.size
+        val currentTime = SimpleDateFormat(placeHolderConfiguration.currentTimeFormat).format(Calendar.getInstance().time)
+        val currentDate = SimpleDateFormat(placeHolderConfiguration.currentDateFormat).format(Calendar.getInstance().time)
+
+        val ping = player.ping
+        val pingColors = placeHolderConfiguration.pingColors
+        val pingColor = pingColors.firstOrNull { it.ping >= ping }?.color ?: "<dark_red>"
+
+        val serverConnection = player.currentServer.getOrNull()
+        val service = serverConnection?.serverInfo?.name ?: "Unknown"
+
+        val text = this.miniMessage.serialize(component)
+
+        val deserialize = this.test(text, Placeholder.parsed("online-players", "$onlinePlayers"),
+            Placeholder.parsed("max-players", "$showMaxPlayers"),
+            Placeholder.parsed("service", service),
+            Placeholder.parsed("ping", pingColor + ping),
+            Placeholder.parsed("current-time", currentTime),
+            Placeholder.parsed("current-date", currentDate))
+
+        player.sendMessage(deserialize)
+
+        return deserialize
+    }
+
+    private fun test(test: String, vararg placeholders: TagResolver): Component {
+        return this.miniMessage.deserialize(test, *placeholders)
     }
 }

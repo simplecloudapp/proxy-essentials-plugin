@@ -2,6 +2,7 @@ package app.simplecloud.plugin.proxy.velocity
 
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.motd.MotdConfiguration
+import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingConfigurationListener
@@ -25,6 +26,7 @@ class ProxyVelocityPlugin @Inject constructor(
 
     lateinit var motdConfiguration: MotdConfiguration
     lateinit var tabListConfiguration: TabListConfiguration
+    lateinit var placeHolderConfiguration: PlaceHolderConfiguration
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
@@ -35,6 +37,9 @@ class ProxyVelocityPlugin @Inject constructor(
 
         this.tabListConfiguration = config.load<TabListConfiguration>("tablist-configuration")!!
         config.save("tablist-configuration", this.tabListConfiguration)
+
+        this.placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder-configuration")!!
+        config.save("placeholder-configuration", this.placeHolderConfiguration)
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(this))
         this.proxyServer.eventManager.register(this, ProxyPingConfigurationListener(this))
