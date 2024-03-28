@@ -32,14 +32,14 @@ class ProxyVelocityPlugin @Inject constructor(
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         val config = YamlConfig(this.dataDirectory.pathString)
 
-        this.motdConfiguration = config.load<MotdConfiguration>("motd-configuration")!!
-        config.save("motd-configuration", this.motdConfiguration)
+        this.motdConfiguration = config.load<MotdConfiguration>("motd")!!
+        config.save("motd", this.motdConfiguration)
 
-        this.tabListConfiguration = config.load<TabListConfiguration>("tablist-configuration")!!
-        config.save("tablist-configuration", this.tabListConfiguration)
+        this.tabListConfiguration = config.load<TabListConfiguration>("tablist")!!
+        config.save("tablist", this.tabListConfiguration)
 
-        this.placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder-configuration")!!
-        config.save("placeholder-configuration", this.placeHolderConfiguration)
+        this.placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder")!!
+        config.save("placeholder", this.placeHolderConfiguration)
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(this))
         this.proxyServer.eventManager.register(this, ProxyPingConfigurationListener(this))
