@@ -55,7 +55,7 @@ For more information about the plugin, please visit the project page: <https://w
 1. Download the plugin from the project page: <https://wiki.simplecoud.app/plugin/proxy>.
 2. Copy the file `proxy-velocity.jar` or `proxy-bungeecord.jar` into your proxy's plugin folder.
 3. Restart the proxy.
-4. Edit the files `motd-configuration.yml` and `tablist-configuration.yml` according to your preferences.
+4. Edit the files `motd.yml` and `tablist.yml` according to your preferences.
 5. Restart the proxy again.
 
 ## Supported Platforms:
