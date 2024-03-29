@@ -63,10 +63,6 @@ For more information about the plugin, please visit the project page: <https://w
 - BungeeCord/Waterfall
 - Velocity
 
-## Known Issues:
-
-- If a placeholder is used in the TabList, you will be kicked by the proxy
-
 ## License:
 
 This plugin is licensed under the [MIT License](https://opensource.org/licenses/MIT). For more information, refer to the accompanying license file.
