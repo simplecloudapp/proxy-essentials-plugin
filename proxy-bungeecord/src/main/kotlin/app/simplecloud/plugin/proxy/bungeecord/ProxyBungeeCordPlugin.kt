@@ -36,7 +36,10 @@ class ProxyBungeeCordPlugin: Plugin() {
 
         this.adventure = BungeeAudiences.create(this);
 
-        this.tabListHandler.startTabListTask()
+        if (this.tabListConfiguration.tabListUpdateTime > 0)
+            this.tabListHandler.startTabListTask()
+        else
+            this.logger.info("Tablist update time is set to 0, tablist will not be updated automatically")
 
         this.proxy.pluginManager.registerListener(this, TabListListener(this))
         this.proxy.pluginManager.registerListener(this, ProxyPingListener(this))
