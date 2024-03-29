@@ -6,7 +6,6 @@ import app.simplecloud.plugin.proxy.shared.config.tablis.TabList
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
 import app.simplecloud.plugin.proxy.shared.event.TabListPlayerConfiguration
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.scheduler.ScheduledTask
 import java.util.concurrent.TimeUnit

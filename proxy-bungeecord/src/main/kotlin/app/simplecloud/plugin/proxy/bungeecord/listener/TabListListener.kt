@@ -11,7 +11,6 @@ import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.jvm.optionals.getOrNull
 
 class TabListListener(
     private val plugin: ProxyBungeeCordPlugin
@@ -34,13 +33,6 @@ class TabListListener(
     fun onServerConnected(event: ServerConnectedEvent) {
         val player = event.player
         this.plugin.tabListHandler.updateTabListForPlayer(player)
-
-        /*val audience = this.plugin.adventure().player(player)
-
-        audience.sendPlayerListHeaderAndFooter(
-            this.miniMessage.deserialize("<yellow>Woo: <rainbow>||||||||||||||||||||||||</rainbow>!"),
-            this.miniMessage.deserialize("<yellow>Woo: <rainbow:!>||||||||||||||||||||||||</rainbow>!")
-        )*/
     }
 
     private fun replaceText(component: Component, player: ProxiedPlayer): Component {
