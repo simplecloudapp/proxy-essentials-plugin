@@ -43,13 +43,7 @@ class TabListHandler(
         val serviceName = player.currentServer.get().serverInfo.name
 
         var tabListGroup = configuration.groups.find { group ->
-            group.groupOrService == "*"
-        }
-
-        if (tabListGroup == null) {
-            tabListGroup = configuration.groups.find { group ->
-                serviceName.startsWith(group.groupOrService, true)
-            }
+            serviceName.startsWith(group.groupOrService, true)
         }
 
         if (tabListGroup == null) {
@@ -58,6 +52,12 @@ class TabListHandler(
                     serviceName,
                     true
                 )
+            }
+        }
+
+        if (tabListGroup == null) {
+            tabListGroup = configuration.groups.find { group ->
+                group.groupOrService == "*"
             }
         }
 
