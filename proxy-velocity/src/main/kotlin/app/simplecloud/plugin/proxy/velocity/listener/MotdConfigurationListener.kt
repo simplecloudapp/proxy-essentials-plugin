@@ -11,8 +11,9 @@ class MotdConfigurationListener(
 ) {
 
     @Subscribe(order = PostOrder.LAST)
-    fun onMotdConfiguration(motdConfigurationEvent: MotdConfigurationEvent) {
-        var motd = motdConfigurationEvent.pingConfiguration.messageOfTheDay
+    fun onMotdConfiguration(event: MotdConfigurationEvent) {
+        val pingConfiguration = event.pingConfiguration
+        var motd = pingConfiguration.messageOfTheDay
 
         val showMaxPlayers = this.plugin.proxyServer.configuration.showMaxPlayers
         val onlinePlayers = this.plugin.proxyServer.allPlayers.size
@@ -20,6 +21,18 @@ class MotdConfigurationListener(
         motd = motd.replaceText(TextReplacementConfig.builder().match("%ONLINE_PLAYERS%").replacement("$onlinePlayers").build())
         motd = motd.replaceText(TextReplacementConfig.builder().match("%MAX_PLAYERS%").replacement("$showMaxPlayers").build())
 
-        motdConfigurationEvent.pingConfiguration.messageOfTheDay = motd
+        pingConfiguration.messageOfTheDay = motd
+
+        val playerInfo = pingConfiguration.playerInfo
+        pingConfiguration.playerInfo = playerInfo.map { replace(it) }
+
+        pingConfiguration.versionName = replace(pingConfiguration.versionName)
+
+        event.pingConfiguration = pingConfiguration
+    }
+
+    private fun replace(content: String): String {
+        return content.replace("%ONLINE_PLAYERS%", this.plugin.proxyServer.allPlayers.size.toString())
+            .replace("%MAX_PLAYERS%", this.plugin.proxyServer.configuration.showMaxPlayers.toString())
     }
 }
