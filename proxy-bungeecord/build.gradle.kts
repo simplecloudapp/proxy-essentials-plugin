@@ -4,6 +4,6 @@ dependencies {
     compileOnly(rootProject.libs.bungeecordApi)
 
     implementation(rootProject.libs.adventureLegacySerializer)
-    implementation(rootProject.libs.adventureApi)
+    implementation(rootProject.libs.adventureMinimessage)
     implementation(rootProject.libs.adventureBungeecordPlatform)
 }

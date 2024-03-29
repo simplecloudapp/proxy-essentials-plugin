@@ -20,17 +20,17 @@ This proxy plugin provides a variety of features for MOTD and TabList in your se
 - Animated header and footer.
 - Ability to set tab lists based on server names or groups.
 - Usage of Adventure Minimessage format.
-- Standard placeholders: `%ONLINE_PLAYERS%`, `%MAX_PLAYERS%`, and `%SERVICE_NAME%`.
+- Standard placeholders: `%ONLINE_PLAYERS%`, `%MAX_PLAYERS%`, `%SERVICE_NAME%`, `%CURRENT_TIME%`, `%CURRENT_DATE%` and `%PING%`.
 
 ## Configuration
 
-The plugin is configured via the files `motd-configuration.yml` and `tablist-configuration.yml`. In these files you will find all the options for customizing MOTD and TabList.
+The plugin is configured via the files `motd.yml` and `tablist.yml`. In these files you will find all the options for customizing MOTD and TabList.
 
 ## Plugin API
 
 The plugin provides an API for other plugins to interact with the MOTD and TabList. The API is available for both BungeeCord/Waterfall and Velocity.
 
-You can use the event `ProxyPingConfigurationEvent` or `TabListConfigurationEvent` to update the MOTD or TabList. The event contains the configuration object that you can modify.
+You can use the event `MotdConfigurationEvent` or `TabListConfigurationEvent` to update the MOTD or TabList. The event contains the configuration object that you can modify.
 In the case of the TabList event, you can edit the header and footer of the TabList. Velocity is used for this example.
 
 ```kotlin
@@ -55,7 +55,7 @@ For more information about the plugin, please visit the project page: <https://w
 1. Download the plugin from the project page: <https://wiki.simplecoud.app/plugin/proxy>.
 2. Copy the file `proxy-velocity.jar` or `proxy-bungeecord.jar` into your proxy's plugin folder.
 3. Restart the proxy.
-4. Edit the files `motd-configuration.yml` and `tablist-configuration.yml` according to your preferences.
+4. Edit the files `motd.yml` and `tablist.yml` according to your preferences.
 5. Restart the proxy again.
 
 ## Supported Platforms:

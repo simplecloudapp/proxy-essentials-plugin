@@ -1,9 +1,9 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
-import app.simplecloud.plugin.proxy.shared.event.ProxyPingConfiguration
+import app.simplecloud.plugin.proxy.shared.event.MotdConfiguration
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
-import app.simplecloud.plugin.proxy.velocity.event.ProxyPingConfigurationEvent
+import app.simplecloud.plugin.proxy.velocity.event.MotdConfigurationEvent
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyPingEvent
 import com.velocitypowered.api.proxy.server.ServerPing
@@ -29,8 +29,8 @@ class ProxyPingListener(
 
         val messageOfTheDay: Component = this.miniMessage.deserialize(firstLine + "\n" + secondLine)
 
-        var proxyPingConfigurationEvent = ProxyPingConfigurationEvent(
-            ProxyPingConfiguration(
+        var proxyPingConfigurationEvent = MotdConfigurationEvent(
+            MotdConfiguration(
                 messageOfTheDay,
                 motdConfiguration.playerInfo,
                 motdConfiguration.versionName,
@@ -64,7 +64,7 @@ class ProxyPingListener(
         val versions: ServerPing.Version = when(motdConfiguration.versionName) {
             "" -> serverPing.version
             else -> ServerPing.Version(
-                serverPing.version.protocol,
+                -1,
                 motdConfiguration.versionName
             )
         }

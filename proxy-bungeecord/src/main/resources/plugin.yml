@@ -1,0 +1,4 @@
+name: SimpleCloud-Proxy
+main: app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
+version: 1.0.0
+author: D151l
