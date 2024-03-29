@@ -1,6 +1,8 @@
 package app.simplecloud.plugin.proxy.bungeecord
 
 import app.simplecloud.plugin.proxy.bungeecord.handler.TabListHandler
+import app.simplecloud.plugin.proxy.bungeecord.listener.MotdConfigurationListener
+import app.simplecloud.plugin.proxy.bungeecord.listener.ProxyPingListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.TabListListener
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.motd.MotdConfiguration
@@ -37,6 +39,8 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.tabListHandler.startTabListTask()
 
         this.proxy.pluginManager.registerListener(this, TabListListener(this))
+        this.proxy.pluginManager.registerListener(this, ProxyPingListener(this))
+        this.proxy.pluginManager.registerListener(this, MotdConfigurationListener(this))
     }
 
     override fun onDisable() {
