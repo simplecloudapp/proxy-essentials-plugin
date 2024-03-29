@@ -4,13 +4,11 @@ import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import app.simplecloud.plugin.proxy.velocity.event.TabListConfigurationEvent
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
-import com.velocitypowered.api.event.player.ServerConnectedEvent
+import com.velocitypowered.api.event.player.ServerPostConnectEvent
 import com.velocitypowered.api.proxy.Player
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextReplacementConfig
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import kotlin.jvm.optionals.getOrNull
@@ -33,7 +31,7 @@ class TabListListener(
     }
 
     @Subscribe(order = PostOrder.LAST)
-    fun onServerConnected(event: ServerConnectedEvent) {
+    fun onServerConnected(event: ServerPostConnectEvent) {
         val player = event.player
         this.plugin.tabListHandler.updateTabListForPlayer(player)
     }
