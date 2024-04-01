@@ -14,6 +14,7 @@ import net.md_5.bungee.api.ServerPing.Protocol
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
+import java.net.InetAddress
 import java.util.*
 
 class ProxyPingListener(
@@ -25,6 +26,12 @@ class ProxyPingListener(
 
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
+        val hostStringFromConnection = event.connection.virtualHost.hostString
+        val hostStringFromServer = InetAddress.getLocalHost().hostName
+
+        if (hostStringFromConnection == hostStringFromServer)
+            return
+
         val response = event.response
 
         val motdConfiguration = this.plugin.motdConfiguration
