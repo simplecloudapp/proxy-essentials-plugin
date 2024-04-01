@@ -10,6 +10,7 @@ import com.velocitypowered.api.proxy.server.ServerPing
 import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
+import java.net.InetAddress
 import java.util.*
 
 class ProxyPingListener(
@@ -20,6 +21,14 @@ class ProxyPingListener(
 
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
+        if (event.connection.virtualHost.isPresent) {
+            val hostStringFromConnection = event.connection.virtualHost.get().hostString
+            val hostStringFromServer = InetAddress.getLocalHost().hostName
+
+            if (hostStringFromConnection == hostStringFromServer)
+                return
+        }
+
         val serverPing = event.ping
 
         val motdConfiguration = this.plugin.motdConfiguration
