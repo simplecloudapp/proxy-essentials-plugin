@@ -7,30 +7,30 @@ import app.simplecloud.plugin.proxy.shared.event.MotdConfiguration
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
-import net.md_5.bungee.api.ServerPing.PlayerInfo
-import net.md_5.bungee.api.ServerPing.Players
-import net.md_5.bungee.api.ServerPing.Protocol
+import net.md_5.bungee.api.ServerPing.*
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import java.net.InetAddress
+import java.net.InetSocketAddress
 import java.util.*
 
 class ProxyPingListener(
     private val plugin: ProxyBungeeCordPlugin
-): Listener {
+) : Listener {
 
     private val miniMessage = MiniMessage.miniMessage()
 
 
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
-        val hostStringFromConnection = event.connection.virtualHost.hostString
-        val hostStringFromServer = InetAddress.getLocalHost().hostName
+        val socketAddress = event.connection.socketAddress as? InetSocketAddress
+        val hostStringFromConnection = socketAddress?.address?.hostName?: ""
+        val hostStringFromServer = InetAddress.getLocalHost().hostAddress
 
-        if (hostStringFromConnection == hostStringFromServer)
+        if (hostStringFromConnection == hostStringFromServer) {
             return
+        }
 
         val response = event.response
 
@@ -56,17 +56,19 @@ class ProxyPingListener(
         response.descriptionComponent = BungeeComponentSerializer.get().serialize(pingConfiguration.messageOfTheDay)[0]
 
         val playerList = pingConfiguration.playerInfo.map { PlayerInfo(it, UUID.randomUUID()) }
-        response.players =  when(pingConfiguration.maxPlayerDisplayType) {
+        response.players = when (pingConfiguration.maxPlayerDisplayType) {
             null -> Players(
                 response.players.max,
                 response.players.online,
                 playerList.toTypedArray().ifEmpty { response.players.sample }
             )
+
             MaxPlayerDisplayType.REAL -> Players(
                 response.players.max,
                 response.players.online,
                 playerList.toTypedArray().ifEmpty { response.players.sample }
             )
+
             else -> Players(
                 response.players.online + pingConfiguration.dynamicPlayerRange,
                 response.players.online,
@@ -74,7 +76,7 @@ class ProxyPingListener(
             )
         }
 
-        response.version = when(pingConfiguration.versionName) {
+        response.version = when (pingConfiguration.versionName) {
             "" -> response.version
             else -> Protocol(
                 pingConfiguration.versionName,

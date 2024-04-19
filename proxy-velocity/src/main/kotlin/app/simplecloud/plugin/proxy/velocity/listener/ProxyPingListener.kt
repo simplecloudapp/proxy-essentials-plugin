@@ -21,12 +21,32 @@ class ProxyPingListener(
 
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
-        if (event.connection.virtualHost.isPresent) {
-            val hostStringFromConnection = event.connection.virtualHost.get().hostString
-            val hostStringFromServer = InetAddress.getLocalHost().hostName
+//        if (event.connection.virtualHost.isPresent) {
+//
+//            println(" ")
+//            println("Rn ${event.connection.remoteAddress.hostName}")
+//            println("Rs ${event.connection.remoteAddress.hostString}")
+//            println("Ra ${event.connection.remoteAddress.address.hostAddress}")
+//            println("Vn ${event.connection.virtualHost.get().hostName}")
+//            println("Vs ${event.connection.virtualHost.get().hostString}")
+//            println("Ln ${InetAddress.getLocalHost().hostName}")
+//            println("La ${InetAddress.getLocalHost().hostAddress}")
+//            println(" ")
+//
+//            val hostStringFromConnection = event.connection.virtualHost.get().hostString
+//            val hostStringFromServer = InetAddress.getLocalHost().hostName
+//
+//            if (hostStringFromConnection == hostStringFromServer)
+//                return
+//        } else {
+//            println("Not present")
+//        }
 
-            if (hostStringFromConnection == hostStringFromServer)
-                return
+        val hostStringFromConnection = event.connection.remoteAddress.address.hostAddress
+        val hostStringFromServer = InetAddress.getLocalHost().hostAddress
+
+        if (hostStringFromConnection == hostStringFromServer) {
+            return
         }
 
         val serverPing = event.ping
