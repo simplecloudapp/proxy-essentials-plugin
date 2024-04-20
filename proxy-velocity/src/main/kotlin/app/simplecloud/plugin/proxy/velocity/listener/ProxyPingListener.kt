@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import java.net.InetAddress
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 class ProxyPingListener(
     private val plugin: ProxyVelocityPlugin
@@ -21,27 +22,6 @@ class ProxyPingListener(
 
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
-//        if (event.connection.virtualHost.isPresent) {
-//
-//            println(" ")
-//            println("Rn ${event.connection.remoteAddress.hostName}")
-//            println("Rs ${event.connection.remoteAddress.hostString}")
-//            println("Ra ${event.connection.remoteAddress.address.hostAddress}")
-//            println("Vn ${event.connection.virtualHost.get().hostName}")
-//            println("Vs ${event.connection.virtualHost.get().hostString}")
-//            println("Ln ${InetAddress.getLocalHost().hostName}")
-//            println("La ${InetAddress.getLocalHost().hostAddress}")
-//            println(" ")
-//
-//            val hostStringFromConnection = event.connection.virtualHost.get().hostString
-//            val hostStringFromServer = InetAddress.getLocalHost().hostName
-//
-//            if (hostStringFromConnection == hostStringFromServer)
-//                return
-//        } else {
-//            println("Not present")
-//        }
-
         val hostStringFromConnection = event.connection.remoteAddress.address.hostAddress
         val hostStringFromServer = InetAddress.getLocalHost().hostAddress
 
@@ -72,23 +52,17 @@ class ProxyPingListener(
         val pingConfiguration = proxyPingConfigurationEvent.pingConfiguration
 
         val playerList = pingConfiguration.playerInfo.map { SamplePlayer(it, UUID.randomUUID()) }
-        val players: ServerPing.Players = when(pingConfiguration.maxPlayerDisplayType) {
-            null -> ServerPing.Players(
-                serverPing.players.get().online,
-                serverPing.players.get().max,
-                playerList.ifEmpty { serverPing.players.get().sample }
-            )
-            MaxPlayerDisplayType.REAL -> ServerPing.Players(
-                serverPing.players.get().online,
-                serverPing.players.get().max,
-                playerList.ifEmpty { serverPing.players.get().sample }
-            )
-            else -> ServerPing.Players(
-                serverPing.players.get().online,
-                serverPing.players.get().online + pingConfiguration.dynamicPlayerRange,
-                playerList.ifEmpty { serverPing.players.get().sample }
-            )
+
+        val players = serverPing.players.getOrNull()
+        val onlinePlayers = players?.online?: 0
+        val realMaxPlayers = players?.max?: 0
+        val maxPlayers = when(pingConfiguration.maxPlayerDisplayType) {
+            MaxPlayerDisplayType.REAL -> realMaxPlayers
+            MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + pingConfiguration.dynamicPlayerRange
+            null -> realMaxPlayers
         }
+
+        val samplePlayers = playerList.ifEmpty { players?.sample?: emptyList() }
 
         val versions: ServerPing.Version = when(motdConfiguration.versionName) {
             "" -> serverPing.version
@@ -98,13 +72,12 @@ class ProxyPingListener(
             )
         }
 
-        val ping = ServerPing(
-            versions,
-            players,
-            pingConfiguration.messageOfTheDay,
-            serverPing.favicon.get()
-        )
-
-        event.ping = ping
+        event.ping = event.ping.asBuilder()
+            .version(versions)
+            .onlinePlayers(onlinePlayers)
+            .maximumPlayers(maxPlayers)
+            .samplePlayers(*samplePlayers.toTypedArray())
+            .description(pingConfiguration.messageOfTheDay)
+            .build()
     }
 }
