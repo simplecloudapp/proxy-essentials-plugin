@@ -3,6 +3,7 @@ package app.simplecloud.plugin.proxy.shared.config
 import org.spongepowered.configurate.CommentedConfigurationNode
 import org.spongepowered.configurate.kotlin.extensions.get
 import org.spongepowered.configurate.kotlin.objectMapperFactory
+import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.io.File
 
@@ -20,6 +21,7 @@ open class YamlConfig(private val dirPath: String) {
         }
         val loader = YamlConfigurationLoader.builder()
             .path(file.toPath())
+            .nodeStyle(NodeStyle.BLOCK)
             .defaultOptions { options ->
                 options.serializers{ builder ->
                     builder.registerAnnotatedObjects(objectMapperFactory())
