@@ -2,18 +2,13 @@ package app.simplecloud.plugin.proxy.velocity.handler
 
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabList
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
-import app.simplecloud.plugin.proxy.shared.event.TabListPlayerConfiguration
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
-import app.simplecloud.plugin.proxy.velocity.event.TabListConfigurationEvent
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.scheduler.ScheduledTask
-import net.kyori.adventure.text.minimessage.MiniMessage
 
 class TabListHandler(
     private val plugin: ProxyVelocityPlugin
 ) {
-
-    private val miniMessage = MiniMessage.miniMessage()
 
     private val tabListIndex = mutableMapOf<String, Int>()
 
@@ -79,22 +74,13 @@ class TabListHandler(
 
         val tabList = tabListGroup.tabLists[tabListIndex.getOrDefault(tabListGroup.groupOrService, 0)]
 
-        val header = this.miniMessage.deserialize(tabList.header.joinToString("<newline>"))
-        val footer = this.miniMessage.deserialize(tabList.footer.joinToString("<newline>"))
-
-        val tabListPlayerConfiguration = this.plugin.proxyServer.eventManager.fire(
-            TabListConfigurationEvent(
-                TabListPlayerConfiguration(
-                    header,
-                    footer
-                ), player
-            )
-        ).join().tabListConfiguration
-
+        val header = (tabList.header.joinToString("<newline>"))
+        val footer = (tabList.footer.joinToString("<newline>"))
 
         player.sendPlayerListHeaderAndFooter(
-            tabListPlayerConfiguration.header,
-            tabListPlayerConfiguration.footer
+            this.plugin.deserializeToComponent(header, player),
+            this.plugin.deserializeToComponent(footer, player),
         )
     }
+
 }
