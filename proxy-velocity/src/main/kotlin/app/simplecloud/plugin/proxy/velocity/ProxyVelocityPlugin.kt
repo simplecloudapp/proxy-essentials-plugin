@@ -57,6 +57,7 @@ class ProxyVelocityPlugin @Inject constructor(
 
     fun deserializeToComponent(text: String, player: Player? = null): Component {
         val configureTagResolversEvent = this.proxyServer.eventManager.fire(ConfigureTagResolversEvent(player)).get()
+        println("ss ${configureTagResolversEvent.tagResolvers.size}")
         return this.miniMessage.deserialize(
             text,
             *configureTagResolversEvent.tagResolvers.toTypedArray()

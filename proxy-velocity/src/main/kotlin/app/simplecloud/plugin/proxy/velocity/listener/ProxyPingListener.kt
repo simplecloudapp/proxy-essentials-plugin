@@ -30,7 +30,7 @@ class ProxyPingListener(
         val firstLine = motdConfiguration.firstLines.random()
         val secondLine = motdConfiguration.secondLines.random()
 
-        val messageOfTheDay = this.plugin.deserializeToComponent("$firstLine \n $secondLine")
+        val messageOfTheDay = this.plugin.deserializeToComponent("$firstLine\n$secondLine")
 
         val playerList = motdConfiguration.playerInfo.map { SamplePlayer(it, UUID.randomUUID()) }
 

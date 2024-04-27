@@ -1,11 +1,8 @@
 package app.simplecloud.plugin.proxy.bungeecord.handler
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
-import app.simplecloud.plugin.proxy.bungeecord.event.TabListConfigurationEvent
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabList
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
-import app.simplecloud.plugin.proxy.shared.event.TabListPlayerConfiguration
-import net.kyori.adventure.text.minimessage.MiniMessage
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.scheduler.ScheduledTask
 import java.util.concurrent.TimeUnit
@@ -14,8 +11,6 @@ import java.util.concurrent.TimeUnit
 class TabListHandler(
     private val plugin: ProxyBungeeCordPlugin
 ) {
-
-    private val miniMessage = MiniMessage.miniMessage()
 
     private val tabListIndex = mutableMapOf<String, Int>()
 
@@ -83,22 +78,13 @@ class TabListHandler(
 
         val tabList = tabListGroup.tabLists[tabListIndex.getOrDefault(tabListGroup.groupOrService, 0)]
 
-        val header = this.miniMessage.deserialize(tabList.header.joinToString("<newline>"))
-        val footer = this.miniMessage.deserialize(tabList.footer.joinToString("<newline>"))
-
-        val tabListPlayerConfiguration = this.plugin.proxy.pluginManager.callEvent(
-            TabListConfigurationEvent(
-                TabListPlayerConfiguration(
-                    header,
-                    footer
-                ), player
-            )
-        ).tabListConfiguration
+        val header = (tabList.header.joinToString("<newline>"))
+        val footer = (tabList.footer.joinToString("<newline>"))
 
         val audience = this.plugin.adventure().player(player)
         audience.sendPlayerListHeaderAndFooter(
-            tabListPlayerConfiguration.header,
-            tabListPlayerConfiguration.footer
+            this.plugin.deserializeToComponent(header, player),
+            this.plugin.deserializeToComponent(footer, player),
         )
     }
 }

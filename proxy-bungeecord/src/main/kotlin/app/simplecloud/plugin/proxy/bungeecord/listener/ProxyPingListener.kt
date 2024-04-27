@@ -1,7 +1,6 @@
 package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
-import app.simplecloud.plugin.proxy.bungeecord.event.MotdConfigurationEvent
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
 import app.simplecloud.plugin.proxy.shared.event.MotdConfiguration
 import net.kyori.adventure.text.Component
@@ -18,9 +17,6 @@ import java.util.*
 class ProxyPingListener(
     private val plugin: ProxyBungeeCordPlugin
 ) : Listener {
-
-    private val miniMessage = MiniMessage.miniMessage()
-
 
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
@@ -39,24 +35,12 @@ class ProxyPingListener(
         val firstLine = motdConfiguration.firstLines.random()
         val secondLine = motdConfiguration.secondLines.random()
 
-        val messageOfTheDay: Component = this.miniMessage.deserialize(firstLine + "\n" + secondLine)
+        val messageOfTheDay: Component = this.plugin.deserializeToComponent(firstLine + "\n" + secondLine)
 
-        val pingConfiguration = this.plugin.proxy.pluginManager.callEvent(
-            MotdConfigurationEvent(
-                MotdConfiguration(
-                    messageOfTheDay,
-                    motdConfiguration.playerInfo,
-                    motdConfiguration.versionName,
-                    motdConfiguration.maxPlayerDisplayType,
-                    motdConfiguration.dynamicPlayerRange
-                )
-            )
-        ).pingConfiguration
+        response.descriptionComponent = BungeeComponentSerializer.get().serialize(messageOfTheDay)[0]
 
-        response.descriptionComponent = BungeeComponentSerializer.get().serialize(pingConfiguration.messageOfTheDay)[0]
-
-        val playerList = pingConfiguration.playerInfo.map { PlayerInfo(it, UUID.randomUUID()) }
-        response.players = when (pingConfiguration.maxPlayerDisplayType) {
+        val playerList = motdConfiguration.playerInfo.map { PlayerInfo(it, UUID.randomUUID()) }
+        response.players = when (motdConfiguration.maxPlayerDisplayType) {
             null -> Players(
                 response.players.max,
                 response.players.online,
@@ -70,18 +54,19 @@ class ProxyPingListener(
             )
 
             else -> Players(
-                response.players.online + pingConfiguration.dynamicPlayerRange,
+                response.players.online + motdConfiguration.dynamicPlayerRange,
                 response.players.online,
                 playerList.toTypedArray().ifEmpty { response.players.sample }
             )
         }
 
-        response.version = when (pingConfiguration.versionName) {
+        response.version = when (motdConfiguration.versionName) {
             "" -> response.version
             else -> Protocol(
-                pingConfiguration.versionName,
+                motdConfiguration.versionName,
                 -1
             )
         }
     }
+
 }

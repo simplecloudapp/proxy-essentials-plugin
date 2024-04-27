@@ -10,5 +10,4 @@ data class MotdConfiguration(
     val versionName: String = "",
     val maxPlayerDisplayType: MaxPlayerDisplayType? = MaxPlayerDisplayType.REAL,
     val dynamicPlayerRange: Int = 1
-) {
-}
+)
