@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.config.motd
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
+import java.awt.image.BufferedImage
 
 @ConfigSerializable
 data class MotdLayoutConfiguration(
@@ -8,6 +9,7 @@ data class MotdLayoutConfiguration(
     val secondLines: List<String> = listOf("<dark_gray>× <#178fff>Status<dark_gray>: <bold><#22cc22>Online</bold> <dark_gray>- <#ffffff>%PROXY%"),
     val playerInfo: List<String> = listOf(),
     val versionName: String = "",
+    var serverIcon: String = "server-icon.png",
     val maxPlayerDisplayType: MaxPlayerDisplayType? = MaxPlayerDisplayType.REAL,
     val dynamicPlayerRange: Int = 1
 )

@@ -3,7 +3,12 @@ package app.simplecloud.plugin.proxy.shared.handler
 import app.simplecloud.plugin.proxy.shared.config.GeneralConfig
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.motd.MotdLayoutConfiguration
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.util.*
+import javax.imageio.ImageIO
+
 
 class MotdLayoutHandler(
     val yamlConfig: YamlConfig,
@@ -24,6 +29,7 @@ class MotdLayoutHandler(
             val name = it.nameWithoutExtension
             val motdLayout = yamlConfig.load<MotdLayoutConfiguration>("layout/$name")
             if (motdLayout != null) {
+                //motdLayout.serverIcon = convirtImageFileToBase64Url(File(motdLayout.serverIcon))
                 loadedMotdLayouts[name] = motdLayout
                 println("Loaded motd layout: $name")
             }
@@ -53,4 +59,19 @@ class MotdLayoutHandler(
         generalConfig.currentLayout = name
         yamlConfig.save("general", generalConfig)
     }
+
+    /*fun convirtImageFileToBase64Url(imageFile: File): String {
+        /*if (!imageFile.exists()) {
+            println("Image file not found: ${imageFile.absolutePath}")
+            return ""
+        }
+
+        val serverIcon: BufferedImage = ImageIO.read(imageFile)
+        val outputStream = ByteArrayOutputStream()
+        ImageIO.write(serverIcon, "png", outputStream)
+        val iconBytes = outputStream.toByteArray()
+        return Base64.getEncoder().encodeToString(iconBytes)
+         */
+        return imageFile.name
+    }*/
 }

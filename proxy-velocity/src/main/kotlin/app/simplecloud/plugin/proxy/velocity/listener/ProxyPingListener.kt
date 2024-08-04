@@ -6,9 +6,15 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyPingEvent
 import com.velocitypowered.api.proxy.server.ServerPing
 import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer
+import com.velocitypowered.api.util.Favicon
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import java.io.File
 import java.net.InetAddress
 import java.util.*
+import javax.imageio.ImageIO
 import kotlin.jvm.optionals.getOrNull
+
 
 class ProxyPingListener(
     private val plugin: ProxyVelocityPlugin
@@ -53,12 +59,20 @@ class ProxyPingListener(
             )
         }
 
+        val favicon = if (motdConfiguration.serverIcon == "") {
+            serverPing.favicon.orElse(null)
+        } else {
+            val serverIcon: BufferedImage = ImageIO.read(File(motdConfiguration.serverIcon))
+            Favicon.create(serverIcon)
+        }
+
         event.ping = event.ping.asBuilder()
             .version(versions)
             .onlinePlayers(onlinePlayers)
             .maximumPlayers(maxPlayers)
             .samplePlayers(*samplePlayers.toTypedArray())
             .description(messageOfTheDay)
+            .favicon(favicon)
             .build()
     }
 
