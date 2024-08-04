@@ -29,7 +29,7 @@ class ConfigureTagResolversListener(
                 pingColors,
                 onlinePlayers,
                 realMaxPlayers,
-                this.plugin.motdConfiguration
+                this.plugin.motdLayoutHandler.getCurrentMotdLayout()
             )
         )
     }

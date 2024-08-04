@@ -5,10 +5,12 @@ import app.simplecloud.plugin.proxy.bungeecord.handler.TabListHandler
 import app.simplecloud.plugin.proxy.bungeecord.listener.ConfigureTagResolversListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.ProxyPingListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.TabListListener
+import app.simplecloud.plugin.proxy.shared.config.GeneralConfig
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
-import app.simplecloud.plugin.proxy.shared.config.motd.MotdConfiguration
+import app.simplecloud.plugin.proxy.shared.config.motd.MotdLayoutConfiguration
 import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
+import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -18,11 +20,13 @@ import net.md_5.bungee.api.plugin.Plugin
 
 class ProxyBungeeCordPlugin: Plugin() {
 
-    lateinit var motdConfiguration: MotdConfiguration
+    lateinit var generalConfiguration: GeneralConfig
     lateinit var tabListConfiguration: TabListConfiguration
     lateinit var placeHolderConfiguration: PlaceHolderConfiguration
 
+    val config = YamlConfig(this.dataFolder.path)
     val tabListHandler = TabListHandler(this)
+    val motdLayoutHandler = MotdLayoutHandler(config, generalConfiguration)
 
     private var adventure: BungeeAudiences? = null
 
@@ -31,14 +35,16 @@ class ProxyBungeeCordPlugin: Plugin() {
     override fun onEnable() {
         val config = YamlConfig(this.dataFolder.path)
 
-        this.motdConfiguration = config.load<MotdConfiguration>("motd")!!
-        config.save("motd", this.motdConfiguration)
+        this.generalConfiguration = config.load<GeneralConfig>("general")!!
+        config.save("general", this.generalConfiguration)
 
         this.tabListConfiguration = config.load<TabListConfiguration>("tablist")!!
         config.save("tablist", this.tabListConfiguration)
 
         this.placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder")!!
         config.save("placeholder", this.placeHolderConfiguration)
+
+        this.motdLayoutHandler.loadMotdLayouts()
 
         this.adventure = BungeeAudiences.create(this);
 

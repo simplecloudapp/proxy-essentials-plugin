@@ -25,7 +25,7 @@ class ProxyPingListener(
 
         val serverPing = event.ping
 
-        val motdConfiguration = this.plugin.motdConfiguration
+        val motdConfiguration = this.plugin.motdLayoutHandler.getCurrentMotdLayout()
 
         val firstLine = motdConfiguration.firstLines.random()
         val secondLine = motdConfiguration.secondLines.random()

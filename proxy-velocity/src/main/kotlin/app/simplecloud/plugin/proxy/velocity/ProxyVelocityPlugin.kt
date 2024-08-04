@@ -1,9 +1,11 @@
 package app.simplecloud.plugin.proxy.velocity
 
+import app.simplecloud.plugin.proxy.shared.config.GeneralConfig
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
-import app.simplecloud.plugin.proxy.shared.config.motd.MotdConfiguration
+import app.simplecloud.plugin.proxy.shared.config.motd.MotdLayoutConfiguration
 import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
+import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
 import app.simplecloud.plugin.proxy.velocity.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
 import app.simplecloud.plugin.proxy.velocity.listener.ConfigureTagResolversListener
@@ -30,17 +32,20 @@ class ProxyVelocityPlugin @Inject constructor(
     val tabListHandler = TabListHandler(this)
 
     private val config = YamlConfig(this.dataDirectory.pathString)
-    val motdConfiguration = config.load<MotdConfiguration>("motd")!!
     val tabListConfiguration = config.load<TabListConfiguration>("tablist")!!
     val placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder")!!
+    val generalConfig = config.load<GeneralConfig>("general")!!
+    val motdLayoutHandler = MotdLayoutHandler(config, generalConfig)
 
     private val miniMessage = MiniMessage.miniMessage()
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
-        config.save("motd", this.motdConfiguration)
         config.save("tablist", this.tabListConfiguration)
         config.save("placeholder", this.placeHolderConfiguration)
+        config.save("general", this.generalConfig)
+
+        this.motdLayoutHandler.loadMotdLayouts()
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(this))
         this.proxyServer.eventManager.register(this, ConfigureTagResolversListener(this))

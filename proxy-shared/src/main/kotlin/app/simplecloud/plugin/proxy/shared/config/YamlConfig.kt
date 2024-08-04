@@ -7,7 +7,7 @@ import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.io.File
 
-open class YamlConfig(private val dirPath: String) {
+open class YamlConfig(val dirPath: String) {
 
     inline fun <reified T> load(): T? {
         return load(null)

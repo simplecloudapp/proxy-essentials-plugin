@@ -1,7 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.resolver
 
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
-import app.simplecloud.plugin.proxy.shared.config.motd.MotdConfiguration
+import app.simplecloud.plugin.proxy.shared.config.motd.MotdLayoutConfiguration
 import app.simplecloud.plugin.proxy.shared.config.placeholder.PingColor
 import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.tag.Tag
@@ -21,7 +21,7 @@ object TagResolverHelper {
         pingColors: List<PingColor>,
         onlinePlayers: Int,
         realMaxPlayers: Int,
-        motdConfiguration: MotdConfiguration
+        motdConfiguration: MotdLayoutConfiguration
     ): List<TagResolver> {
         return listOf(
             Placeholder.unparsed(TagResolverNames.SERVER_NAME, serverName),
@@ -46,7 +46,7 @@ object TagResolverHelper {
     fun getMaxPlayersTagResolver(
         onlinePlayers: Int,
         realMaxPlayers: Int,
-        motdConfiguration: MotdConfiguration
+        motdConfiguration: MotdLayoutConfiguration
     ): TagResolver {
         val maxPlayers = when (motdConfiguration.maxPlayerDisplayType) {
             MaxPlayerDisplayType.REAL -> realMaxPlayers
