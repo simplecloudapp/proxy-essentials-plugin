@@ -28,8 +28,10 @@ class TabListHandler(
     }
 
     fun stopTabListTask() {
-        if (!this::task.isInitialized)
+        if (!this::task.isInitialized) {
+            println("Can't stop tablist task because it is not initialized")
             return
+        }
 
         this.task.cancel()
     }
