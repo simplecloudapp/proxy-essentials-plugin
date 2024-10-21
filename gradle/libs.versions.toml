@@ -1,26 +1,30 @@
 [versions]
-kotlin = "1.8.0"
-shadow = "8.1.1"
-velocity = "3.1.1"
-bungeecord = "1.19-R0.1-SNAPSHOT"
+kotlin = "2.0.20"
+shadow = "8.3.3"
+velocity = "3.4.0-SNAPSHOT"
+bungeecord = "1.20-R0.1-SNAPSHOT"
 adventure = "4.16.0"
-adventurelatform = "4.3.2"
+adventure-platform = "4.3.2"
 gson = "2.10.1"
-configurateYaml = "4.0.0"
-configurateKotlin = "4.1.2"
+configurate-yaml = "4.0.0"
+configurate-kotlin = "4.1.2"
+simplecloud-event-wrapper = "0.0.1-dev.950792a"
 
 [libraries]
-kotlinJvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
-kotlinTest = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-velocityApi = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
-bungeecordApi = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord" }
-adventureLegacySerializer = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure" }
-adventureMinimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
-adventureBungeecordPlatform = { module = "net.kyori:adventure-platform-bungeecord", version.ref = "adventurelatform" }
+kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+velocity = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
+bungeecord = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord" }
+adventure-legacy-serializer = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure" }
+adventure-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
+adventure-bungeecord-platform = { module = "net.kyori:adventure-platform-bungeecord", version.ref = "adventure-platform" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
-configurateYaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurateYaml" }
-configurateKotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurateKotlin" }
+configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate-yaml" }
+configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate-kotlin" }
+
+simplecloud-event-wrapper-velocity = { module = "app.simplecloud.event:event-wrapper-velocity", version.ref = "simplecloud-event-wrapper" }
+simplecloud-event-wrapper-bungeecord = { module = "app.simplecloud.event:event-wrapper-bungeecord", version.ref = "simplecloud-event-wrapper" }
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-shadow = { id = "com.github.johnrengelman.shadow", version.ref = "shadow" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

@@ -1,8 +1,8 @@
 dependencies {
     compileOnly(rootProject.libs.gson)
 
-    compileOnly(rootProject.libs.adventureMinimessage)
+    compileOnly(rootProject.libs.adventure.minimessage)
 
-    implementation(rootProject.libs.configurateYaml)
-    implementation(rootProject.libs.configurateKotlin)
+    implementation(rootProject.libs.configurate.yaml)
+    implementation(rootProject.libs.configurate.kotlin)
 }
