@@ -7,8 +7,7 @@ dependencies {
 
     compileOnly(rootProject.libs.velocity)
     annotationProcessor(rootProject.libs.velocity)
-}
 
-tasks.named("shadowJar", ShadowJar::class) {
-    //relocate("kotlin.", "app.simplecloud.plugin.libs.kotlin.")
+    compileOnly(rootProject.libs.simplecloud.event.wrapper.velocity)
+    compileOnly(rootProject.libs.simplecloud.controller)
 }

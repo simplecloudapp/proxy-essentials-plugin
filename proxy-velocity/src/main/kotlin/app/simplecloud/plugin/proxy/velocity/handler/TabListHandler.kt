@@ -15,14 +15,14 @@ class TabListHandler(
     private lateinit var task: ScheduledTask
 
     fun startTabListTask() {
-        this.task = this.plugin.proxyServer.scheduler.buildTask(plugin) {
+        this.task = this.plugin.proxyServer.scheduler.buildTask(plugin, Runnable {
             this.plugin.proxyServer.allPlayers.forEach {
                 this.updateTabListForPlayer(it)
             }
             this.tabListIndex.forEach { (key, value) ->
                 this.tabListIndex[key] = value + 1
             }
-        }.repeat(this.plugin.tabListConfiguration.tabListUpdateTime, java.util.concurrent.TimeUnit.MILLISECONDS).schedule()
+        }).repeat(this.plugin.tabListConfiguration.tabListUpdateTime, java.util.concurrent.TimeUnit.MILLISECONDS).schedule()
     }
 
     fun stopTabListTask() {

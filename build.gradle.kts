@@ -22,6 +22,8 @@ subprojects {
 
     repositories {
         mavenCentral()
+        maven("https://buf.build/gen/maven")
+
         maven {
             name = "papermc"
             url = uri("https://repo.papermc.io/repository/maven-public/")
@@ -38,14 +40,18 @@ subprojects {
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
         implementation(rootProject.libs.kotlin.jvm)
+        implementation(rootProject.libs.kotlin.coroutines)
+    }
+
+    java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     }
 
     kotlin {
-        jvmToolchain(17)
-    }
-
-    tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+        jvmToolchain(21)
+        compilerOptions {
+            apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        }
     }
 
     tasks.named("shadowJar", ShadowJar::class) {

@@ -5,7 +5,6 @@ import app.simplecloud.plugin.proxy.bungeecord.handler.TabListHandler
 import app.simplecloud.plugin.proxy.bungeecord.listener.ConfigureTagResolversListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.ProxyPingListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.TabListListener
-import app.simplecloud.plugin.proxy.shared.config.GeneralConfig
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration

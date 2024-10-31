@@ -5,4 +5,6 @@ dependencies {
 
     implementation(rootProject.libs.configurate.yaml)
     implementation(rootProject.libs.configurate.kotlin)
+
+    compileOnly(rootProject.libs.simplecloud.controller)
 }
