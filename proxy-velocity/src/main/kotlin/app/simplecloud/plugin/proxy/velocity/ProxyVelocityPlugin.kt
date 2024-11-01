@@ -11,6 +11,7 @@ import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
 import app.simplecloud.plugin.proxy.velocity.listener.CloudListener
 import app.simplecloud.plugin.proxy.velocity.listener.ConfigureTagResolversListener
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingListener
+import app.simplecloud.plugin.proxy.velocity.listener.ServerPreConnectListener
 import com.google.inject.Inject
 import com.velocitypowered.api.command.RawCommand
 import com.velocitypowered.api.command.SimpleCommand
@@ -42,12 +43,14 @@ class ProxyVelocityPlugin @Inject constructor(
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         config.save("tablist", this.tabListConfiguration)
         config.save("placeholder", this.placeHolderConfiguration)
+        config.save("messages", this.messagesConfiguration)
 
         this.motdLayoutHandler.loadMotdLayouts()
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(this))
         this.proxyServer.eventManager.register(this, ConfigureTagResolversListener(this))
         this.proxyServer.eventManager.register(this, CloudListener(this))
+        this.proxyServer.eventManager.register(this, ServerPreConnectListener(this))
 
         if (this.tabListConfiguration.tabListUpdateTime > 0)
             this.tabListHandler.startTabListTask()

@@ -75,6 +75,34 @@ class CloudControllerHandler {
         } ?: logger.warning("Group name is not initialized.")
     }
 
+    suspend fun getOnlinePlayersInGroup(): Int {
+        return groupName?.let {
+            try {
+                controllerApi.getServers().getServersByGroup(it).sumBy { it.playerCount.toInt() }
+            } catch (e: Exception) {
+                logger.severe("Error retrieving online players in group: ${e.message}")
+                0
+            }
+        } ?: run {
+            logger.warning("Group name is not initialized.")
+            0
+        }
+    }
+
+    suspend fun getMaxPlayersInGroup(): Int {
+        return groupName?.let {
+            try {
+                controllerApi.getGroups().getGroupByName(it).maxPlayers.toInt()
+            } catch (e: Exception) {
+                logger.severe("Error retrieving max players in group: ${e.message}")
+                0
+            }
+        } ?: run {
+            logger.warning("Group name is not initialized.")
+            0
+        }
+    }
+
     private suspend fun retrievePropertyOrEmpty(retrieve: suspend () -> String?): String {
         return try {
             retrieve() ?: ""
