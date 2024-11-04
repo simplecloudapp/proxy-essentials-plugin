@@ -62,6 +62,19 @@ class CloudControllerHandler {
         }
     }
 
+    suspend fun setServicePropertiesOnAllGroupServices(key: String, value: String) {
+        groupName?.let { name ->
+            try {
+                controllerApi.getServers().getServersByGroup(name).forEach { server ->
+                    controllerApi.getServers().updateServerProperty(server.uniqueId, key, value)
+                }
+                logger.info("Service property '$key' updated to '$value' on all services in group '$name'")
+            } catch (e: Exception) {
+                logger.severe("Error updating service properties on all group services: ${e.message}")
+            }
+        } ?: logger.warning("Group name is not initialized.")
+    }
+
     suspend fun setGroupProperties(key: String, value: String) {
         groupName?.let { name ->
             try {

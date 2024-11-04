@@ -10,4 +10,7 @@ dependencies {
 
     compileOnly(rootProject.libs.simplecloud.event.wrapper.velocity)
     compileOnly(rootProject.libs.simplecloud.controller)
+
+    implementation(rootProject.libs.command.cloud.core)
+    implementation(rootProject.libs.command.cloud.velocity)
 }

@@ -18,20 +18,17 @@ class MotdLayoutHandler(
 
     companion object {
         private const val RANDOM_MOTD_KEY = "random-motd-layouts"
-        private const val CURRENT_LAYOUT_KEY = "current-motd-layout"
-        private const val CURRENT_MAINTENANCE_LAYOUT_KEY = "current-maintenance-layout"
-        private const val DEFAULT_LAYOUT_NAME = "default-motd"
-        private const val DEFAULT_MAINTENANCE_LAYOUT_NAME = "default-maintenance-motd"
+        var CURRENT_LAYOUT_KEY = "current-motd-layout"
+        var CURRENT_MAINTENANCE_LAYOUT_KEY = "current-maintenance-layout"
+        const val DEFAULT_LAYOUT_NAME = "default-motd"
+        const val DEFAULT_MAINTENANCE_LAYOUT_NAME = "default-maintenance-motd"
     }
 
     fun loadMotdLayouts() {
         loadedMotdLayouts.clear()
         initializeLayoutDirectory()
-
         loadLayoutsFromDirectory()
-
         createDefaultLayoutsIfEmpty()
-
         initializeCloudProperties()
     }
 
@@ -55,7 +52,6 @@ class MotdLayoutHandler(
         if (getAllNoneMaintenanceLayouts().isEmpty()) {
             createAndSaveDefaultLayout(DEFAULT_LAYOUT_NAME)
         }
-
         if (getAllMaintenanceLayouts().isEmpty()) {
             createAndSaveDefaultLayout(DEFAULT_MAINTENANCE_LAYOUT_NAME)
         }
@@ -73,21 +69,18 @@ class MotdLayoutHandler(
             if (getServiceProperties(RANDOM_MOTD_KEY).isEmpty()) {
                 setServiceProperties(RANDOM_MOTD_KEY, "false")
                 setGroupProperties(RANDOM_MOTD_KEY, "false")
-
                 logger.info("No random MOTD layout key found in service properties, setting to false.")
             }
 
             if (getServiceProperties(CURRENT_LAYOUT_KEY).isEmpty()) {
                 setServiceProperties(CURRENT_LAYOUT_KEY, getAllNoneMaintenanceLayouts().first())
                 setGroupProperties(CURRENT_LAYOUT_KEY, getAllNoneMaintenanceLayouts().first())
-
                 logger.info("No current MOTD layout key found in service properties, setting to first layout.")
             }
 
             if (getServiceProperties(CURRENT_MAINTENANCE_LAYOUT_KEY).isEmpty()) {
                 setServiceProperties(CURRENT_MAINTENANCE_LAYOUT_KEY, getAllMaintenanceLayouts().first())
                 setGroupProperties(CURRENT_MAINTENANCE_LAYOUT_KEY, getAllMaintenanceLayouts().first())
-
                 logger.info("No current maintenance MOTD layout key found in service properties, setting to first layout.")
             }
         }
@@ -95,6 +88,22 @@ class MotdLayoutHandler(
 
     fun getMotdLayout(name: String): MotdLayoutConfiguration =
         loadedMotdLayouts[name] ?: MotdLayoutConfiguration()
+
+    suspend fun getMaintenanceLayout(): MotdLayoutConfiguration {
+        val maintenanceLayoutName = cloudControllerHandler.getServiceProperties(CURRENT_MAINTENANCE_LAYOUT_KEY).ifEmpty {
+            logger.warning("No current maintenance layout found, using default maintenance layout as fallback.")
+            DEFAULT_MAINTENANCE_LAYOUT_NAME
+        }
+        return getMotdLayout(maintenanceLayoutName)
+    }
+
+    suspend fun getNonMaintenanceLayout(): MotdLayoutConfiguration {
+        val nonMaintenanceLayoutName = cloudControllerHandler.getServiceProperties(CURRENT_LAYOUT_KEY).ifEmpty {
+            logger.warning("No current non-maintenance layout found, using default layout as fallback.")
+            DEFAULT_LAYOUT_NAME
+        }
+        return getMotdLayout(nonMaintenanceLayoutName)
+    }
 
     suspend fun getCurrentMotdLayout(): MotdLayoutConfiguration {
         val layouts = if (proxyPlugin.maintenance) getAllMaintenanceLayouts() else getAllNoneMaintenanceLayouts()

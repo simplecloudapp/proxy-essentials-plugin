@@ -5,4 +5,5 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 @ConfigSerializable
 data class MessageConfig(
     var kickMessage: KickMessageConfig = KickMessageConfig(),
+    var commandMessage: CommandMessageConfig = CommandMessageConfig()
 )

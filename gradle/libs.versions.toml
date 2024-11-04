@@ -11,11 +11,18 @@ configurate-yaml = "4.0.0"
 configurate-kotlin = "4.1.2"
 simplecloud-event-wrapper = "0.0.1-dev.950792a"
 simplecloud-controller = "0.0.30-dev.bf5da83"
+command-cloud-core = "2.0.0"
+command-cloud-velocity = "2.0.0-beta.10"
+command-cloud-bungeecord = "2.0.0-beta.10"
 
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+
+command-cloud-core = { module = "org.incendo:cloud-core", version.ref = "command-cloud-core" }
+command-cloud-velocity = { module = "org.incendo:cloud-velocity", version.ref = "command-cloud-velocity" }
+command-cloud-bungeecord = { module = "org.incendo:cloud-bungee", version.ref = "command-cloud-bungeecord" }
 
 velocity = { module = "com.velocitypowered:velocity-api", version.ref = "velocity" }
 bungeecord = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord" }
