@@ -5,8 +5,8 @@ import java.awt.image.BufferedImage
 
 @ConfigSerializable
 data class MotdLayoutConfiguration(
-    val firstLines: List<String> = listOf("<gradient:#00fcff:#0da1a3><bold>SimpleCloud</bold></gradient> <dark_gray>»<gray> Simplify your network <dark_gray>|<bold><#4595ff> 1.12<#545454> - <#4595ff>1.20</bold>"),
-    val secondLines: List<String> = listOf("<dark_gray>× <#178fff>Status<dark_gray>: <bold><#22cc22>Online</bold> <dark_gray>- <#ffffff>%PROXY%"),
+    val firstLines: List<String> = listOf("<color:#0ea5e9>A simplecloud.app network"),
+    val secondLines: List<String> = listOf("<color:#a3e635>● <color:#1e293b>▍ <color:#94a3b8>ʀᴇᴀᴅ <color:#cbd5e1>ᴅᴏᴄs.sɪᴍᴘʟᴇᴄʟᴏᴜᴅ.ᴀᴘᴘ</color> ᴛᴏ ᴄᴏɴғɪɢᴜʀᴇ</color>"),
     val playerInfo: List<String> = listOf(),
     val versionName: String = "",
     var serverIcon: String = "server-icon.png",
