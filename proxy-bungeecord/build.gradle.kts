@@ -8,4 +8,7 @@ dependencies {
     implementation(rootProject.libs.adventure.bungeecord.platform)
 
     compileOnly(rootProject.libs.simplecloud.event.wrapper.bungeecord)
+
+    implementation(rootProject.libs.command.cloud.core)
+    implementation(rootProject.libs.command.cloud.bungeecord)
 }

@@ -7,7 +7,6 @@ import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.scheduler.ScheduledTask
 import java.util.concurrent.TimeUnit
 
-
 class TabListHandler(
     private val plugin: ProxyBungeeCordPlugin
 ) {
@@ -24,7 +23,7 @@ class TabListHandler(
             this.tabListIndex.forEach { (key, value) ->
                 this.tabListIndex[key] = value + 1
             }
-        }, 1, this.plugin.tabListConfiguration.tabListUpdateTime, TimeUnit.MILLISECONDS)
+        }, 1, this.plugin.proxyPlugin.tabListConfiguration.tabListUpdateTime, TimeUnit.MILLISECONDS)
     }
 
     fun stopTabListTask() {
@@ -37,7 +36,7 @@ class TabListHandler(
     }
 
     fun updateTabListForPlayer(player: ProxiedPlayer) {
-        val configuration = plugin.tabListConfiguration
+        val configuration = plugin.proxyPlugin.tabListConfiguration
 
         val serviceName = player.server.info.name
 
