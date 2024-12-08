@@ -24,13 +24,6 @@ class ProxyPingListener(
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
         runBlocking {
-            val hostStringFromConnection = event.connection.remoteAddress.address.hostAddress
-            val hostStringFromServer = InetAddress.getLocalHost().hostAddress
-
-            if (hostStringFromConnection == hostStringFromServer) {
-                return@runBlocking
-            }
-
             val serverPing = event.ping
 
             val motdConfiguration = plugin.motdLayoutHandler.getCurrentMotdLayout()
@@ -40,25 +33,35 @@ class ProxyPingListener(
 
             val messageOfTheDay = plugin.deserializeToComponent("$firstLine\n$secondLine")
 
-            val playerList = motdConfiguration.playerInfo.map { SamplePlayer(it, UUID.randomUUID()) }
+            val hostStringFromConnection = event.connection.remoteAddress.address.hostAddress
+            val hostStringFromServer = InetAddress.getLocalHost().hostAddress
 
-            val players = serverPing.players.getOrNull()
-            val onlinePlayers = players?.online ?: 0
-            val realMaxPlayers = players?.max ?: 0
-            val maxPlayers = when (motdConfiguration.maxPlayerDisplayType) {
-                MaxPlayerDisplayType.REAL -> realMaxPlayers
-                MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + motdConfiguration.dynamicPlayerRange
-                null -> realMaxPlayers
-            }
+            var versions = serverPing.version
+            var onlinePlayers = serverPing.players.getOrNull()?.online ?: 0
+            var maxPlayers = serverPing.players.getOrNull()?.max ?: 0
+            var samplePlayers = serverPing.players.getOrNull()?.sample ?: emptyList()
 
-            val samplePlayers = playerList.ifEmpty { players?.sample ?: emptyList() }
+            if (hostStringFromConnection != hostStringFromServer) {
+                val playerList = motdConfiguration.playerInfo.map { SamplePlayer(it, UUID.randomUUID()) }
 
-            val versions: ServerPing.Version = when (motdConfiguration.versionName) {
-                "" -> serverPing.version
-                else -> ServerPing.Version(
-                    -1,
-                    motdConfiguration.versionName
-                )
+                val players = serverPing.players.getOrNull()
+                onlinePlayers = players?.online ?: 0
+                val realMaxPlayers = players?.max ?: 0
+                maxPlayers = when (motdConfiguration.maxPlayerDisplayType) {
+                    MaxPlayerDisplayType.REAL -> realMaxPlayers
+                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + motdConfiguration.dynamicPlayerRange
+                    null -> realMaxPlayers
+                }
+
+                samplePlayers = playerList.ifEmpty { players?.sample ?: emptyList() }
+
+                versions = when (motdConfiguration.versionName) {
+                    "" -> serverPing.version
+                    else -> ServerPing.Version(
+                        -1,
+                        motdConfiguration.versionName
+                    )
+                }
             }
 
             val favicon = if (motdConfiguration.serverIcon == "") {

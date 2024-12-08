@@ -23,13 +23,6 @@ class ProxyPingListener(
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
         runBlocking {
-            val socketAddress = event.connection.socketAddress as? InetSocketAddress
-            val hostStringFromConnection = socketAddress?.address?.hostName ?: ""
-            val hostStringFromServer = InetAddress.getLocalHost().hostAddress
-
-            if (hostStringFromConnection == hostStringFromServer) {
-                return@runBlocking
-            }
 
             val response = event.response
 
@@ -42,33 +35,39 @@ class ProxyPingListener(
 
             response.descriptionComponent = BungeeComponentSerializer.get().serialize(messageOfTheDay)[0]
 
-            val playerList = motdConfiguration.playerInfo.map { PlayerInfo(it, UUID.randomUUID()) }
-            response.players = when (motdConfiguration.maxPlayerDisplayType) {
-                null -> Players(
-                    response.players.max,
-                    response.players.online,
-                    playerList.toTypedArray().ifEmpty { response.players.sample }
-                )
+            val socketAddress = event.connection.socketAddress as? InetSocketAddress
+            val hostStringFromConnection = socketAddress?.address?.hostName ?: ""
+            val hostStringFromServer = InetAddress.getLocalHost().hostAddress
 
-                MaxPlayerDisplayType.REAL -> Players(
-                    response.players.max,
-                    response.players.online,
-                    playerList.toTypedArray().ifEmpty { response.players.sample }
-                )
+            if (hostStringFromConnection != hostStringFromServer) {
+                val playerList = motdConfiguration.playerInfo.map { PlayerInfo(it, UUID.randomUUID()) }
+                response.players = when (motdConfiguration.maxPlayerDisplayType) {
+                    null -> Players(
+                        response.players.max,
+                        response.players.online,
+                        playerList.toTypedArray().ifEmpty { response.players.sample }
+                    )
 
-                else -> Players(
-                    response.players.online + motdConfiguration.dynamicPlayerRange,
-                    response.players.online,
-                    playerList.toTypedArray().ifEmpty { response.players.sample }
-                )
-            }
+                    MaxPlayerDisplayType.REAL -> Players(
+                        response.players.max,
+                        response.players.online,
+                        playerList.toTypedArray().ifEmpty { response.players.sample }
+                    )
 
-            response.version = when (motdConfiguration.versionName) {
-                "" -> response.version
-                else -> Protocol(
-                    motdConfiguration.versionName,
-                    -1
-                )
+                    else -> Players(
+                        response.players.online + motdConfiguration.dynamicPlayerRange,
+                        response.players.online,
+                        playerList.toTypedArray().ifEmpty { response.players.sample }
+                    )
+                }
+
+                response.version = when (motdConfiguration.versionName) {
+                    "" -> response.version
+                    else -> Protocol(
+                        motdConfiguration.versionName,
+                        -1
+                    )
+                }
             }
 
             val favicon = if (motdConfiguration.serverIcon == "") {
