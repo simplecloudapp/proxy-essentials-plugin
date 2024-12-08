@@ -5,15 +5,15 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 @ConfigSerializable
 data class TabList(
     val header: List<String> = listOf(
-        "<dark_gray>                                                                        <dark_gray>",
-        "<aqua>SimpleCloud <dark_gray>» <gray>Simplify <white><italic>your</italic> <gray>network",
-        "<dark_aqua>Online <dark_gray>» <gray><online_players><dark_gray>/<gray><max_players> <dark_gray>┃ <dark_aqua>Server <dark_gray>» <gray><server_name>",
-        "<dark_gray>"
+        "",
+        "<color:#0ea5e9>SimpleCloud v3",
+        "<color:#cbd5e1>  Customize header and footer in the config!  ",
+        ""
     ),
     val footer: List<String> = listOf(
-        "<dark_gray>",
-        "<dark_aqua>Twitter <dark_gray>» <gray>@theSimpleCloud",
-        "<dark_aqua>Discord <dark_gray>» <gray>discord.simplecloud.app",
-        "<dark_gray>"
+        "",
+        " <color:#ffffff><online_players> players <color:#cbd5e1>are playing on your network ",
+        "<color:#64748b>  sɪᴍᴘʟᴇᴄʟᴏᴜᴅ.ᴀᴘᴘ",
+        ""
     ),
 )

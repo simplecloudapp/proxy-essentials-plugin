@@ -6,10 +6,13 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-allprojects {
+val baseVersion = "0.0.1"
+val commitHash = System.getenv("COMMIT_HASH")
+val snapshotversion = "${baseVersion}-dev.$commitHash"
 
+allprojects {
     group = "app.simplecloud.plugin.proxy"
-    version = "1.0.0"
+    version = if (commitHash != null) snapshotversion else baseVersion
 
     repositories {
         mavenCentral()
@@ -18,10 +21,12 @@ allprojects {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "com.github.johnrengelman.shadow")
+    apply(plugin = "com.gradleup.shadow")
 
     repositories {
         mavenCentral()
+        maven("https://buf.build/gen/maven")
+
         maven {
             name = "papermc"
             url = uri("https://repo.papermc.io/repository/maven-public/")
@@ -29,19 +34,27 @@ subprojects {
         maven {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots")
         }
+        maven {
+            name = "simplecloudRepositorySnapshots"
+            url = uri("https://repo.simplecloud.app/snapshots")
+        }
     }
 
     dependencies {
-        testImplementation(rootProject.libs.kotlinTest)
-        implementation(rootProject.libs.kotlinJvm)
+        testImplementation(rootProject.libs.kotlin.test)
+        implementation(rootProject.libs.kotlin.jvm)
+        implementation(rootProject.libs.kotlin.coroutines)
+    }
+
+    java {
+        toolchain.languageVersion.set(JavaLanguageVersion.of(21))
     }
 
     kotlin {
-        jvmToolchain(17)
-    }
-
-    tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+        jvmToolchain(21)
+        compilerOptions {
+            apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_0)
+        }
     }
 
     tasks.named("shadowJar", ShadowJar::class) {
