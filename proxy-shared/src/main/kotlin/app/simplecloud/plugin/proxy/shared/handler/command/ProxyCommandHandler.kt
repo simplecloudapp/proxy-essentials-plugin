@@ -7,7 +7,6 @@ import org.incendo.cloud.CommandManager
 import org.incendo.cloud.context.CommandContext
 import org.incendo.cloud.parser.standard.StringParser.stringParser
 import org.incendo.cloud.suggestion.Suggestion
-import org.incendo.cloud.suggestion.SuggestionProvider
 import java.util.concurrent.CompletableFuture
 
 class ProxyCommandHandler<C : CommandSender>(

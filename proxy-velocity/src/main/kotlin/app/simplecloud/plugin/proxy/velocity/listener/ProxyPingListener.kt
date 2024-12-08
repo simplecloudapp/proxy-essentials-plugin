@@ -9,7 +9,6 @@ import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer
 import com.velocitypowered.api.util.Favicon
 import kotlinx.coroutines.runBlocking
 import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
 import java.net.InetAddress

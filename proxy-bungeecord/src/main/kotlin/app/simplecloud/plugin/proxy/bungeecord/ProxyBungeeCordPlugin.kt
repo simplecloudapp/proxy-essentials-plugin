@@ -4,10 +4,6 @@ import app.simplecloud.plugin.proxy.bungeecord.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.bungeecord.handler.TabListHandler
 import app.simplecloud.plugin.proxy.bungeecord.listener.*
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.config.YamlConfig
-import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
-import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
 import app.simplecloud.plugin.proxy.shared.handler.command.ProxyCommandHandler
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences

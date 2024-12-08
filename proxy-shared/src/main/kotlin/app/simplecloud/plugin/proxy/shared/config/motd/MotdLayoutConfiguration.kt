@@ -1,7 +1,6 @@
 package app.simplecloud.plugin.proxy.shared.config.motd
 
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
-import java.awt.image.BufferedImage
 
 @ConfigSerializable
 data class MotdLayoutConfiguration(
