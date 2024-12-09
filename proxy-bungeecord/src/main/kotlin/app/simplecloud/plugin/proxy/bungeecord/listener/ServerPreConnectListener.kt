@@ -2,7 +2,6 @@ package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import app.simplecloud.plugin.proxy.bungeecord.toBaseComponent
-import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.event.ServerConnectEvent
@@ -20,7 +19,16 @@ class ServerPreConnectListener(
     fun handle(event: ServerConnectEvent) {
         val player = event.player
 
-        if (proxyPlugin.proxyPlugin.maintenance && !player.hasPermission(ProxyPlugin.JOIN_MAINTENANCE_PERMISSION)) {
+        val localState = this.proxyPlugin.proxyPlugin.joinStateHandler.localState
+        val joinState = this.proxyPlugin.proxyPlugin.joinStateConfiguration.joinStates.find { it.name == localState }
+
+        if (joinState == null) {
+            logger.warning("No join state found for server.")
+            denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noJoinState, event)
+            return
+        }
+
+        if (player.hasPermission(joinState.joinPermission)) {
             denyAccess(
                 player,
                 this.proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.networkMaintenance,
@@ -31,7 +39,11 @@ class ServerPreConnectListener(
 
         runBlocking {
             try {
-                if (!isServerFull(player)) {
+                if (!isServerFull()) {
+                    return@runBlocking
+                }
+
+                if (player.hasPermission(joinState.fullJoinPermission)) {
                     return@runBlocking
                 }
                 denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.networkFull, event)
@@ -41,11 +53,18 @@ class ServerPreConnectListener(
         }
     }
 
-    private suspend fun isServerFull(player: ProxiedPlayer): Boolean {
-        val maxPlayers = proxyPlugin.proxyPlugin.cloudControllerHandler.getMaxPlayersInGroup()
-        val onlinePlayers = proxyPlugin.proxyPlugin.cloudControllerHandler.getOnlinePlayersInGroup()
+    private suspend fun isServerFull(): Boolean {
+        val groupName = this.proxyPlugin.proxyPlugin.cloudControllerHandler.groupName
 
-        return onlinePlayers >= maxPlayers && !player.hasPermission(ProxyPlugin.JOIN_FULL_PERMISSION)
+        if (groupName == null) {
+            logger.warning("No group name found for server.")
+            return true
+        }
+
+        val maxPlayers = proxyPlugin.proxyPlugin.cloudControllerHandler.getMaxPlayersInGroup(groupName)
+        val onlinePlayers = proxyPlugin.proxyPlugin.cloudControllerHandler.getOnlinePlayersInGroup(groupName)
+
+        return onlinePlayers >= maxPlayers
     }
 
     private fun denyAccess(player: ProxiedPlayer, message: String, event: ServerConnectEvent) {

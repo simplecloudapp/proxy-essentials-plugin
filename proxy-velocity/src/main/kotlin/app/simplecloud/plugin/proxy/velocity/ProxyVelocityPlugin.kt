@@ -2,7 +2,7 @@ package app.simplecloud.plugin.proxy.velocity
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
-import app.simplecloud.plugin.proxy.shared.handler.command.ProxyCommandHandler
+import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
 import app.simplecloud.plugin.proxy.velocity.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
 import app.simplecloud.plugin.proxy.velocity.listener.CloudListener
@@ -44,6 +44,7 @@ class ProxyVelocityPlugin @Inject constructor(
         config.save("tablist", this.tabListConfiguration)
         config.save("placeholder", this.placeHolderConfiguration)
         config.save("messages", this.messagesConfiguration)
+        config.save("joinstate", this.joinStateConfiguration)
 
         this.motdLayoutHandler.loadMotdLayouts()
 
@@ -71,12 +72,8 @@ class ProxyVelocityPlugin @Inject constructor(
             senderMapper
         )
 
-        val proxyCommandHandler = ProxyCommandHandler(commandManager, this)
+        val proxyCommandHandler = JoinStateCommandHandler(commandManager, this)
         proxyCommandHandler.loadCommands()
-
-        System.getenv("SIMPLECLOUD_MAINTENANCE")?.let {
-            this.maintenance = it == "true"
-        }
     }
 
     @Subscribe

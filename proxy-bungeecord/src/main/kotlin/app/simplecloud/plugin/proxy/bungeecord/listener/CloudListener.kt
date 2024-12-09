@@ -2,7 +2,8 @@ package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.event.bungeecord.mapping.CloudServerUpdateEvent
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
-import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
+import app.simplecloud.plugin.proxy.shared.handler.JoinStateHandler
+import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import java.util.logging.Logger
@@ -18,50 +19,32 @@ class CloudListener(
 
         if (event.getTo().uniqueId != System.getenv("SIMPLECLOUD_UNIQUE_ID")) return
 
-        checkMaintenanceChance(event)
-        checkLayoutMaintenanceChance(event)
-        checkLayoutChance(event)
+        checkStateChance(event)
     }
 
-    private fun checkMaintenanceChance(event: CloudServerUpdateEvent) {
-        val isMaintenance = event.getTo().properties["maintenance"]
+    private fun checkStateChance(event: CloudServerUpdateEvent) {
+        val state = event.getTo().properties[JoinStateHandler.JOINSTATE_KEY]
 
-        if (isMaintenance == event.getFrom().properties["maintenance"]) return
+        if (state == null) {
+            this.logger.warning("No join state found for server. Using default join state.")
 
-        val newMaintenanceState = isMaintenance == "true"
+            runBlocking {
+                plugin.proxyPlugin.joinStateHandler.setJoinStateAtGroupAndAllServicesInGroup(
+                    event.getTo().group,
+                    plugin.proxyPlugin.joinStateConfiguration.defaultState
+                )
+                plugin.proxyPlugin.joinStateHandler.localState = plugin.proxyPlugin.joinStateConfiguration.defaultState
+            }
+            return
+        }
 
-        if (this.plugin.proxyPlugin.maintenance == newMaintenanceState) return
+        if (state == event.getFrom().properties[JoinStateHandler.JOINSTATE_KEY]) return
 
-        this.plugin.proxyPlugin.maintenance = newMaintenanceState
+        runBlocking {
+            plugin.proxyPlugin.joinStateHandler.setJoinStateAtGroupAndAllServicesInGroup(event.getTo().group, state)
+            plugin.proxyPlugin.joinStateHandler.localState = state
+        }
 
-        this.logger.info("Maintenance mode has been toggled to $newMaintenanceState")
-    }
-
-    private fun checkLayoutMaintenanceChance(event: CloudServerUpdateEvent) {
-        val layout = event.getTo().properties[MotdLayoutHandler.CURRENT_MAINTENANCE_LAYOUT_KEY]
-
-        if (layout == event.getFrom().properties[MotdLayoutHandler.CURRENT_MAINTENANCE_LAYOUT_KEY]) return
-
-        val newLayout = layout ?: MotdLayoutHandler.DEFAULT_MAINTENANCE_LAYOUT_NAME
-
-        if (MotdLayoutHandler.CURRENT_MAINTENANCE_LAYOUT_KEY == newLayout) return
-
-        MotdLayoutHandler.CURRENT_MAINTENANCE_LAYOUT_KEY = newLayout
-
-        this.logger.info("Layout has been changed to $newLayout")
-    }
-
-    private fun checkLayoutChance(event: CloudServerUpdateEvent) {
-        val layout = event.getTo().properties[MotdLayoutHandler.CURRENT_LAYOUT_KEY]
-
-        if (layout == event.getFrom().properties[MotdLayoutHandler.CURRENT_LAYOUT_KEY]) return
-
-        val newLayout = layout ?: MotdLayoutHandler.DEFAULT_LAYOUT_NAME
-
-        if (MotdLayoutHandler.CURRENT_LAYOUT_KEY == newLayout) return
-
-        MotdLayoutHandler.CURRENT_LAYOUT_KEY = newLayout
-
-        this.logger.info("Layout has been changed to $newLayout")
+        this.logger.info("Join state changed to: $state")
     }
 }

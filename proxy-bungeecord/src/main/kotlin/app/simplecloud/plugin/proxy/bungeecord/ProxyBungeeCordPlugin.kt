@@ -5,7 +5,7 @@ import app.simplecloud.plugin.proxy.bungeecord.handler.TabListHandler
 import app.simplecloud.plugin.proxy.bungeecord.listener.*
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
-import app.simplecloud.plugin.proxy.shared.handler.command.ProxyCommandHandler
+import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -33,6 +33,7 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.proxyPlugin.config.save("tablist", this.proxyPlugin.tabListConfiguration)
         this.proxyPlugin.config.save("placeholder", this.proxyPlugin.placeHolderConfiguration)
         this.proxyPlugin.config.save("messages", this.proxyPlugin.messagesConfiguration)
+        this.proxyPlugin.config.save("joinstate", this.proxyPlugin.joinStateConfiguration)
 
         this.proxyPlugin.motdLayoutHandler.loadMotdLayouts()
 
@@ -60,12 +61,8 @@ class ProxyBungeeCordPlugin: Plugin() {
             senderMapper
         )
 
-        val proxyCommandHandler = ProxyCommandHandler(commandManager, this.proxyPlugin)
+        val proxyCommandHandler = JoinStateCommandHandler(commandManager, this.proxyPlugin)
         proxyCommandHandler.loadCommands()
-
-        System.getenv("SIMPLECLOUD_MAINTENANCE")?.let {
-            this.proxyPlugin.maintenance = it == "true"
-        }
     }
 
     override fun onDisable() {
