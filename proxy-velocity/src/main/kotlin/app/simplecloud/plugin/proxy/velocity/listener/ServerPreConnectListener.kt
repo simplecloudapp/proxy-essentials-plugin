@@ -1,6 +1,5 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
-import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
@@ -45,8 +44,12 @@ class ServerPreConnectListener(
                 return@runBlocking
             }
 
-            if (!player.hasPermission(joinState.joinPermission)) {
-                denyAccess(player, proxyPlugin.messagesConfiguration.kickMessage.noPermission, event)
+            if (joinState.joinPermission != "" && !player.hasPermission(joinState.joinPermission)) {
+                denyAccess(
+                    player,
+                    proxyPlugin.messagesConfiguration.kickMessage.noPermission,
+                    event
+                )
                 return@runBlocking
             }
         }
