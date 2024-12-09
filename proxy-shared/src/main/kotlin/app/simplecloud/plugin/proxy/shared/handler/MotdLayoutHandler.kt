@@ -11,7 +11,6 @@ class MotdLayoutHandler(
     private val proxyPlugin: ProxyPlugin
 ) {
 
-    private val cloudControllerHandler = proxyPlugin.cloudControllerHandler
     private val loadedMotdLayouts: MutableMap<String, MotdLayoutConfiguration> = mutableMapOf()
     private val logger = Logger.getLogger(MotdLayoutHandler::class.java.name)
 

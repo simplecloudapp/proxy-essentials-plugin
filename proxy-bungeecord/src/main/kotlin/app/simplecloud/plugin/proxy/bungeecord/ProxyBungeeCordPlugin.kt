@@ -37,7 +37,7 @@ class ProxyBungeeCordPlugin: Plugin() {
 
         this.proxyPlugin.motdLayoutHandler.loadMotdLayouts()
 
-        this.adventure = BungeeAudiences.create(this);
+        this.adventure = BungeeAudiences.create(this)
         this.proxy.pluginManager.registerListener(this, ProxyPingListener(this))
         this.proxy.pluginManager.registerListener(this, ConfigureTagResolversListener(this))
         this.proxy.pluginManager.registerListener(this, CloudListener(this))
@@ -67,8 +67,8 @@ class ProxyBungeeCordPlugin: Plugin() {
 
     override fun onDisable() {
         if(this.adventure != null) {
-            this.adventure!!.close();
-            this.adventure = null;
+            this.adventure!!.close()
+            this.adventure = null
         }
 
         this.tabListHandler.stopTabListTask()

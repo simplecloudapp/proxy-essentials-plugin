@@ -26,7 +26,7 @@ class CloudControllerHandler {
 
         runBlocking {
             try {
-                val service = controllerApi.getServers().getServerById(serviceID!!)
+                val service = controllerApi.getServers().getServerById(serviceID)
                 groupName = service.group
                 numericalId = service.numericalId
                 logger.info("Group name initialized to: $groupName")
@@ -103,9 +103,9 @@ class CloudControllerHandler {
     }
 
     suspend fun getOnlinePlayersInGroup(groupName: String): Int {
-        return groupName.let {
+        return groupName.let { name ->
             try {
-                controllerApi.getServers().getServersByGroup(it).sumBy { it.playerCount.toInt() }
+                controllerApi.getServers().getServersByGroup(name).sumBy { it.playerCount.toInt() }
             } catch (e: Exception) {
                 logger.severe("Error retrieving online players in group: ${e.message}")
                 0
@@ -127,10 +127,6 @@ class CloudControllerHandler {
 
     suspend fun getAllGroups(): List<String> {
         return controllerApi.getGroups().getAllGroups().map { it.name }
-    }
-
-    suspend fun getAllServices(): List<String> {
-        return controllerApi.getServers().getAllServers().map { it.uniqueId }
     }
 
     suspend fun getAllNumericalIdsFromGroup(groupName: String): List<Int> {
