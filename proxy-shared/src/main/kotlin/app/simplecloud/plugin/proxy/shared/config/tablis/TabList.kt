@@ -7,7 +7,6 @@ data class TabList(
     val header: List<String> = listOf(
         "",
         "<color:#0ea5e9>SimpleCloud v3",
-        "<color:#cbd5e1>  Customize header and footer in the config!  ",
         ""
     ),
     val footer: List<String> = listOf(

@@ -4,12 +4,8 @@ import app.simplecloud.plugin.proxy.bungeecord.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.bungeecord.handler.TabListHandler
 import app.simplecloud.plugin.proxy.bungeecord.listener.*
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.config.YamlConfig
-import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
-import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
-import app.simplecloud.plugin.proxy.shared.handler.command.ProxyCommandHandler
+import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -37,10 +33,11 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.proxyPlugin.config.save("tablist", this.proxyPlugin.tabListConfiguration)
         this.proxyPlugin.config.save("placeholder", this.proxyPlugin.placeHolderConfiguration)
         this.proxyPlugin.config.save("messages", this.proxyPlugin.messagesConfiguration)
+        this.proxyPlugin.config.save("joinstate", this.proxyPlugin.joinStateConfiguration)
 
         this.proxyPlugin.motdLayoutHandler.loadMotdLayouts()
 
-        this.adventure = BungeeAudiences.create(this);
+        this.adventure = BungeeAudiences.create(this)
         this.proxy.pluginManager.registerListener(this, ProxyPingListener(this))
         this.proxy.pluginManager.registerListener(this, ConfigureTagResolversListener(this))
         this.proxy.pluginManager.registerListener(this, CloudListener(this))
@@ -64,18 +61,14 @@ class ProxyBungeeCordPlugin: Plugin() {
             senderMapper
         )
 
-        val proxyCommandHandler = ProxyCommandHandler(commandManager, this.proxyPlugin)
+        val proxyCommandHandler = JoinStateCommandHandler(commandManager, this.proxyPlugin)
         proxyCommandHandler.loadCommands()
-
-        System.getenv("SIMPLECLOUD_MAINTENANCE")?.let {
-            this.proxyPlugin.maintenance = it == "true"
-        }
     }
 
     override fun onDisable() {
         if(this.adventure != null) {
-            this.adventure!!.close();
-            this.adventure = null;
+            this.adventure!!.close()
+            this.adventure = null
         }
 
         this.tabListHandler.stopTabListTask()

@@ -1,13 +1,8 @@
 package app.simplecloud.plugin.proxy.velocity
 
-import app.simplecloud.controller.api.ControllerApi
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.config.YamlConfig
-import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
-import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
-import app.simplecloud.plugin.proxy.shared.handler.command.ProxyCommandHandler
+import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
 import app.simplecloud.plugin.proxy.velocity.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
 import app.simplecloud.plugin.proxy.velocity.listener.CloudListener
@@ -16,9 +11,6 @@ import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingListener
 import app.simplecloud.plugin.proxy.velocity.listener.ServerPreConnectListener
 import com.google.inject.Inject
 import com.velocitypowered.api.command.CommandSource
-import com.velocitypowered.api.command.RawCommand
-import com.velocitypowered.api.command.SimpleCommand
-import com.velocitypowered.api.command.SimpleCommand.Invocation
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
@@ -26,7 +18,6 @@ import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
-import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.incendo.cloud.SenderMapper
@@ -53,6 +44,7 @@ class ProxyVelocityPlugin @Inject constructor(
         config.save("tablist", this.tabListConfiguration)
         config.save("placeholder", this.placeHolderConfiguration)
         config.save("messages", this.messagesConfiguration)
+        config.save("joinstate", this.joinStateConfiguration)
 
         this.motdLayoutHandler.loadMotdLayouts()
 
@@ -80,12 +72,8 @@ class ProxyVelocityPlugin @Inject constructor(
             senderMapper
         )
 
-        val proxyCommandHandler = ProxyCommandHandler(commandManager, this)
+        val proxyCommandHandler = JoinStateCommandHandler(commandManager, this)
         proxyCommandHandler.loadCommands()
-
-        System.getenv("SIMPLECLOUD_MAINTENANCE")?.let {
-            this.maintenance = it == "true"
-        }
     }
 
     @Subscribe

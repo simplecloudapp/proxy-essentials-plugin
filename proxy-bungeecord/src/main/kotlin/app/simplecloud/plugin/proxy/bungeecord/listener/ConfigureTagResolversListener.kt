@@ -7,7 +7,6 @@ import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import net.md_5.bungee.event.EventPriority
-import kotlin.jvm.optionals.getOrNull
 
 class ConfigureTagResolversListener(
     private val plugin: ProxyBungeeCordPlugin
