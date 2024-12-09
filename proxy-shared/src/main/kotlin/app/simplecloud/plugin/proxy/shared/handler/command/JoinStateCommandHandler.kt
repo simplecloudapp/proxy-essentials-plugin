@@ -21,7 +21,7 @@ class JoinStateCommandHandler<C : CommandSender>(
     private fun loadJoinStateService() {
         commandManager.command(
             commandManager.commandBuilder("joinstate")
-                .literal("service")
+                .literal("server")
                 .required(
                     "group",
                     StringParser.stringParser()
@@ -48,7 +48,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                     val suggestionList = proxyPlugin.joinStateConfiguration.joinStates.map { Suggestion.suggestion(it.name) }
                     CompletableFuture.completedFuture(suggestionList)
                 }
-                .permission("simplecloud.command.joinstate.service")
+                .permission("simplecloud.command.joinstate.server")
                 .handler { context: CommandContext<C> ->
                     runBlocking {
                         val group = context.get<String>("group")
