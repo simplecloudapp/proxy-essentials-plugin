@@ -14,8 +14,27 @@ class JoinStateCommandHandler<C : CommandSender>(
 ) {
 
     fun loadCommands() {
+        loadHelp()
         loadJoinStateService()
         loadJoinStateGroup()
+    }
+
+    private fun loadHelp() {
+        commandManager.command(
+            commandManager.commandBuilder("joinstate")
+                .literal("help")
+                .permission("simplecloud.command.joinstate.help")
+                .handler { context: CommandContext<C> ->
+                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpHeader)
+                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpCommand
+                        .replace("<command>", "/joinstate server <group> <numericalId> <state>"))
+                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpCommand
+                        .replace("<command>", "/joinstate group <group> <state>"))
+                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpCommand
+                        .replace("<command>", "/joinstate help"))
+                }
+                .build()
+        )
     }
 
     private fun loadJoinStateService() {
