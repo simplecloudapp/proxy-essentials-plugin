@@ -3,7 +3,6 @@ package app.simplecloud.plugin.proxy.shared.handler
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.motd.MotdLayoutConfiguration
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.logging.Logger
 
