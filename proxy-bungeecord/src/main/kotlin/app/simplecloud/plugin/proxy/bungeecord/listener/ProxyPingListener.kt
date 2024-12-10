@@ -70,14 +70,14 @@ class ProxyPingListener(
                 }
             }
 
-            val favicon = if (motdConfiguration.serverIcon == "") {
+            /*val favicon = if (motdConfiguration.serverIcon == "") {
                 response.faviconObject
             } else {
                 val serverIcon: BufferedImage = ImageIO.read(File(motdConfiguration.serverIcon))
                 Favicon.create(serverIcon)
-            }
+            }*/
 
-            response.setFavicon(favicon)
+            response.setFavicon(response.faviconObject)
         }
     }
 
