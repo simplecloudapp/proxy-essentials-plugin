@@ -36,8 +36,9 @@ class TabListHandler(
     }
 
     fun updateTabListForPlayer(player: ProxiedPlayer) {
-        val configuration = plugin.proxyPlugin.tabListConfiguration
+        if (player.server == null) return;
 
+        val configuration = plugin.proxyPlugin.tabListConfiguration
         val serviceName = player.server.info.name
 
         var tabListGroup = configuration.groups.find { group ->
@@ -64,9 +65,9 @@ class TabListHandler(
                 "noValuedGroupOrServiceConfigurationsFround",
                 listOf(
                     TabList(
-                    listOf("<red>No configuration found for this service"),
-                    listOf("<red>Please check your configuration file from the proxy plugin in the plugins folder"),
-                )
+                        listOf("<red>No configuration found for this service"),
+                        listOf("<red>Please check your configuration file from the proxy plugin in the plugins folder"),
+                    )
                 )
             )
         }
