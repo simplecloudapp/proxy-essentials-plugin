@@ -37,6 +37,7 @@ class TabListHandler(
 
     fun updateTabListForPlayer(player: ProxiedPlayer) {
         if (player.server == null) return;
+        if (player.server.info == null) return;
 
         val configuration = plugin.proxyPlugin.tabListConfiguration
         val serviceName = player.server.info.name
