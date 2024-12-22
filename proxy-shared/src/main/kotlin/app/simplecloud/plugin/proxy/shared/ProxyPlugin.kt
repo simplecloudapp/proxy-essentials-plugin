@@ -31,5 +31,7 @@ open class ProxyPlugin(
                 cloudControllerHandler.numericalId!!.toLong()
             )
         }
+
+        joinStateHandler.startCheckGroupStateTask()
     }
 }

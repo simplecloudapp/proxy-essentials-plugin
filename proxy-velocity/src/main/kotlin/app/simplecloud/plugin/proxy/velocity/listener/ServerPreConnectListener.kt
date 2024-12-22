@@ -45,6 +45,7 @@ class ServerPreConnectListener(
             }
 
             if (joinState.joinPermission != "" && !player.hasPermission(joinState.joinPermission)) {
+                logger.warning("Player does not have permission to join server. 1")
                 denyAccess(
                     player,
                     proxyPlugin.messagesConfiguration.kickMessage.noPermission,
@@ -66,6 +67,7 @@ class ServerPreConnectListener(
         }
 
         if (!player.hasPermission(joinState.joinPermission) && joinState.joinPermission != "") {
+            logger.warning("Player does not have permission to join server. 2")
             denyAccess(
                 player,
                 this.proxyPlugin.messagesConfiguration.kickMessage.noPermission,

@@ -15,8 +15,7 @@ class CloudListener(
     private val logger = Logger.getLogger(CloudListener::class.java.name)
 
     @EventHandler
-    fun test(event: CloudServerUpdateEvent) {
-
+    fun onServerUpdate(event: CloudServerUpdateEvent) {
         if (event.getTo().uniqueId != System.getenv("SIMPLECLOUD_UNIQUE_ID")) return
 
         checkStateChance(event)

@@ -1,7 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
 import app.simplecloud.controller.api.ControllerApi
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import java.util.logging.Logger
 
 class CloudControllerHandler {

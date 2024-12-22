@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
+import kotlinx.coroutines.*
 import java.util.logging.Logger
 
 class JoinStateHandler(
@@ -101,5 +102,35 @@ class JoinStateHandler(
         }
 
         return serviceProperties
+    }
+
+    fun startCheckGroupStateTask() {
+        CoroutineScope(Dispatchers.IO).launch {
+            while (isActive) {
+                getGroupState()
+                delay(2000)
+            }
+        }
+    }
+
+    private suspend fun getGroupState() {
+        val cloudControllerHandler = this.proxyPlugin.cloudControllerHandler
+
+        if (cloudControllerHandler.groupName == null) {
+            logger.warning("Group name is not initialized.")
+            return
+        }
+
+        val state = cloudControllerHandler.getGroupProperties(cloudControllerHandler.groupName!!, JOINSTATE_KEY)
+
+        if (state != localState) {
+            if (getJoinStateAtService(cloudControllerHandler.groupName!!, cloudControllerHandler.numericalId!!.toLong()) != state) {
+                //Skip group state change if service state is different
+                return
+            }
+
+            localState = state
+            logger.info("Join state changed to $state because of group state change.")
+        }
     }
 }
