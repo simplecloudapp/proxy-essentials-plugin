@@ -1,6 +1,9 @@
 package app.simplecloud.plugin.proxy.shared.handler.command
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.context.CommandContext
@@ -120,13 +123,13 @@ class JoinStateCommandHandler<C : CommandSender>(
                 }
                 .permission("simplecloud.command.joinstate.group")
                 .handler { context: CommandContext<C> ->
-                    runBlocking {
+                    CoroutineScope(Dispatchers.IO).launch {
                         val group = context.get<String>("group")
                         val state = context.get<String>("state")
 
                         if (proxyPlugin.joinStateHandler.getJoinStateAtGroup(group) == state) {
                             context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateGroupUpdateNoChange)
-                            return@runBlocking
+                            return@launch
                         }
 
                         val successfully =

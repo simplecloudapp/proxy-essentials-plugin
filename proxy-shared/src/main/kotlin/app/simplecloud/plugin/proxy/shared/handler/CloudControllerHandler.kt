@@ -4,7 +4,9 @@ import app.simplecloud.controller.api.ControllerApi
 import kotlinx.coroutines.*
 import java.util.logging.Logger
 
-class CloudControllerHandler {
+class CloudControllerHandler(
+    private val joinStateHandler: JoinStateHandler
+) {
 
     private val controllerApi = ControllerApi.createCoroutineApi()
     private val logger = Logger.getLogger(CloudControllerHandler::class.java.name)
@@ -24,12 +26,19 @@ class CloudControllerHandler {
             return
         }
 
-        runBlocking {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 val service = controllerApi.getServers().getServerById(serviceID)
                 groupName = service.group
                 numericalId = service.numericalId
                 logger.info("Group name initialized to: $groupName")
+
+                joinStateHandler.localState = joinStateHandler.getJoinStateAtService(
+                    groupName!!,
+                    numericalId!!.toLong()
+                )
+
+                joinStateHandler.startCheckGroupStateTask()
             } catch (e: Exception) {
                 logger.severe("Error retrieving server by ID: ${e.message}")
             }
@@ -76,6 +85,7 @@ class CloudControllerHandler {
         groupName.let { name ->
             try {
                 controllerApi.getServers().getServersByGroup(name).forEach { server ->
+                    logger.info("Updating service property '$key' to '$value' on service ${server.group} ${server.numericalId} ${server.uniqueId}")
                     controllerApi.getServers().updateServerProperty(server.uniqueId, key, value)
                 }
                 logger.info("Service property '$key' updated to '$value' on all services in group '$name'")
@@ -105,7 +115,7 @@ class CloudControllerHandler {
     suspend fun getOnlinePlayersInGroup(groupName: String): Int {
         return groupName.let { name ->
             try {
-                controllerApi.getServers().getServersByGroup(name).sumBy { it.playerCount.toInt() }
+                controllerApi.getServers().getServersByGroup(name).sumOf { it.playerCount.toInt() }
             } catch (e: Exception) {
                 logger.severe("Error retrieving online players in group: ${e.message}")
                 0

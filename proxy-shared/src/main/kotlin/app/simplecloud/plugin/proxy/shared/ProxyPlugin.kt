@@ -8,6 +8,9 @@ import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
 import app.simplecloud.plugin.proxy.shared.handler.CloudControllerHandler
 import app.simplecloud.plugin.proxy.shared.handler.JoinStateHandler
 import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 open class ProxyPlugin(
@@ -20,18 +23,8 @@ open class ProxyPlugin(
     val messagesConfiguration = config.load<MessageConfig>("messages")!!
     val joinStateConfiguration = config.load<JoinStateConfiguration>("joinstate")!!
 
-    val cloudControllerHandler = CloudControllerHandler()
     val motdLayoutHandler = MotdLayoutHandler(config, this)
     val joinStateHandler = JoinStateHandler(this)
+    val cloudControllerHandler = CloudControllerHandler(joinStateHandler)
 
-    init {
-        runBlocking {
-            joinStateHandler.localState = joinStateHandler.getJoinStateAtService(
-                cloudControllerHandler.groupName!!,
-                cloudControllerHandler.numericalId!!.toLong()
-            )
-        }
-
-        joinStateHandler.startCheckGroupStateTask()
-    }
 }

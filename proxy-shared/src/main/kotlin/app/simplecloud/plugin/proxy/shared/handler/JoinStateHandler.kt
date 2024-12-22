@@ -126,6 +126,7 @@ class JoinStateHandler(
         if (state != localState) {
             if (getJoinStateAtService(cloudControllerHandler.groupName!!, cloudControllerHandler.numericalId!!.toLong()) != localState) {
                 //Skip group state change if service state is different
+                //logger.info("Join state not changed to $state because of different service state.")
                 return
             }
 
