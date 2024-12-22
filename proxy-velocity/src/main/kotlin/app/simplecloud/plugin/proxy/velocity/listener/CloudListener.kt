@@ -35,11 +35,9 @@ class CloudListener(
             return
         }
 
-        logger.info(state)
-        logger.info(event.getFrom().properties[JoinStateHandler.JOINSTATE_KEY])
+        if (state == plugin.joinStateHandler.localState) return
 
         plugin.joinStateHandler.localState = state
-
-        this.logger.info("Join state changed to: $state")
+        this.logger.info("Join state changed to $state")
     }
 }

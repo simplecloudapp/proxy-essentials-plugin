@@ -37,8 +37,7 @@ class CloudListener(
             return
         }
 
-        logger.info(state)
-        logger.info(event.getFrom().properties[JoinStateHandler.JOINSTATE_KEY])
+        if (state == joinStateHandler.localState) return
 
         joinStateHandler.localState = state
 
