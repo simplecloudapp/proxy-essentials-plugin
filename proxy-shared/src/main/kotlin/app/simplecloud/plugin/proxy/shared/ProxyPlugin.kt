@@ -8,10 +8,6 @@ import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
 import app.simplecloud.plugin.proxy.shared.handler.CloudControllerHandler
 import app.simplecloud.plugin.proxy.shared.handler.JoinStateHandler
 import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 open class ProxyPlugin(
     dirPath: String

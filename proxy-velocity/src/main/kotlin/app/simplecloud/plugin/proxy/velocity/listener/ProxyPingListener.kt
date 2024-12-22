@@ -6,14 +6,9 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyPingEvent
 import com.velocitypowered.api.proxy.server.ServerPing
 import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer
-import com.velocitypowered.api.util.Favicon
 import kotlinx.coroutines.runBlocking
-import java.awt.image.BufferedImage
-import java.io.File
-import java.io.IOException
 import java.net.InetAddress
 import java.util.*
-import javax.imageio.ImageIO
 import kotlin.jvm.optionals.getOrNull
 
 
