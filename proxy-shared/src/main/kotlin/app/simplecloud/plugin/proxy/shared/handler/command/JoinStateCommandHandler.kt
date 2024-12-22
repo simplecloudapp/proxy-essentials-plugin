@@ -79,6 +79,8 @@ class JoinStateCommandHandler<C : CommandSender>(
                             return@runBlocking
                         }
 
+                        proxyPlugin.joinStateHandler.localState = state
+
                         val successfully = proxyPlugin.joinStateHandler.setJoinStateAtService(
                             group,
                             numericalId.toLong(),

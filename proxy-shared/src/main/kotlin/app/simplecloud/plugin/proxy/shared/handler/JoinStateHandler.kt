@@ -124,7 +124,7 @@ class JoinStateHandler(
         val state = cloudControllerHandler.getGroupProperties(cloudControllerHandler.groupName!!, JOINSTATE_KEY)
 
         if (state != localState) {
-            if (getJoinStateAtService(cloudControllerHandler.groupName!!, cloudControllerHandler.numericalId!!.toLong()) != state) {
+            if (getJoinStateAtService(cloudControllerHandler.groupName!!, cloudControllerHandler.numericalId!!.toLong()) != localState) {
                 //Skip group state change if service state is different
                 return
             }
