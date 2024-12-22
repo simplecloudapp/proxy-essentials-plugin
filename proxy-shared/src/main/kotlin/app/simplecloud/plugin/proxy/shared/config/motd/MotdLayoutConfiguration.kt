@@ -8,7 +8,6 @@ data class MotdLayoutConfiguration(
     val secondLines: List<String> = listOf(" "),
     val playerInfo: List<String> = listOf(),
     val versionName: String = "",
-    var serverIcon: String = "server-icon.png",
     val maxPlayerDisplayType: MaxPlayerDisplayType? = MaxPlayerDisplayType.REAL,
     val dynamicPlayerRange: Int = 1
 )

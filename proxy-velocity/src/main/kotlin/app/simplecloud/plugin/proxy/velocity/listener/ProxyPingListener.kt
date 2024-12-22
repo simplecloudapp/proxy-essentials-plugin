@@ -64,16 +64,6 @@ class ProxyPingListener(
                 }
             }
 
-            val favicon = if (motdConfiguration.serverIcon == "") {
-                serverPing.favicon.orElse(null)
-            } else {
-                try {
-                    val serverIcon: BufferedImage = ImageIO.read(File(motdConfiguration.serverIcon))
-                    Favicon.create(serverIcon)
-                } catch (e: IOException) {
-                    null
-                }
-            }
 
             val builder =  event.ping.asBuilder()
                 .version(versions)
@@ -81,8 +71,6 @@ class ProxyPingListener(
                 .maximumPlayers(maxPlayers)
                 .samplePlayers(*samplePlayers.toTypedArray())
                 .description(messageOfTheDay)
-
-            favicon?.let { builder.favicon(it) }
 
             event.ping = builder.build()
         }

@@ -4,17 +4,13 @@ import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
 import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
-import net.md_5.bungee.api.Favicon
 import net.md_5.bungee.api.ServerPing.*
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
-import java.awt.image.BufferedImage
-import java.io.File
 import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.util.*
-import javax.imageio.ImageIO
 
 class ProxyPingListener(
     private val plugin: ProxyBungeeCordPlugin
