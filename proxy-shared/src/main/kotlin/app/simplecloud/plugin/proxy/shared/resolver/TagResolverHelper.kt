@@ -34,7 +34,7 @@ object TagResolverHelper {
     }
 
     fun getPingTagResolver(ping: Long, pingColors: List<PingColor>): TagResolver {
-        val pingColor = pingColors.firstOrNull { it.ping >= ping }?.color ?: "<dark_red>"
+        val pingColor = pingColors.firstOrNull { it.ping <= ping }?.color ?: "<dark_red>"
         return Placeholder.parsed(TagResolverNames.PING, "$pingColor$ping")
     }
 
