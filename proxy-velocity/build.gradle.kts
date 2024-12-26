@@ -14,3 +14,8 @@ dependencies {
     implementation(rootProject.libs.command.cloud.core)
     implementation(rootProject.libs.command.cloud.velocity)
 }
+
+tasks.shadowJar {
+    relocate("org.incendo", "app.simplecloud.relocate.incendo")
+    relocate("org.spongepowered", "app.simplecloud.relocate.spongepowered")
+}
