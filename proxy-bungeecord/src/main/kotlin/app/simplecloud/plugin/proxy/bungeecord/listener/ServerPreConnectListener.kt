@@ -23,8 +23,45 @@ class ServerPreConnectListener(
 
         checkAllowProxyJoin(player, event)
         checkAllowServerSwitch(player, event, serverInfo)
-
     }
+
+    private fun checkAllowProxyJoin(player: ProxiedPlayer, event: ServerConnectEvent) {
+        val localState = this.proxyPlugin.proxyPlugin.joinStateHandler.localState
+        val joinState = this.proxyPlugin.proxyPlugin.joinStateConfiguration.joinStates.find { it.name == localState }
+
+        if (joinState == null) {
+            logger.info("The join state for the proxy could not be found.")
+            denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noJoinState, false, event)
+            return
+        }
+
+        if (!player.hasPermission(joinState.joinPermission) && joinState.joinPermission != "") {
+            logger.info("The player ${player.name} does not have the permission to join the proxy and will be kicked.")
+            denyAccess(
+                player,
+                this.proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noPermission,
+                false,
+                event
+            )
+            return
+        }
+
+        runBlocking {
+            try {
+                if (!isServerFull()) {
+                    return@runBlocking
+                }
+
+                if (player.hasPermission(joinState.fullJoinPermission)) {
+                    return@runBlocking
+                }
+                denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.networkFull, false, event)
+            } catch (e: Exception) {
+                logger.severe("Error checking player limits: ${e.message}")
+            }
+        }
+    }
+
     private fun checkAllowServerSwitch(player: ProxiedPlayer, event: ServerConnectEvent, server: ServerInfo) {
         val serviceName = server.name
         val split = serviceName.split("-")
@@ -41,53 +78,20 @@ class ServerPreConnectListener(
             val joinState = proxyPlugin.proxyPlugin.joinStateConfiguration.joinStates.find { it.name == joinStateName }
 
             if (joinState == null) {
-                logger.warning("No join state found for server.")
-                denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noJoinState, event)
+                logger.warning("The join state for the server $serviceName could not be found.")
+                denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noJoinState, true, event)
                 return@runBlocking
             }
 
             if (joinState.joinPermission != "" && !player.hasPermission(joinState.joinPermission)) {
+                logger.info("The player ${player.name} does not have the permission to join $serviceName and will be kicked.")
                 denyAccess(
                     player,
                     proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noPermission,
+                    true,
                     event
                 )
                 return@runBlocking
-            }
-        }
-    }
-
-    private fun checkAllowProxyJoin(player: ProxiedPlayer, event: ServerConnectEvent) {
-        val localState = this.proxyPlugin.proxyPlugin.joinStateHandler.localState
-        val joinState = this.proxyPlugin.proxyPlugin.joinStateConfiguration.joinStates.find { it.name == localState }
-
-        if (joinState == null) {
-            logger.warning("No join state found for server.")
-            denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noJoinState, event)
-            return
-        }
-
-        if (!player.hasPermission(joinState.joinPermission) && joinState.joinPermission != "") {
-            denyAccess(
-                player,
-                this.proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noPermission,
-                event
-            )
-            return
-        }
-
-        runBlocking {
-            try {
-                if (!isServerFull()) {
-                    return@runBlocking
-                }
-
-                if (player.hasPermission(joinState.fullJoinPermission)) {
-                    return@runBlocking
-                }
-                denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.networkFull, event)
-            } catch (e: Exception) {
-                logger.severe("Error checking player limits: ${e.message}")
             }
         }
     }
@@ -106,8 +110,12 @@ class ServerPreConnectListener(
         return onlinePlayers >= maxPlayers
     }
 
-    private fun denyAccess(player: ProxiedPlayer, message: String, event: ServerConnectEvent) {
-        player.disconnect(proxyPlugin.deserializeToComponent(message, player).toBaseComponent())
+    private fun denyAccess(player: ProxiedPlayer, message: String, subServer: Boolean, event: ServerConnectEvent) {
+        if (subServer) {
+            player.sendMessage(proxyPlugin.deserializeToComponent(message, player).toBaseComponent())
+        } else {
+            player.disconnect(proxyPlugin.deserializeToComponent(message, player).toBaseComponent())
+        }
         event.isCancelled = true
     }
 }
