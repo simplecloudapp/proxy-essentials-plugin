@@ -4,9 +4,9 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class CommandMessageConfig(
-    val joinStateServiceUpdateSuccess: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Join state of service updated successfully.",
-    val joinStateServiceUpdateFailure: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Failed to update join state of service.",
-    val joinStateServiceUpdateNoChange: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Join state of service did not change.",
+    val joinStateServerUpdateSuccess: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Join state of server updated successfully.",
+    val joinStateServerUpdateFailure: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Failed to update join state of server.",
+    val joinStateServerUpdateNoChange: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Join state of server did not change.",
     val joinStateGroupUpdateSuccess: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Join state of group updated successfully.",
     val joinStateGroupUpdateFailure: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Failed to update join state of group.",
     val joinStateGroupUpdateNoChange: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Join state of group did not change.",

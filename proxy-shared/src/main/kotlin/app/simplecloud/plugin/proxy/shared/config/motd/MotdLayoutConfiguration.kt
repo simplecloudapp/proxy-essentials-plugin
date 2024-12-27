@@ -4,6 +4,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class MotdLayoutConfiguration(
+    val version: String = "1",
     val firstLines: List<String> = listOf("<color:#0ea5e9>A simplecloud.app network"),
     val secondLines: List<String> = listOf(" "),
     val playerInfo: List<String> = listOf(),
