@@ -38,7 +38,7 @@ class ServerPreConnectListener(
             return
         }
 
-        if (!player.hasPermission(joinState.joinPermission) && joinState.joinPermission != "") {
+        if (!player.hasPermission(joinState.joinPermission) && joinState.joinPermission.trim().isNotEmpty()) {
             logger.info("The player ${player.username} does not have the permission to join the proxy and will be kicked.")
             denyAccess(
                 player,
@@ -82,7 +82,7 @@ class ServerPreConnectListener(
                 return@runBlocking
             }
 
-            if (joinState.joinPermission != "" && !player.hasPermission(joinState.joinPermission)) {
+            if (joinState.joinPermission.trim().isNotEmpty() && !player.hasPermission(joinState.joinPermission)) {
                 logger.info("The player ${player.username} does not have the permission to join $serverName and will be kicked.")
                 denyAccess(
                     player,
