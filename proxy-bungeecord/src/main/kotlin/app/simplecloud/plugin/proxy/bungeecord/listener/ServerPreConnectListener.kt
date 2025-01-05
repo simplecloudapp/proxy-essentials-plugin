@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.bungeecord.listener
 
+import app.simplecloud.plugin.api.shared.pattern.ServerPatternIdentifier
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import app.simplecloud.plugin.proxy.bungeecord.toBaseComponent
 import kotlinx.coroutines.runBlocking
@@ -14,7 +15,12 @@ import java.util.logging.Logger
 class ServerPreConnectListener(
     private val proxyPlugin: ProxyBungeeCordPlugin,
 ): Listener {
+
     private val logger = Logger.getLogger(ServerPreConnectListener::class.java.name)
+
+    private val identifier = ServerPatternIdentifier(
+        this.proxyPlugin.proxyPlugin.joinStateConfiguration.serverNamePattern
+    )
 
     @EventHandler(priority = EventPriority.HIGH)
     fun handle(event: ServerConnectEvent) {
@@ -63,14 +69,9 @@ class ServerPreConnectListener(
     }
 
     private fun checkAllowServerSwitch(player: ProxiedPlayer, event: ServerConnectEvent, server: ServerInfo) {
-        val serviceName = server.name
-        val split = serviceName.split("-")
+        val serverName = server.name
 
-        val numericalId = split.last()
-
-        val mutableList = split.toMutableList()
-        mutableList.removeLast()
-        val groupName = mutableList.joinToString("-")
+        val (groupName, numericalId) = identifier.parse(serverName)
 
         runBlocking {
             val joinStateName =
@@ -78,13 +79,13 @@ class ServerPreConnectListener(
             val joinState = proxyPlugin.proxyPlugin.joinStateConfiguration.joinStates.find { it.name == joinStateName }
 
             if (joinState == null) {
-                logger.warning("The join state for the server $serviceName could not be found.")
+                logger.warning("The join state for the server $serverName could not be found.")
                 denyAccess(player, proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noJoinState, true, event)
                 return@runBlocking
             }
 
             if (joinState.joinPermission != "" && !player.hasPermission(joinState.joinPermission)) {
-                logger.info("The player ${player.name} does not have the permission to join $serviceName and will be kicked.")
+                logger.info("The player ${player.name} does not have the permission to join $serverName and will be kicked.")
                 denyAccess(
                     player,
                     proxyPlugin.proxyPlugin.messagesConfiguration.kickMessage.noPermission,

@@ -2,15 +2,22 @@
 kotlin = "2.0.20"
 kotlin-coroutines = "1.9.0"
 shadow = "8.3.3"
+
 velocity = "3.4.0-SNAPSHOT"
 bungeecord = "1.20-R0.1-SNAPSHOT"
+
 adventure = "4.16.0"
 adventure-platform = "4.3.2"
+
 gson = "2.10.1"
+
 configurate-yaml = "4.0.0"
 configurate-kotlin = "4.1.2"
+
 simplecloud-event-wrapper = "0.0.1-dev.950792a"
 simplecloud-controller = "0.0.30-dev.bf5da83"
+simplecloud-plugin = "0.0.1-dev.ac24842"
+
 command-cloud-core = "2.0.0"
 command-cloud-velocity = "2.0.0-beta.10"
 command-cloud-bungeecord = "2.0.0-beta.10"
@@ -36,6 +43,7 @@ configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", ve
 simplecloud-event-wrapper-velocity = { module = "app.simplecloud.event:event-wrapper-velocity", version.ref = "simplecloud-event-wrapper" }
 simplecloud-event-wrapper-bungeecord = { module = "app.simplecloud.event:event-wrapper-bungeecord", version.ref = "simplecloud-event-wrapper" }
 simplecloud-controller = { module = "app.simplecloud.controller:controller-api", version.ref = "simplecloud-controller" }
+simplecloud-plugin-api = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin" }
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

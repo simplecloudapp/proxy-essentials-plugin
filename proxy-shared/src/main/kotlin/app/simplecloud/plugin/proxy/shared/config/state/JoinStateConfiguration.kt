@@ -4,7 +4,8 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class JoinStateConfiguration(
-    val version: String = "1",
+    val version: String = "2",
+    val serverNamePattern: String = "<group_name>-<numerical_id>",
     val defaultState: String = "public",
     val joinStates: List<JoinState> = listOf(
         JoinState("public", "", "simplecloud.join.full.public", "public"),
