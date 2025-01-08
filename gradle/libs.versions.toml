@@ -14,6 +14,7 @@ simplecloud-controller = "0.0.30-dev.bf5da83"
 command-cloud-core = "2.0.0"
 command-cloud-velocity = "2.0.0-beta.10"
 command-cloud-bungeecord = "2.0.0-beta.10"
+minotaur = "2.8.7"
 
 [libraries]
 kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
@@ -40,3 +41,4 @@ simplecloud-controller = { module = "app.simplecloud.controller:controller-api",
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
