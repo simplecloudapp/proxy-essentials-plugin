@@ -1,68 +1,76 @@
-# Proxy Plugin with MOTD and TabList Functions
-## Description
+# Proxy Essentials Plugin
 
-This proxy plugin provides a variety of features for MOTD and TabList in your server network. It supports BungeeCord/Waterfall and Velocity.
+![Banner][banner]
+
+<div align="center">
+
+  [![Modrinth][badge-modrinth]][modrinth]
+  [![License][badge-license]][license]
+  <br>
+
+  [![Discord][badge-discord]][social-discord]
+  [![Follow @simplecloudapp][badge-x]][social-x]
+  [![Follow @simplecloudapp][badge-bluesky]][social-bluesky]
+  [![Follow @simplecloudapp][badge-youtube]][social-youtube]
+  <br>
+
+  [Report a Bug][issue-bug-report]
+  ·
+  [Request a Feature][issue-feature-request]
+  <br>
+
+🌟 Give us a star — your support means the world to us!
+</div>
+<br>
+
+> All information about this project can be found in our detailed [documentation][docs-thisproject].
+
+The Proxy Plugin enhances your server network with customizable MOTD (Server Info) and Tablist features, offering extensive customization options through simple configuration files. All settings are synchronized across all proxies.
 
 ## Features
 
-### MOTD
+- [x] **Mutliple MOTD Layouts**: Create multiple MOTD Layouts for different states! 
+- [x] **Custom Tablist**: Send your Players custom Tablist Header and Footer!
+- [x] **Joinstates**: Create different joinstates so your players can only join with certain permissions (you can call it advanced maintenance feature)
 
-- Configurable first and second line of the MOTD.
-- Ability to specify multiple options for each line to be randomly selected.
-- Customizable PlayerInfo and server version.
-- Dynamic player counts with configurable range.
-- Support for Adventure Minimessage format.
-- Standard placeholders: `%ONLINE_PLAYERS%` and `%MAX_PLAYERS%`.
+## Contributing
+Contributions to SimpleCloud are welcome and highly appreciated. However, before you jump right into it, we would like you to read our [Contribution Guide][docs-contribute].
 
-### TabList
+## License
+This repository is licensed under [Apache 2.0][license].
 
-- Customizable update interval.
-- Animated header and footer.
-- Ability to set tab lists based on server names or groups.
-- Usage of Adventure Minimessage format.
-- Standard placeholders: `%ONLINE_PLAYERS%`, `%MAX_PLAYERS%`, `%SERVICE_NAME%`, `%CURRENT_TIME%`, `%CURRENT_DATE%` and `%PING%`.
+<!-- LINK GROUP -->
 
-## Configuration
+<!-- ✅ PLEASE EDIT -->
+[banner]: https://raw.githubusercontent.com/simplecloudapp/branding/refs/heads/main/readme/banner/plugin/proxy-essentials.png
+[issue-bug-report]: https://github.com/theSimpleCloud/proxy-essentials-plugin/issues/new?labels=bug&projects=template=01_BUG-REPORT.yml&title=%5BBUG%5D+%3Ctitle%3E
+[issue-feature-request]: https://github.com/theSimpleCloud/proxy-essentials-plugin/discussions/new?category=ideas
+[docs-thisproject]: https://docs.simplecloud.app/plugin/proxy-essentials
+[docs-contribute]: https://docs.simplecloud.app/contribute
 
-The plugin is configured via the files `motd.yml` and `tablist.yml`. In these files you will find all the options for customizing MOTD and TabList.
+[modrinth]: https://modrinth.com/plugin/proxy-essentials-plugin
+[maven-central]: https://central.sonatype.com/artifact/app.simplecloud.controller/controller-api
+[dev]: https://repo.simplecloud.app/#/snapshots/app/simplecloud/controller/controller-api
 
-## Plugin API
 
-The plugin provides an API for other plugins to interact with the MOTD and TabList. The API is available for both BungeeCord/Waterfall and Velocity.
+[artifacts]: https://repo.simplecloud.app/#/snapshots/app/simplecloud/controller/controller-api
+[dev-artifacts]: https://repo.simplecloud.app/#/snapshots/app/simplecloud/controller/controller-api
 
-You can use the event `MotdConfigurationEvent` or `TabListConfigurationEvent` to update the MOTD or TabList. The event contains the configuration object that you can modify.
-In the case of the TabList event, you can edit the header and footer of the TabList. Velocity is used for this example.
+[badge-maven-central]: https://img.shields.io/maven-central/v/app.simplecloud.controller/controller-api?labelColor=18181b&style=flat-square&color=65a30d&label=Release
+[badge-dev]: https://repo.simplecloud.app/api/badge/latest/snapshots/app/simplecloud/controller/controller-api?name=Dev&style=flat-square&color=0ea5e9
 
-```kotlin
-    @Subscribe
-    fun onTabListConfiguration(event: TabListConfigurationEvent) {
-        var header = event.tabListConfiguration.header
-        header = header.replaceText(TextReplacementConfig.builder().match("%MY_FUNNY_PLACEHOLDER%").replacement("<red>Test" + 123).build())
-        event.tabListConfiguration.header = header
+<!-- ⛔ DON'T TOUCH -->
+[license]: https://opensource.org/licenses/Apache-2.0
+[snapshots]: https://repo.simplecloud.app/#/snapshots
 
-        var footer = event.tabListConfiguration.footer
-        footer = footer.replaceText(TextReplacementConfig.builder().match("%MY_FUNNY_PLACEHOLDER%").replacement("<red>Test" + 123).build())
-        event.tabListConfiguration.footer = footer
-    }
-```
+[social-x]: https://x.com/simplecloudapp
+[social-bluesky]: https://bsky.app/profile/simplecloud.app
+[social-youtube]: https://www.youtube.com/@thesimplecloud9075
+[social-discord]: https://discord.simplecloud.app
 
-## Additional Information
-
-For more information about the plugin, please visit the project page: <https://wiki.simplecoud.app/plugin/proxy>
-
-## Installation
-
-1. Download the plugin from the project page: <https://wiki.simplecoud.app/plugin/proxy>.
-2. Copy the file `proxy-velocity.jar` or `proxy-bungeecord.jar` into your proxy's plugin folder.
-3. Restart the proxy.
-4. Edit the files `motd.yml` and `tablist.yml` according to your preferences.
-5. Restart the proxy again.
-
-## Supported Platforms:
-
-- BungeeCord/Waterfall
-- Velocity
-
-## License:
-
-This plugin is licensed under the [MIT License](https://opensource.org/licenses/MIT). For more information, refer to the accompanying license file.
+[badge-modrinth]: https://img.shields.io/badge/modrinth-18181b.svg?style=flat-square&logo=modrinth
+[badge-license]: https://img.shields.io/badge/apache%202.0-blue.svg?style=flat-square&label=license&labelColor=18181b&style=flat-square&color=e11d48
+[badge-discord]: https://img.shields.io/badge/Community_Discord-d95652.svg?style=flat-square&logo=discord&color=27272a
+[badge-x]: https://img.shields.io/badge/Follow_@simplecloudapp-d95652.svg?style=flat-square&logo=x&color=27272a
+[badge-bluesky]: https://img.shields.io/badge/Follow_@simplecloud.app-d95652.svg?style=flat-square&logo=bluesky&color=27272a
+[badge-youtube]: https://img.shields.io/badge/youtube-d95652.svg?style=flat-square&logo=youtube&color=27272a
