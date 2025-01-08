@@ -5,6 +5,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class TabListConfiguration(
+    val version: String = "1",
     val groups: List<TabListGroup> = listOf(
         TabListGroup()
     ),

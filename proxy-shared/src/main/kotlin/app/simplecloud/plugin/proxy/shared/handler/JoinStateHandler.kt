@@ -10,7 +10,7 @@ class JoinStateHandler(
 
     private val logger = Logger.getLogger(JoinStateHandler::class.java.name)
 
-    var localState: String = ""
+    var localState: String = proxyPlugin.joinStateConfiguration.defaultState
 
     companion object {
         val JOINSTATE_KEY = "joinstate"
@@ -122,6 +122,12 @@ class JoinStateHandler(
         }
 
         val state = cloudControllerHandler.getGroupProperties(cloudControllerHandler.groupName!!, JOINSTATE_KEY)
+
+        if (state.isEmpty()) {
+            logger.warning("No join state found for group ${cloudControllerHandler.groupName}. Using default join state.")
+            setJoinStateAtGroup(cloudControllerHandler.groupName!!, this.proxyPlugin.joinStateConfiguration.defaultState)
+            return
+        }
 
         if (state != localState) {
             if (getJoinStateAtService(cloudControllerHandler.groupName!!, cloudControllerHandler.numericalId!!.toLong()) != localState) {

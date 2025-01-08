@@ -129,7 +129,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                         val state = context.get<String>("state")
 
                         if (proxyPlugin.joinStateHandler.getJoinStateAtService(group, numericalId.toLong()) == state) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServiceUpdateNoChange)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServerUpdateNoChange)
                             return@launch
                         }
 
@@ -142,9 +142,9 @@ class JoinStateCommandHandler<C : CommandSender>(
                         )
 
                         if (successfully) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServiceUpdateSuccess)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServerUpdateSuccess)
                         } else {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServiceUpdateFailure)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServerUpdateFailure)
                         }
                     }
                 }

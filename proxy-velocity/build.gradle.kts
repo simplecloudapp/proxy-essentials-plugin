@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     alias(libs.plugins.minotaur)
 }
@@ -13,8 +15,16 @@ dependencies {
     compileOnly(rootProject.libs.simplecloud.event.wrapper.velocity)
     compileOnly(rootProject.libs.simplecloud.controller)
 
+    implementation(rootProject.libs.simplecloud.plugin.api)
+
     implementation(rootProject.libs.command.cloud.core)
     implementation(rootProject.libs.command.cloud.velocity)
+}
+
+tasks.shadowJar {
+    relocate("org.incendo", "app.simplecloud.relocate.incendo")
+    relocate("org.spongepowered", "app.simplecloud.relocate.spongepowered")
+    relocate("app.simplecloud.plugin.api", "app.simplecloud.relocate.plugin.api")
 }
 
 modrinth {

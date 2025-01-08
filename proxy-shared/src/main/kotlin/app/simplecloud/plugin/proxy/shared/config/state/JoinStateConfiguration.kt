@@ -4,10 +4,12 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class JoinStateConfiguration(
+    val version: String = "2",
+    val serverNamePattern: String = "<group_name>-<numerical_id>",
     val defaultState: String = "public",
     val joinStates: List<JoinState> = listOf(
         JoinState("public", "", "simplecloud.join.full.public", "public"),
-        JoinState("closedBeta", "simplecloud.join.closedbeta", "simplecloud.join.full.closedbeta", "closed_beta"),
+        JoinState("premium", "simplecloud.join.premium", "simplecloud.join.full.premium", "premium"),
         JoinState("maintenance", "simplecloud.join.maintenance", "simplecloud.join.full.maintenance", "maintenance")
     )
 )
