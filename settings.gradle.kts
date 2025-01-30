@@ -1,7 +1,9 @@
-dependencyResolutionManagement {
-    @Suppress("UnstableApiUsage")
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
+pluginManagement {
     repositories {
         mavenCentral()
+        gradlePluginPortal()
     }
 }
 
@@ -10,3 +12,9 @@ plugins {
 }
 
 rootProject.name = "proxy-essentials-plugin"
+
+include(
+    ":proxy-shared",
+    ":proxy-velocity",
+    ":proxy-bungeecord"
+)
