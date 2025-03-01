@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
+import app.simplecloud.pubsub.PubSubClient
 import build.buf.gen.simplecloud.controller.v1.ServerUpdateEvent
 import kotlinx.coroutines.*
 import java.util.logging.Logger
@@ -120,34 +121,33 @@ class JoinStateHandler(
         }
     }
 
-    fun registerPubSubListener() {
-        this.proxyPlugin.cloudControllerHandler.controllerApi.getPubSubClient()
-            .subscribe("event", ServerUpdateEvent::class.java) { event ->
-                if (event.serverAfter.uniqueId != System.getenv("SIMPLECLOUD_UNIQUE_ID")) return@subscribe
+    fun registerPubSubListener(pubSubClient: PubSubClient) {
+        pubSubClient.subscribe("event", ServerUpdateEvent::class.java) { event ->
+            if (event.serverAfter.uniqueId != System.getenv("SIMPLECLOUD_UNIQUE_ID")) return@subscribe
 
 
-                val state = event.serverAfter.cloudPropertiesMap[JOINSTATE_KEY]
+            val state = event.serverAfter.cloudPropertiesMap[JOINSTATE_KEY]
 
-                if (state == null) {
-                    this.logger.warning("No join state found for server. Using default join state.")
+            if (state == null) {
+                this.logger.warning("No join state found for server. Using default join state.")
 
-                    CoroutineScope(Dispatchers.IO).launch {
-                        setJoinStateAtGroupAndAllServicesInGroup(
-                            event.serverAfter.groupName,
-                            proxyPlugin.joinStateConfiguration.defaultState
-                        )
-                        localState = proxyPlugin.joinStateConfiguration.defaultState
-                    }
-                    return@subscribe
+                CoroutineScope(Dispatchers.IO).launch {
+                    setJoinStateAtGroupAndAllServicesInGroup(
+                        event.serverAfter.groupName,
+                        proxyPlugin.joinStateConfiguration.defaultState
+                    )
+                    localState = proxyPlugin.joinStateConfiguration.defaultState
                 }
-
-                if (state == localState) {
-                    return@subscribe
-                }
-
-                localState = state
-                this.logger.info("Join state changed to $state")
+                return@subscribe
             }
+
+            if (state == localState) {
+                return@subscribe
+            }
+
+            localState = state
+            this.logger.info("Join state changed to $state")
+        }
     }
 
     private suspend fun getGroupState() {
