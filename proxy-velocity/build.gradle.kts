@@ -12,7 +12,6 @@ dependencies {
     compileOnly(rootProject.libs.velocity)
     annotationProcessor(rootProject.libs.velocity)
 
-    compileOnly(rootProject.libs.simplecloud.event.wrapper.velocity)
     compileOnly(rootProject.libs.simplecloud.controller)
 
     implementation(rootProject.libs.simplecloud.plugin.api)

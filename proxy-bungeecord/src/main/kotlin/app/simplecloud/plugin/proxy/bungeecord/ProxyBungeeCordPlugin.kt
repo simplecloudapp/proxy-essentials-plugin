@@ -20,7 +20,6 @@ class ProxyBungeeCordPlugin: Plugin() {
 
     val proxyPlugin = ProxyPlugin(this.dataFolder.path)
 
-
     val tabListHandler = TabListHandler(this)
 
     private lateinit var commandManager: BungeeCommandManager<CommandSender>
@@ -40,7 +39,6 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.adventure = BungeeAudiences.create(this)
         this.proxy.pluginManager.registerListener(this, ProxyPingListener(this))
         this.proxy.pluginManager.registerListener(this, ConfigureTagResolversListener(this))
-        this.proxy.pluginManager.registerListener(this, CloudListener(this))
         this.proxy.pluginManager.registerListener(this, ServerPreConnectListener(this))
 
         if (this.proxyPlugin.tabListConfiguration.tabListUpdateTime > 0)

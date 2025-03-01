@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
+import build.buf.gen.simplecloud.controller.v1.ServerUpdateEvent
 import kotlinx.coroutines.*
 import java.util.logging.Logger
 
@@ -55,7 +56,12 @@ class JoinStateHandler(
      * @return True if the join state was set successfully, false otherwise.
      */
     suspend fun setJoinStateAtService(groupName: String, numericalId: Long, joinStateName: String): Boolean {
-        return this.proxyPlugin.cloudControllerHandler.setServiceProperties(groupName, numericalId, JOINSTATE_KEY, joinStateName)
+        return this.proxyPlugin.cloudControllerHandler.setServiceProperties(
+            groupName,
+            numericalId,
+            JOINSTATE_KEY,
+            joinStateName
+        )
     }
 
     /**
@@ -92,7 +98,8 @@ class JoinStateHandler(
      * @return The name of the join state.
      */
     suspend fun getJoinStateAtService(groupName: String, numericalId: Long): String {
-        val serviceProperties = this.proxyPlugin.cloudControllerHandler.getServiceProperties(groupName, numericalId, JOINSTATE_KEY)
+        val serviceProperties =
+            this.proxyPlugin.cloudControllerHandler.getServiceProperties(groupName, numericalId, JOINSTATE_KEY)
 
         if (serviceProperties.isEmpty()) {
             logger.warning("No join state found for service $numericalId in group $groupName. Using default join state.")
@@ -113,6 +120,36 @@ class JoinStateHandler(
         }
     }
 
+    fun registerPubSubListener() {
+        this.proxyPlugin.cloudControllerHandler.controllerApi.getPubSubClient()
+            .subscribe("event", ServerUpdateEvent::class.java) { event ->
+                if (event.serverAfter.uniqueId != System.getenv("SIMPLECLOUD_UNIQUE_ID")) return@subscribe
+
+
+                val state = event.serverAfter.cloudPropertiesMap[JOINSTATE_KEY]
+
+                if (state == null) {
+                    this.logger.warning("No join state found for server. Using default join state.")
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        setJoinStateAtGroupAndAllServicesInGroup(
+                            event.serverAfter.groupName,
+                            proxyPlugin.joinStateConfiguration.defaultState
+                        )
+                        localState = proxyPlugin.joinStateConfiguration.defaultState
+                    }
+                    return@subscribe
+                }
+
+                if (state == localState) {
+                    return@subscribe
+                }
+
+                localState = state
+                this.logger.info("Join state changed to $state")
+            }
+    }
+
     private suspend fun getGroupState() {
         val cloudControllerHandler = this.proxyPlugin.cloudControllerHandler
 
@@ -125,12 +162,19 @@ class JoinStateHandler(
 
         if (state.isEmpty()) {
             logger.warning("No join state found for group ${cloudControllerHandler.groupName}. Using default join state.")
-            setJoinStateAtGroup(cloudControllerHandler.groupName!!, this.proxyPlugin.joinStateConfiguration.defaultState)
+            setJoinStateAtGroup(
+                cloudControllerHandler.groupName!!,
+                this.proxyPlugin.joinStateConfiguration.defaultState
+            )
             return
         }
 
         if (state != localState) {
-            if (getJoinStateAtService(cloudControllerHandler.groupName!!, cloudControllerHandler.numericalId!!.toLong()) != localState) {
+            if (getJoinStateAtService(
+                    cloudControllerHandler.groupName!!,
+                    cloudControllerHandler.numericalId!!.toLong()
+                ) != localState
+            ) {
                 //Skip group state change if service state is different
                 //logger.info("Join state not changed to $state because of different service state.")
                 return
@@ -140,4 +184,5 @@ class JoinStateHandler(
             logger.info("Join state changed to $state because of group state change.")
         }
     }
+
 }

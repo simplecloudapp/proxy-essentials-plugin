@@ -5,7 +5,6 @@ import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
 import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
 import app.simplecloud.plugin.proxy.velocity.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
-import app.simplecloud.plugin.proxy.velocity.listener.CloudListener
 import app.simplecloud.plugin.proxy.velocity.listener.ConfigureTagResolversListener
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingListener
 import app.simplecloud.plugin.proxy.velocity.listener.ServerPreConnectListener
@@ -50,7 +49,6 @@ class ProxyVelocityPlugin @Inject constructor(
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(this))
         this.proxyServer.eventManager.register(this, ConfigureTagResolversListener(this))
-        this.proxyServer.eventManager.register(this, CloudListener(this))
         this.proxyServer.eventManager.register(this, ServerPreConnectListener(this))
 
         if (this.tabListConfiguration.tabListUpdateTime > 0)
