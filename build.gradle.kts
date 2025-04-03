@@ -1,5 +1,4 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.kotlin)
@@ -42,8 +41,8 @@ subprojects {
 
     dependencies {
         testImplementation(rootProject.libs.kotlin.test)
-        implementation(rootProject.libs.kotlin.jvm)
-        implementation(rootProject.libs.kotlin.coroutines)
+        compileOnly(rootProject.libs.kotlin.jvm)
+        compileOnly(rootProject.libs.kotlin.coroutines)
     }
 
     java {
@@ -60,6 +59,10 @@ subprojects {
     tasks.named("shadowJar", ShadowJar::class) {
         mergeServiceFiles()
         archiveFileName.set("${project.name}.jar")
+
+        relocate("com.google.protobuf", "app.simplecloud.relocate.google.protobuf")
+        relocate("com.google.common", "app.simplecloud.relocate.google.common")
+        relocate("io.grpc", "app.simplecloud.relocate.io.grpc")
     }
 
     tasks.test {
