@@ -20,12 +20,6 @@ dependencies {
     implementation(rootProject.libs.command.cloud.velocity)
 }
 
-tasks.shadowJar {
-    relocate("org.incendo", "app.simplecloud.relocate.incendo")
-    relocate("org.spongepowered", "app.simplecloud.relocate.spongepowered")
-    relocate("app.simplecloud.plugin.api", "app.simplecloud.relocate.plugin.api")
-}
-
 modrinth {
     token.set(project.findProperty("modrinthToken") as String? ?: System.getenv("MODRINTH_TOKEN"))
     projectId.set("WzfN2mLK")
