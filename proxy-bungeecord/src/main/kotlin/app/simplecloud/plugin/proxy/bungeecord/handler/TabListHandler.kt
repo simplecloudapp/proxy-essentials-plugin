@@ -1,8 +1,6 @@
 package app.simplecloud.plugin.proxy.bungeecord.handler
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabList
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.scheduler.ScheduledTask
 import java.util.concurrent.TimeUnit
@@ -36,8 +34,8 @@ class TabListHandler(
     }
 
     fun updateTabListForPlayer(player: ProxiedPlayer) {
-        if (player.server == null) return;
-        if (player.server.info == null) return;
+        if (player.server == null) return
+        if (player.server.info == null) return
 
         val configuration = plugin.proxyPlugin.tabListConfiguration
         val serviceName = player.server.info.name
@@ -61,16 +59,17 @@ class TabListHandler(
             }
         }
 
-        if (tabListGroup == null) {
-            tabListGroup = TabListGroup(
-                "noValuedGroupOrServiceConfigurationsFround",
-                listOf(
-                    TabList(
-                        listOf("<red>No configuration found for this service"),
-                        listOf("<red>Please check your configuration file from the proxy plugin in the plugins folder"),
-                    )
-                )
-            )
+        if (tabListGroup == null || tabListGroup.tabLists.isEmpty()) {
+//            tabListGroup = TabListGroup(
+//                "noValuedGroupOrServiceConfigurationsFround",
+//                listOf(
+//                    TabList(
+//                        listOf("<red>No configuration found for this service"),
+//                        listOf("<red>Please check your configuration file from the proxy plugin in the plugins folder"),
+//                    )
+//                )
+//            )
+            return
         }
 
         if (tabListGroup.tabLists.size <= tabListIndex.getOrDefault(tabListGroup.groupOrService, 0) + 1)
