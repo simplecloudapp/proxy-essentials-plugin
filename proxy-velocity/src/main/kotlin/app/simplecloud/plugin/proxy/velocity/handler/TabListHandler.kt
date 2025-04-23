@@ -1,7 +1,5 @@
 package app.simplecloud.plugin.proxy.velocity.handler
 
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabList
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.scheduler.ScheduledTask
@@ -61,14 +59,17 @@ class TabListHandler(
             }
         }
 
-        if (tabListGroup == null) {
-            tabListGroup = TabListGroup(
-                "noValuedGroupOrServiceConfigurationsFround",
-                listOf(TabList(
-                    listOf("<red>No configuration found for this service"),
-                    listOf("<red>Please check your configuration file from the proxy plugin in the plugins folder"),
-                ))
-            )
+        if (tabListGroup == null || tabListGroup.tabLists.isEmpty()) {
+//            tabListGroup = TabListGroup(
+//                "noValuedGroupOrServiceConfigurationsFround",
+//                listOf(
+//                    TabList(
+//                        listOf("<red>No configuration found for this service"),
+//                        listOf("<red>Please check your configuration file from the proxy plugin in the plugins folder"),
+//                    )
+//                )
+//            )
+            return
         }
 
         if (tabListGroup.tabLists.size <= tabListIndex.getOrDefault(tabListGroup.groupOrService, 0) + 1)
