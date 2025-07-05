@@ -51,7 +51,7 @@ class ProxyVelocityPlugin @Inject constructor(
         this.proxyServer.eventManager.register(this, ConfigureTagResolversListener(this))
         this.proxyServer.eventManager.register(this, ServerPreConnectListener(this))
 
-        if (this.tabListConfiguration.tabListUpdateTime > 0)
+        if (this.tabListConfiguration.get().tabListUpdateTime > 0)
             this.tabListHandler.startTabListTask()
         else
             this.logger.info("Tablist update time is set to 0, tablist will not be updated automatically")

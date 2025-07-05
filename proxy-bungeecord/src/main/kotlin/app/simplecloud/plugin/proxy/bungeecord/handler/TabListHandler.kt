@@ -21,7 +21,7 @@ class TabListHandler(
             this.tabListIndex.forEach { (key, value) ->
                 this.tabListIndex[key] = value + 1
             }
-        }, 1, this.plugin.proxyPlugin.tabListConfiguration.tabListUpdateTime, TimeUnit.MILLISECONDS)
+        }, 1, this.plugin.proxyPlugin.tabListConfiguration.get().tabListUpdateTime, TimeUnit.MILLISECONDS)
     }
 
     fun stopTabListTask() {
@@ -37,7 +37,7 @@ class TabListHandler(
         if (player.server == null) return
         if (player.server.info == null) return
 
-        val configuration = plugin.proxyPlugin.tabListConfiguration
+        val configuration = plugin.proxyPlugin.tabListConfiguration.get()
         val serviceName = player.server.info.name
 
         var tabListGroup = configuration.groups.find { group ->

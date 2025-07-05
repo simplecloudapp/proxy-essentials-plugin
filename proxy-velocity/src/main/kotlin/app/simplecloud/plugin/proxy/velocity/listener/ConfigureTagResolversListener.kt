@@ -19,7 +19,7 @@ class ConfigureTagResolversListener(
             val serverName = player?.currentServer?.getOrNull()?.serverInfo?.name ?: "unknown"
 
             val ping = player?.ping ?: -1
-            val pingColors = plugin.placeHolderConfiguration.pingColors
+            val pingColors = plugin.placeHolderConfiguration.get().pingColors
 
             val onlinePlayers = plugin.proxyServer.allPlayers.size
             val realMaxPlayers = plugin.proxyServer.configuration.showMaxPlayers

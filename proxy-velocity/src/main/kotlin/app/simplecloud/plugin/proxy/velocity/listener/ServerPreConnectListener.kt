@@ -16,7 +16,7 @@ class ServerPreConnectListener(
     private val logger = Logger.getLogger(ServerPreConnectListener::class.java.name)
 
     private val identifier = ServerPatternIdentifier(
-        this.proxyPlugin.joinStateConfiguration.serverNamePattern
+        this.proxyPlugin.joinStateConfiguration.get().serverNamePattern
     )
 
     @Subscribe(order = PostOrder.EARLY)
@@ -30,11 +30,11 @@ class ServerPreConnectListener(
 
     private fun checkAllowProxyJoin(player: Player, event: ServerPreConnectEvent) {
         val localState = this.proxyPlugin.joinStateHandler.localState
-        val joinState = this.proxyPlugin.joinStateConfiguration.joinStates.find { it.name == localState }
+        val joinState = this.proxyPlugin.joinStateConfiguration.get().joinStates.find { it.name == localState }
 
         if (joinState == null) {
             logger.info("The join state for the proxy could not be found.")
-            denyAccess(player, proxyPlugin.messagesConfiguration.kickMessage.noJoinState, false, event)
+            denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noJoinState, false, event)
             return
         }
 
@@ -42,7 +42,7 @@ class ServerPreConnectListener(
             logger.info("The player ${player.username} does not have the permission to join the proxy and will be kicked.")
             denyAccess(
                 player,
-                this.proxyPlugin.messagesConfiguration.kickMessage.noPermission,
+                this.proxyPlugin.messagesConfiguration.get().kickMessage.noPermission,
                 false,
                 event
             )
@@ -58,7 +58,7 @@ class ServerPreConnectListener(
                 if (player.hasPermission(joinState.fullJoinPermission)) {
                     return@runBlocking
                 }
-                denyAccess(player, proxyPlugin.messagesConfiguration.kickMessage.networkFull, false, event)
+                denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.networkFull, false, event)
                 return@runBlocking
             } catch (e: Exception) {
                 logger.severe("Error checking player limits: ${e.message}")
@@ -74,11 +74,11 @@ class ServerPreConnectListener(
         runBlocking {
             val joinStateName =
                 proxyPlugin.joinStateHandler.getJoinStateAtService(groupName, numericalId.toLong())
-            val joinState = proxyPlugin.joinStateConfiguration.joinStates.find { it.name == joinStateName }
+            val joinState = proxyPlugin.joinStateConfiguration.get().joinStates.find { it.name == joinStateName }
 
             if (joinState == null) {
                 logger.warning("The join state for the server $serverName could not be found.")
-                denyAccess(player, proxyPlugin.messagesConfiguration.kickMessage.noJoinState, true, event)
+                denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noJoinState, true, event)
                 return@runBlocking
             }
 
@@ -86,7 +86,7 @@ class ServerPreConnectListener(
                 logger.info("The player ${player.username} does not have the permission to join $serverName and will be kicked.")
                 denyAccess(
                     player,
-                    proxyPlugin.messagesConfiguration.kickMessage.noPermission,
+                    proxyPlugin.messagesConfiguration.get().kickMessage.noPermission,
                     true,
                     event
                 )

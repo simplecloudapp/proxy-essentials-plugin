@@ -1,45 +1,29 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
+import app.simplecloud.plugin.api.shared.repository.YamlDirectoryRepository
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.motd.MotdLayoutConfiguration
-import java.io.File
+import java.nio.file.Path
 import java.util.logging.Logger
 
 class MotdLayoutHandler(
-    private val yamlConfig: YamlConfig,
+    private val directory: Path,
     private val proxyPlugin: ProxyPlugin
+): YamlDirectoryRepository<MotdLayoutConfiguration>(
+    directory,
+    MotdLayoutConfiguration::class.java,
 ) {
 
-    private val loadedMotdLayouts: MutableMap<String, MotdLayoutConfiguration> = mutableMapOf()
     private val logger = Logger.getLogger(MotdLayoutHandler::class.java.name)
 
     fun loadMotdLayouts() {
-        loadedMotdLayouts.clear()
-        initializeLayoutDirectory()
-        loadLayoutsFromDirectory()
+        load()
         createDefaultLayoutsIfEmpty()
     }
 
-    private fun initializeLayoutDirectory() {
-        val directory = File(yamlConfig.dirPath + "/layout")
-        if (!directory.exists()) {
-            directory.mkdirs()
-        }
-    }
-
-    private fun loadLayoutsFromDirectory() {
-        File(yamlConfig.dirPath + "/layout").listFiles()?.forEach { file ->
-            yamlConfig.load<MotdLayoutConfiguration>("layout/${file.nameWithoutExtension}")?.let { layout ->
-                loadedMotdLayouts[file.nameWithoutExtension] = layout
-                logger.info("Loaded MOTD layout: ${file.nameWithoutExtension}")
-            }
-        }
-    }
-
     private fun createDefaultLayoutsIfEmpty() {
-        if (loadedMotdLayouts.isEmpty()) {
-            this.proxyPlugin.joinStateConfiguration.joinStates.forEach {
+        if (entities.isEmpty()) {
+            this.proxyPlugin.joinStateConfiguration.get().joinStates.forEach {
                 createAndSaveDefaultLayout(it.motdLayoutByProxy)
             }
         }
@@ -47,15 +31,16 @@ class MotdLayoutHandler(
 
     private fun createAndSaveDefaultLayout(layoutName: String) {
         val defaultLayout = MotdLayoutConfiguration()
-        yamlConfig.save("layout/$layoutName", defaultLayout)
-        loadedMotdLayouts[layoutName] = defaultLayout
+        save("${layoutName}.yml", defaultLayout)
         logger.info("Created and saved default layout: $layoutName")
     }
 
     private fun getMotdLayout(name: String): MotdLayoutConfiguration =
-        loadedMotdLayouts[name] ?: MotdLayoutConfiguration()
+        entities[directory.resolve("${name}.yml").toFile()] ?: MotdLayoutConfiguration()
+
 
     fun getCurrentMotdLayout(): MotdLayoutConfiguration {
         return getMotdLayout(this.proxyPlugin.joinStateHandler.localState)
     }
+
 }

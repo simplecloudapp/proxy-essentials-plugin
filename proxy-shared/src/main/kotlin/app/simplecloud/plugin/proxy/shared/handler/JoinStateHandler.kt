@@ -12,7 +12,7 @@ class JoinStateHandler(
 
     private val logger = Logger.getLogger(JoinStateHandler::class.java.name)
 
-    var localState: String = proxyPlugin.joinStateConfiguration.defaultState
+    var localState: String = proxyPlugin.joinStateConfiguration.get().defaultState
 
     companion object {
         val JOINSTATE_KEY = "joinstate"
@@ -39,7 +39,7 @@ class JoinStateHandler(
 
         if (groupProperties.isEmpty()) {
             logger.warning("No join state found for group $groupName. Using default join state.")
-            setJoinStateAtGroup(groupName, this.proxyPlugin.joinStateConfiguration.defaultState)
+            setJoinStateAtGroup(groupName, this.proxyPlugin.joinStateConfiguration.get().defaultState)
 
             return getJoinStateAtGroup(groupName)
         }
@@ -104,7 +104,7 @@ class JoinStateHandler(
 
         if (serviceProperties.isEmpty()) {
             logger.warning("No join state found for service $numericalId in group $groupName. Using default join state.")
-            setJoinStateAtService(groupName, numericalId, this.proxyPlugin.joinStateConfiguration.defaultState)
+            setJoinStateAtService(groupName, numericalId, this.proxyPlugin.joinStateConfiguration.get().defaultState)
 
             return getJoinStateAtService(groupName, numericalId)
         }
@@ -134,9 +134,9 @@ class JoinStateHandler(
                 CoroutineScope(Dispatchers.IO).launch {
                     setJoinStateAtGroupAndAllServicesInGroup(
                         event.serverAfter.groupName,
-                        proxyPlugin.joinStateConfiguration.defaultState
+                        proxyPlugin.joinStateConfiguration.get().defaultState
                     )
-                    localState = proxyPlugin.joinStateConfiguration.defaultState
+                    localState = proxyPlugin.joinStateConfiguration.get().defaultState
                 }
                 return@subscribe
             }
@@ -164,7 +164,7 @@ class JoinStateHandler(
             logger.warning("No join state found for group ${cloudControllerHandler.groupName}. Using default join state.")
             setJoinStateAtGroup(
                 cloudControllerHandler.groupName!!,
-                this.proxyPlugin.joinStateConfiguration.defaultState
+                this.proxyPlugin.joinStateConfiguration.get().defaultState
             )
             return
         }

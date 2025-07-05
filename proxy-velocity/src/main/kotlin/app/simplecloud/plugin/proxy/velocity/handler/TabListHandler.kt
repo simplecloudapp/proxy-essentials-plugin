@@ -20,7 +20,7 @@ class TabListHandler(
             this.tabListIndex.forEach { (key, value) ->
                 this.tabListIndex[key] = value + 1
             }
-        }).repeat(this.plugin.tabListConfiguration.tabListUpdateTime, java.util.concurrent.TimeUnit.MILLISECONDS).schedule()
+        }).repeat(this.plugin.tabListConfiguration.get().tabListUpdateTime, java.util.concurrent.TimeUnit.MILLISECONDS).schedule()
     }
 
     fun stopTabListTask() {
@@ -33,7 +33,7 @@ class TabListHandler(
     }
 
     fun updateTabListForPlayer(player: Player) {
-        val configuration = plugin.tabListConfiguration
+        val configuration = plugin.tabListConfiguration.get()
 
         if (player.currentServer.isEmpty)
             return

@@ -41,16 +41,16 @@ class JoinStateCommandHandler<C : CommandSender>(
     }
 
     private fun handleHelp(context: CommandContext<C>) {
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpHeader)
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpCommand
+        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpHeader)
+        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
             .replace("<command>", "/joinstate server <group> <numericalId> <state>"))
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpCommand
+        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
             .replace("<command>", "/joinstate group <group> <state>"))
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpCommand
+        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
             .replace("<command>", "/joinstate groups"))
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpCommand
+        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
             .replace("<command>", "/joinstate states"))
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateHelpCommand
+        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
             .replace("<command>", "/joinstate help"))
     }
 
@@ -60,11 +60,11 @@ class JoinStateCommandHandler<C : CommandSender>(
                 .literal("groups")
                 .permission("simplecloud.command.joinstate.groups")
                 .handler { context: CommandContext<C> ->
-                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateGroupListHeader)
+                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupListHeader)
                     CoroutineScope(Dispatchers.IO).launch {
                         proxyPlugin.cloudControllerHandler.getAllGroups().forEach { group ->
                             val state = proxyPlugin.joinStateHandler.getJoinStateAtGroup(group)
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateGroupListEntry
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupListEntry
                                 .replace("<group>", group)
                                 .replace("<state>", state))
                         }
@@ -80,9 +80,9 @@ class JoinStateCommandHandler<C : CommandSender>(
                 .literal("states")
                 .permission("simplecloud.command.joinstate.states")
                 .handler { context: CommandContext<C> ->
-                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateStateListHeader)
-                    proxyPlugin.joinStateConfiguration.joinStates.forEach { state ->
-                        context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateStateListEntry
+                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateStateListHeader)
+                    proxyPlugin.joinStateConfiguration.get().joinStates.forEach { state ->
+                        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateStateListEntry
                             .replace("<state>", state.name)
                             .replace("<joinPermission>", state.joinPermission))
                     }
@@ -118,7 +118,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                     "state",
                     StringParser.stringParser()
                 ) { _, _ ->
-                    val suggestionList = proxyPlugin.joinStateConfiguration.joinStates.map { Suggestion.suggestion(it.name) }
+                    val suggestionList = proxyPlugin.joinStateConfiguration.get().joinStates.map { Suggestion.suggestion(it.name) }
                     CompletableFuture.completedFuture(suggestionList)
                 }
                 .permission("simplecloud.command.joinstate.server")
@@ -129,7 +129,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                         val state = context.get<String>("state")
 
                         if (proxyPlugin.joinStateHandler.getJoinStateAtService(group, numericalId.toLong()) == state) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServerUpdateNoChange)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateNoChange)
                             return@launch
                         }
 
@@ -142,9 +142,9 @@ class JoinStateCommandHandler<C : CommandSender>(
                         )
 
                         if (successfully) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServerUpdateSuccess)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateSuccess)
                         } else {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateServerUpdateFailure)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateFailure)
                         }
                     }
                 }
@@ -169,7 +169,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                     "state",
                     StringParser.stringParser()
                 ) { _, _ ->
-                    val suggestionList = proxyPlugin.joinStateConfiguration.joinStates.map { Suggestion.suggestion(it.name) }
+                    val suggestionList = proxyPlugin.joinStateConfiguration.get().joinStates.map { Suggestion.suggestion(it.name) }
                     CompletableFuture.completedFuture(suggestionList)
                 }
                 .permission("simplecloud.command.joinstate.group")
@@ -179,7 +179,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                         val state = context.get<String>("state")
 
                         if (proxyPlugin.joinStateHandler.getJoinStateAtGroup(group) == state) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateGroupUpdateNoChange)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateNoChange)
                             return@launch
                         }
 
@@ -190,9 +190,9 @@ class JoinStateCommandHandler<C : CommandSender>(
                             )
 
                         if (successfully) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateGroupUpdateSuccess)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateSuccess)
                         } else {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.commandMessage.joinStateGroupUpdateFailure)
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateFailure)
                         }
                     }
                 }

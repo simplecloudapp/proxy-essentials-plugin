@@ -41,7 +41,7 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.proxy.pluginManager.registerListener(this, ConfigureTagResolversListener(this))
         this.proxy.pluginManager.registerListener(this, ServerPreConnectListener(this))
 
-        if (this.proxyPlugin.tabListConfiguration.tabListUpdateTime > 0)
+        if (this.proxyPlugin.tabListConfiguration.get().tabListUpdateTime > 0)
             this.tabListHandler.startTabListTask()
         else
             this.logger.info("Tablist update time is set to 0, tablist will not be updated automatically")
