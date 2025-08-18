@@ -49,7 +49,7 @@ class ProxyBungeeCordPlugin: Plugin() {
         val executionCoordinator = ExecutionCoordinator.simpleCoordinator<CommandSender>()
 
         val senderMapper = SenderMapper.create<net.md_5.bungee.api.CommandSender, CommandSender>(
-            { commandSender -> BungeeCordCommandSender(commandSender) },
+            { commandSender -> BungeeCordCommandSender(commandSender, adventure) },
             { cloudSender -> (cloudSender as BungeeCordCommandSender).getCommandSender() }
         )
 

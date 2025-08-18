@@ -1,11 +1,14 @@
 package app.simplecloud.plugin.proxy.bungeecord
 
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
+import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.chat.BaseComponent
 
-class BungeeCordCommandSender(private val commandSender: net.md_5.bungee.api.CommandSender
+class BungeeCordCommandSender(private val commandSender: net.md_5.bungee.api.CommandSender,
+                              private val adventure: BungeeAudiences?
 ) : CommandSender {
 
     fun getCommandSender(): net.md_5.bungee.api.CommandSender {
@@ -13,7 +16,7 @@ class BungeeCordCommandSender(private val commandSender: net.md_5.bungee.api.Com
     }
 
     override fun sendMessage(message: String) {
-        commandSender.sendMessage(message)
+        adventure?.sender(commandSender)?.sendMessage(MiniMessage.miniMessage().deserialize(message))
     }
 }
 
