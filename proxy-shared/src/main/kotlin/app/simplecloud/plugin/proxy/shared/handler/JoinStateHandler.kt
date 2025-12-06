@@ -1,8 +1,6 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.pubsub.PubSubClient
-import build.buf.gen.simplecloud.controller.v1.ServerUpdateEvent
 import kotlinx.coroutines.*
 import java.util.logging.Logger
 
@@ -15,7 +13,7 @@ class JoinStateHandler(
     var localState: String = proxyPlugin.joinStateConfiguration.get().defaultState
 
     companion object {
-        val JOINSTATE_KEY = "joinstate"
+        const val JOINSTATE_KEY = "joinstate"
     }
 
     /**
@@ -56,7 +54,7 @@ class JoinStateHandler(
      *
      * @return True if the join state was set successfully, false otherwise.
      */
-    suspend fun setJoinStateAtService(groupName: String, numericalId: Long, joinStateName: String): Boolean {
+    suspend fun setJoinStateAtService(groupName: String, numericalId: Int, joinStateName: String): Boolean {
         return this.proxyPlugin.cloudControllerHandler.setServiceProperties(
             groupName,
             numericalId,
@@ -98,7 +96,7 @@ class JoinStateHandler(
      * @param numericalId The numerical id of the service.
      * @return The name of the join state.
      */
-    suspend fun getJoinStateAtService(groupName: String, numericalId: Long): String {
+    suspend fun getJoinStateAtService(groupName: String, numericalId: Int): String {
         val serviceProperties =
             this.proxyPlugin.cloudControllerHandler.getServiceProperties(groupName, numericalId, JOINSTATE_KEY)
 
@@ -121,31 +119,31 @@ class JoinStateHandler(
         }
     }
 
-    fun registerPubSubListener(pubSubClient: PubSubClient) {
-        pubSubClient.subscribe("event", ServerUpdateEvent::class.java) { event ->
-            if (event.serverAfter.uniqueId != System.getenv("SIMPLECLOUD_UNIQUE_ID")) return@subscribe
+    fun registerListener() {
+        proxyPlugin.api.event().server().onUpdated { event ->
+            if (event.serverId != System.getenv("SIMPLECLOUD_UNIQUE_ID")) return@onUpdated
 
 
-            val state = event.serverAfter.cloudPropertiesMap[JOINSTATE_KEY]
+            val state = event.server.properties[JOINSTATE_KEY]
 
             if (state == null) {
                 this.logger.warning("No join state found for server. Using default join state.")
 
                 CoroutineScope(Dispatchers.IO).launch {
                     setJoinStateAtGroupAndAllServicesInGroup(
-                        event.serverAfter.groupName,
+                        event.server.group.name,
                         proxyPlugin.joinStateConfiguration.get().defaultState
                     )
                     localState = proxyPlugin.joinStateConfiguration.get().defaultState
                 }
-                return@subscribe
+                return@onUpdated
             }
 
             if (state == localState) {
-                return@subscribe
+                return@onUpdated
             }
 
-            localState = state
+            localState = state.toString()
             this.logger.info("Join state changed to $state")
         }
     }
@@ -172,7 +170,7 @@ class JoinStateHandler(
         if (state != localState) {
             if (getJoinStateAtService(
                     cloudControllerHandler.groupName!!,
-                    cloudControllerHandler.numericalId!!.toLong()
+                    cloudControllerHandler.numericalId!!
                 ) != localState
             ) {
                 //Skip group state change if service state is different

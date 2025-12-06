@@ -128,7 +128,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                         val numericalId = context.get<String>("numericalId")
                         val state = context.get<String>("state")
 
-                        if (proxyPlugin.joinStateHandler.getJoinStateAtService(group, numericalId.toLong()) == state) {
+                        if (proxyPlugin.joinStateHandler.getJoinStateAtService(group, numericalId.toInt()) == state) {
                             context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateNoChange)
                             return@launch
                         }
@@ -137,7 +137,7 @@ class JoinStateCommandHandler<C : CommandSender>(
 
                         val successfully = proxyPlugin.joinStateHandler.setJoinStateAtService(
                             group,
-                            numericalId.toLong(),
+                            numericalId.toInt(),
                             state
                         )
 

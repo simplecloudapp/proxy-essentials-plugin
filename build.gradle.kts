@@ -40,7 +40,6 @@ subprojects {
     }
 
     dependencies {
-        testImplementation(rootProject.libs.kotlin.test)
         compileOnly(rootProject.libs.kotlin.jvm)
         compileOnly(rootProject.libs.kotlin.coroutines)
     }
@@ -60,16 +59,13 @@ subprojects {
         mergeServiceFiles()
         archiveFileName.set("${project.name}.jar")
 
+        /*
         relocate("com.google.protobuf", "app.simplecloud.relocate.google.protobuf")
         relocate("com.google.common", "app.simplecloud.relocate.google.common")
         relocate("io.grpc", "app.simplecloud.relocate.io.grpc")
 
         relocate("org.incendo", "app.simplecloud.plugin.proxy.relocate.incendo")
         relocate("org.spongepowered", "app.simplecloud.plugin.proxy.relocate.spongepowered")
-        relocate("app.simplecloud.plugin.api", "app.simplecloud.plugin.proxy.relocate.plugin.api")
-    }
-
-    tasks.test {
-        useJUnitPlatform()
+        relocate("app.simplecloud.plugin.api", "app.simplecloud.plugin.proxy.relocate.plugin.api")*/
     }
 }

@@ -9,9 +9,7 @@ dependencies {
         exclude(group = "org.jetbrains.kotlinx")
     }
 
-    compileOnly(rootProject.libs.simplecloud.controller)
-
-    api(rootProject.libs.simplecloud.plugin.api)
+    compileOnly(libs.simplecloud.api)
 
     compileOnly(rootProject.libs.command.cloud.core)
 }

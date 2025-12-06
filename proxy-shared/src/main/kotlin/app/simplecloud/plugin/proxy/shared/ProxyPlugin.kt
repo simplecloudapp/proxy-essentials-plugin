@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.shared
 
+import app.simplecloud.api.CloudApi
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.message.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
@@ -14,6 +15,7 @@ open class ProxyPlugin(
     dirPath: String
 ) {
 
+    val api = CloudApi.create()
     val config = YamlConfig(dirPath)
     val tabListConfiguration = config.load<TabListConfiguration>("tablist")
     val placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder")
@@ -22,6 +24,6 @@ open class ProxyPlugin(
 
     val motdLayoutHandler = MotdLayoutHandler(File(dirPath + "/layout").toPath(), this)
     val joinStateHandler = JoinStateHandler(this)
-    val cloudControllerHandler = CloudControllerHandler(joinStateHandler)
+    val cloudControllerHandler = CloudControllerHandler(this, joinStateHandler)
 
 }

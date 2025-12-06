@@ -1,8 +1,8 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
-import app.simplecloud.plugin.api.shared.repository.YamlDirectoryRepository
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.config.motd.MotdLayoutConfiguration
+import app.simplecloud.plugin.proxy.shared.temp.YamlDirectoryRepository
 import java.nio.file.Path
 import java.util.logging.Logger
 

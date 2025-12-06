@@ -1,6 +1,6 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
-import app.simplecloud.plugin.api.shared.pattern.ServerPatternIdentifier
+import app.simplecloud.plugin.proxy.shared.temp.ServerPatternIdentifier
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
@@ -16,7 +16,8 @@ class ServerPreConnectListener(
     private val logger = Logger.getLogger(ServerPreConnectListener::class.java.name)
 
     private val identifier = ServerPatternIdentifier(
-        this.proxyPlugin.joinStateConfiguration.get().serverNamePattern
+        this.proxyPlugin.joinStateConfiguration.get().serverNamePattern,
+        api = this.proxyPlugin.api
     )
 
     @Subscribe(order = PostOrder.EARLY)
@@ -73,7 +74,7 @@ class ServerPreConnectListener(
 
         runBlocking {
             val joinStateName =
-                proxyPlugin.joinStateHandler.getJoinStateAtService(groupName, numericalId.toLong())
+                proxyPlugin.joinStateHandler.getJoinStateAtService(groupName, numericalId)
             val joinState = proxyPlugin.joinStateConfiguration.get().joinStates.find { it.name == joinStateName }
 
             if (joinState == null) {

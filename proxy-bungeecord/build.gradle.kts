@@ -11,9 +11,7 @@ dependencies {
     implementation(rootProject.libs.adventure.minimessage)
     implementation(rootProject.libs.adventure.bungeecord.platform)
 
-    compileOnly(rootProject.libs.simplecloud.controller)
-
-    implementation(rootProject.libs.simplecloud.plugin.api)
+    compileOnly(libs.simplecloud.api)
 
     implementation(rootProject.libs.command.cloud.core)
     implementation(rootProject.libs.command.cloud.bungeecord)
