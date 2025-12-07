@@ -1,8 +1,11 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
 import app.simplecloud.api.group.UpdateGroupRequest
+import app.simplecloud.api.server.Server
+import app.simplecloud.api.server.ServerQuery
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import kotlinx.coroutines.*
+import kotlinx.coroutines.future.await
 import java.util.logging.Logger
 
 class CloudControllerHandler(
@@ -29,7 +32,8 @@ class CloudControllerHandler(
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val service = plugin.api.server().getServerById(serviceID).get()
+                val service = plugin.api.server().getServerById(serviceID).await()
+
                 groupName = service.group.name
                 numericalId = service.numericalId
                 logger.info("Group name initialized to: $groupName")
@@ -56,16 +60,21 @@ class CloudControllerHandler(
     suspend fun getGroupProperties(groupName: String, key: String): String {
         return groupName.let {
             retrievePropertyOrEmpty {
-                plugin.api.group().getGroupByName(it).get().properties[key].toString()
+                plugin.api.group().getGroupByName(it).await().properties[key].toString()
             }
         }
     }
 
-    fun getByNumericalId(groupName: String, numericalId: Int) =
-        plugin.api.server().allServers.get().firstOrNull { it.group.name == groupName && it.numericalId == numericalId }
+    suspend fun getByNumericalId(groupName: String, numericalId: Int) =
+        plugin.api.server().getAllServers(ServerQuery.create()
+            .filterByServerGroupName(groupName)
+            .filterByNumericalId(numericalId)
+        ).await()?.firstOrNull()
 
-    fun getByGroup(groupName: String) =
-        plugin.api.server().allServers.get().filter { it.group.name == groupName }
+    suspend fun getByGroup(groupName: String): List<Server> =
+        plugin.api.server().getAllServers(ServerQuery.create()
+            .filterByServerGroupName(groupName)
+        ).await() ?: emptyList()
 
     suspend fun getServiceProperties(groupName: String, numericalId: Int, key: String): String {
         return getByNumericalId(groupName, numericalId).let { server ->
@@ -86,7 +95,7 @@ class CloudControllerHandler(
                 return false
             }
             try {
-                plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).get()
+                plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).await()
                 logger.info("Service property '$key' updated to '$value'")
                 return true
             } catch (e: Exception) {
@@ -101,7 +110,7 @@ class CloudControllerHandler(
             try {
                 getByGroup(name).forEach { server ->
                     logger.info("Updating service property '$key' to '$value' on service ${server.group} ${server.numericalId} ${server.serverId}")
-                    plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).get()
+                    plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).await()
                 }
                 logger.info("Service property '$key' updated to '$value' on all services in group '$name'")
                 return true
@@ -117,7 +126,7 @@ class CloudControllerHandler(
             try {
                 val req = UpdateGroupRequest()
                 req.properties = mapOf(key to value)
-                plugin.api.group().updateGroup(name, req).get()
+                plugin.api.group().updateGroup(name, req).await()
                 logger.info("Group property '$key' updated to '$value' for group '$name'")
                 true
             } catch (e: Exception) {
@@ -142,7 +151,7 @@ class CloudControllerHandler(
     suspend fun getMaxPlayersInGroup(groupName: String): Int {
         return groupName.let {
             try {
-                plugin.api.group().getGroupByName(it).get().maxPlayers
+                plugin.api.group().getGroupByName(it).await().maxPlayers
             } catch (e: Exception) {
                 logger.severe("Error retrieving max players in group: ${e.message}")
                 0
@@ -151,7 +160,7 @@ class CloudControllerHandler(
     }
 
     suspend fun getAllGroups(): List<String> {
-        return plugin.api.group().allGroups.get().map { it.name }
+        return plugin.api.group().allGroups.await().map { it.name }
     }
 
     suspend fun getAllNumericalIdsFromGroup(groupName: String): List<Int> {
