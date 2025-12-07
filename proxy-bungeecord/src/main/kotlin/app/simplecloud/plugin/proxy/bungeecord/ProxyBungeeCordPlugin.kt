@@ -6,6 +6,7 @@ import app.simplecloud.plugin.proxy.bungeecord.listener.*
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
 import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
+import app.simplecloud.plugin.proxy.shared.handler.command.ProxyEssentialsCommandHandler
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
@@ -60,7 +61,9 @@ class ProxyBungeeCordPlugin: Plugin() {
         )
 
         val proxyCommandHandler = JoinStateCommandHandler(commandManager, this.proxyPlugin)
+        val proxyEssentialsCommandHandler = ProxyEssentialsCommandHandler(commandManager, this.proxyPlugin)
         proxyCommandHandler.loadCommands()
+        proxyEssentialsCommandHandler.loadCommands()
     }
 
     override fun onDisable() {

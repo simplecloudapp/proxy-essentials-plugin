@@ -15,5 +15,8 @@ data class CommandMessageConfig(
     val joinStateGroupListHeader: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Groups with every join states:",
     val joinStateGroupListEntry: String = "   <color:#a3a3a3><group> <color:#ffffff>- <color:#a3a3a3><state>",
     val joinStateStateListHeader: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>List of every join states:",
-    val joinStateStateListEntry: String = "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><joinPermission>"
+    val joinStateStateListEntry: String = "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><joinPermission>",
+    val configReloading: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Reloading ProxyEssentials configurations...",
+    val configReloadedSuccess: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Successfully reloaded all ProxyEssentials configurations.",
+    val configReloadedFailure: String = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>Failed to reload configurations: <color:#ff0000><errorMessage>",
 )

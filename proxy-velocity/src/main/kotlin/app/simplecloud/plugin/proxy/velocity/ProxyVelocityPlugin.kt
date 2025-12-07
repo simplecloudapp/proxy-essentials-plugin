@@ -3,6 +3,7 @@ package app.simplecloud.plugin.proxy.velocity
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
 import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
+import app.simplecloud.plugin.proxy.shared.handler.command.ProxyEssentialsCommandHandler
 import app.simplecloud.plugin.proxy.velocity.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
 import app.simplecloud.plugin.proxy.velocity.listener.ConfigureTagResolversListener
@@ -71,7 +72,9 @@ class ProxyVelocityPlugin @Inject constructor(
         )
 
         val proxyCommandHandler = JoinStateCommandHandler(commandManager, this)
+        val proxyEssentialsCommandHandler = ProxyEssentialsCommandHandler(commandManager, this)
         proxyCommandHandler.loadCommands()
+        proxyEssentialsCommandHandler.loadCommands()
     }
 
     @Subscribe

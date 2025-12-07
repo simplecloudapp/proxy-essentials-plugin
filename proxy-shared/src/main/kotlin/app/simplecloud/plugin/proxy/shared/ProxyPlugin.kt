@@ -22,7 +22,7 @@ open class ProxyPlugin(
     val messagesConfiguration = config.load<MessageConfig>("messages")
     val joinStateConfiguration = config.load<JoinStateConfiguration>("joinstate")
 
-    val motdLayoutHandler = MotdLayoutHandler(File(dirPath + "/layout").toPath(), this)
+    val motdLayoutHandler = MotdLayoutHandler(File("$dirPath/layout").toPath(), this)
     val joinStateHandler = JoinStateHandler(this)
     val cloudControllerHandler = CloudControllerHandler(this, joinStateHandler)
 

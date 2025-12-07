@@ -3,9 +3,9 @@ package app.simplecloud.plugin.proxy.shared.config.reactive
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 
 class ReactiveConfig<T>(
-    config: YamlConfig,
-    path: String?,
-    clazz: Class<T>
+    val config: YamlConfig,
+    val path: String?,
+    val clazz: Class<T>
 ) {
 
     @Volatile
@@ -19,6 +19,11 @@ class ReactiveConfig<T>(
 
     internal fun update(newValue: T?) {
         currentValue = newValue
+    }
+
+    fun reload() {
+        val newValue = config.loadDirect(path, clazz)
+        update(newValue)
     }
 
 }
