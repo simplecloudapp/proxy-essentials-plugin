@@ -1,8 +1,8 @@
 package app.simplecloud.plugin.proxy.bungeecord.listener
 
+import app.simplecloud.plugin.api.shared.pattern.ServerPatternIdentifier
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import app.simplecloud.plugin.proxy.bungeecord.toBaseComponent
-import app.simplecloud.plugin.proxy.shared.temp.ServerPatternIdentifier
 import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.config.ServerInfo
 import net.md_5.bungee.api.connection.ProxiedPlayer
@@ -20,7 +20,7 @@ class ServerPreConnectListener(
 
     private val identifier = ServerPatternIdentifier(
         this.proxyPlugin.proxyPlugin.joinStateConfiguration.get().serverNamePattern,
-        api = proxyPlugin.proxyPlugin.api
+        cloudApi = proxyPlugin.proxyPlugin.api
     )
 
     @EventHandler(priority = EventPriority.HIGH)

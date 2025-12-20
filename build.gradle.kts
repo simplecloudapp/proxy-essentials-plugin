@@ -44,6 +44,8 @@ subprojects {
         compileOnly(rootProject.libs.kotlin.coroutines)
 
         compileOnly(rootProject.libs.simplecloud.api)
+
+        implementation(rootProject.libs.simplecloud.plugin)
     }
 
     java {
@@ -66,5 +68,6 @@ subprojects {
         relocate("io.grpc", "app.simplecloud.relocate.io.grpc")
         relocate("org.incendo", "app.simplecloud.plugin.proxy.relocate.incendo")
         relocate("org.spongepowered", "app.simplecloud.plugin.proxy.relocate.spongepowered")
+        relocate("app.simplecloud.plugin.api", "app.simplecloud.plugin.proxy.relocate.plugin.api")
     }
 }
