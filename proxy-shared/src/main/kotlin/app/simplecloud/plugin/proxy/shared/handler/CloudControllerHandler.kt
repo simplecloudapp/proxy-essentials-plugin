@@ -122,17 +122,14 @@ class CloudControllerHandler(
     }
 
     suspend fun setGroupProperties(groupName: String, key: String, value: String): Boolean {
-        return groupName.let { name ->
-            try {
-                val req = UpdateGroupRequest()
-                req.properties = mapOf(key to value)
-                plugin.api.group().updateGroup(name, req).await()
-                logger.info("Group property '$key' updated to '$value' for group '$name'")
-                true
-            } catch (e: Exception) {
-                logger.severe("Error updating group properties: ${e.message}")
-                false
-            }
+        try {
+            val groupId = plugin.api.group().getGroupByName(groupName).await().serverGroupId
+            plugin.api.group().updateGroupProperties(groupId, mapOf(key to value)).await()
+            logger.info("Group property '$key' updated to '$value' for group '$groupName'")
+            return true
+        } catch (e: Exception) {
+            logger.severe("Error updating group properties: ${e.message}")
+            return false
         }
     }
 
