@@ -1,6 +1,5 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
-import app.simplecloud.api.group.UpdateGroupRequest
 import app.simplecloud.api.server.Server
 import app.simplecloud.api.server.ServerQuery
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
@@ -58,10 +57,8 @@ class CloudControllerHandler(
     }*/
 
     suspend fun getGroupProperties(groupName: String, key: String): String {
-        return groupName.let {
-            retrievePropertyOrEmpty {
-                plugin.api.group().getGroupByName(it).await().properties[key].toString()
-            }
+        return retrievePropertyOrEmpty {
+            plugin.api.group().getGroupByName(groupName).await().properties[key].toString()
         }
     }
 
@@ -77,47 +74,43 @@ class CloudControllerHandler(
         ).await() ?: emptyList()
 
     suspend fun getServiceProperties(groupName: String, numericalId: Int, key: String): String {
-        return getByNumericalId(groupName, numericalId).let { server ->
-            if (server == null) {
-                logger.severe("Server not found for group '$groupName' and numerical ID '$numericalId'")
-                return ""
-            }
-            retrievePropertyOrEmpty {
-                server.properties[key].toString()
-            }
+        val server = getByNumericalId(groupName, numericalId)
+        if (server == null) {
+            logger.severe("Server not found for group '$groupName' and numerical ID '$numericalId'")
+            return ""
+        }
+        return retrievePropertyOrEmpty {
+            server.properties[key].toString()
         }
     }
 
     suspend fun setServiceProperties(groupName: String, numericalId: Int, key: String, value: String): Boolean {
-        getByNumericalId(groupName, numericalId).let { server ->
-            if (server == null) {
-                logger.severe("Server not found for group '$groupName' and numerical ID '$numericalId'")
-                return false
-            }
-            try {
-                plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).await()
-                logger.info("Service property '$key' updated to '$value'")
-                return true
-            } catch (e: Exception) {
-                logger.severe("Error updating service properties: ${e.message}")
-                return false
-            }
+        val server = getByNumericalId(groupName, numericalId)
+        if (server == null) {
+            logger.severe("Server not found for group '$groupName' and numerical ID '$numericalId'")
+            return false
+        }
+        return try {
+            plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).await()
+            logger.info("Service property '$key' updated to '$value' for service ${server.group} ${server.numericalId} ${server.serverId}")
+            true
+        } catch (e: Exception) {
+            logger.severe("Error updating service properties: ${e.message}")
+            false
         }
     }
 
     suspend fun setServicePropertiesOnAllGroupServices(groupName: String, key: String, value: String): Boolean {
-        groupName.let { name ->
-            try {
-                getByGroup(name).forEach { server ->
-                    logger.info("Updating service property '$key' to '$value' on service ${server.group} ${server.numericalId} ${server.serverId}")
-                    plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).await()
-                }
-                logger.info("Service property '$key' updated to '$value' on all services in group '$name'")
-                return true
-            } catch (e: Exception) {
-                logger.severe("Error updating service properties on all group services: ${e.message}")
-                return false
+        return try {
+            val servers = getByGroup(groupName)
+            servers.forEach { server ->
+                plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).await()
             }
+            logger.info("Service property '$key' updated to '$value' for all services in group '$groupName'")
+            true
+        } catch (e: Exception) {
+            logger.severe("Error updating service properties on all group services: ${e.message}")
+            false
         }
     }
 
@@ -134,25 +127,20 @@ class CloudControllerHandler(
     }
 
     suspend fun getOnlinePlayersInGroup(groupName: String): Int {
-        return groupName.let { name ->
-            try {
-                getByGroup(name).sumOf { it.playerCount.toInt() }
-            } catch (e: Exception) {
-                logger.severe("Error retrieving online players in group: ${e.message}")
-                0
-            }
+        return try {
+            getByGroup(groupName).sumOf { it.playerCount.toInt() }
+        } catch (e: Exception) {
+            logger.severe("Error retrieving online players in group: ${e.message}")
+            0
         }
-
     }
 
     suspend fun getMaxPlayersInGroup(groupName: String): Int {
-        return groupName.let {
-            try {
-                plugin.api.group().getGroupByName(it).await().maxPlayers
-            } catch (e: Exception) {
-                logger.severe("Error retrieving max players in group: ${e.message}")
-                0
-            }
+        return try {
+            plugin.api.group().getGroupByName(groupName).await().maxPlayers
+        } catch (e: Exception) {
+            logger.severe("Error retrieving max players in group: ${e.message}")
+            0
         }
     }
 

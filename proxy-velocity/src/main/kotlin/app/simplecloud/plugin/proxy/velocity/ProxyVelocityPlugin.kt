@@ -35,8 +35,6 @@ class ProxyVelocityPlugin @Inject constructor(
 ): ProxyPlugin(dataDirectory.pathString) {
 
     val tabListHandler = TabListHandler(this)
-
-    private lateinit var commandManager: VelocityCommandManager<CommandSender>
     private val miniMessage = MiniMessage.miniMessage()
 
     @Subscribe
@@ -64,7 +62,7 @@ class ProxyVelocityPlugin @Inject constructor(
             { commandSender -> (commandSender as VelocityCommandSender).getCommandSource() }
         )
 
-        commandManager = VelocityCommandManager(
+        val commandManager = VelocityCommandManager(
             pluginContainer,
             proxyServer,
             executionCoordinator,

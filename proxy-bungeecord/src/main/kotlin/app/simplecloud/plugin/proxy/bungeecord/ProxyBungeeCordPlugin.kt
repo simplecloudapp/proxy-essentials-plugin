@@ -23,8 +23,6 @@ class ProxyBungeeCordPlugin: Plugin() {
 
     val tabListHandler = TabListHandler(this)
 
-    private lateinit var commandManager: BungeeCommandManager<CommandSender>
-
     private var adventure: BungeeAudiences? = null
 
     private val miniMessage = MiniMessage.miniMessage()
@@ -54,7 +52,7 @@ class ProxyBungeeCordPlugin: Plugin() {
             { cloudSender -> (cloudSender as BungeeCordCommandSender).getCommandSender() }
         )
 
-        commandManager = BungeeCommandManager(
+        val commandManager = BungeeCommandManager(
             this,
             executionCoordinator,
             senderMapper
