@@ -23,8 +23,8 @@ class ProxyPingListener(
 
             val motdConfiguration = plugin.motdLayoutHandler.getCurrentMotdLayout()
 
-            val firstLine = motdConfiguration.firstLines.random()
-            val secondLine = motdConfiguration.secondLines.random()
+            val firstLine = motdConfiguration.firstLines.randomOrNull() ?: ""
+            val secondLine = motdConfiguration.secondLines.randomOrNull() ?: ""
 
             val messageOfTheDay = plugin.deserializeToComponent("$firstLine\n$secondLine")
 

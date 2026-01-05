@@ -6,11 +6,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.context.CommandContext
+import java.util.logging.Level
+import java.util.logging.Logger
 
 class ProxyEssentialsCommandHandler<C : CommandSender>(
     private val commandManager: CommandManager<C>,
     private val proxyPlugin: ProxyPlugin
 ) {
+    private val logger = Logger.getLogger(ProxyEssentialsCommandHandler::class.java.name)
 
     fun loadCommands() {
         loadReloadCommand()
@@ -40,7 +43,7 @@ class ProxyEssentialsCommandHandler<C : CommandSender>(
                         } catch (e: Exception) {
                             sender.sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.configReloadedFailure
                                 .replace("<errorMessage>", e.message ?: "Unknown error"))
-                            e.printStackTrace()
+                            logger.log(Level.SEVERE, "Error reloading configuration", e)
                         }
                     }
                 }

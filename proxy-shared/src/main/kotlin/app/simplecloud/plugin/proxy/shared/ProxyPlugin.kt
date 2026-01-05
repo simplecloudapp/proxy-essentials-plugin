@@ -8,7 +8,9 @@ import app.simplecloud.plugin.proxy.shared.config.state.JoinStateConfiguration
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
 import app.simplecloud.plugin.proxy.shared.handler.CloudControllerHandler
 import app.simplecloud.plugin.proxy.shared.handler.JoinStateHandler
+import app.simplecloud.plugin.proxy.shared.handler.JoinStateResolver
 import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
+import app.simplecloud.plugin.proxy.shared.handler.TabListResolver
 import java.io.File
 
 open class ProxyPlugin(
@@ -25,5 +27,7 @@ open class ProxyPlugin(
     val motdLayoutHandler = MotdLayoutHandler(File("$dirPath/layout").toPath(), this)
     val joinStateHandler = JoinStateHandler(this)
     val cloudControllerHandler = CloudControllerHandler(this, joinStateHandler)
+    val joinStateResolver = JoinStateResolver(this)
+    val tabListResolver = TabListResolver { tabListConfiguration.get() }
 
 }

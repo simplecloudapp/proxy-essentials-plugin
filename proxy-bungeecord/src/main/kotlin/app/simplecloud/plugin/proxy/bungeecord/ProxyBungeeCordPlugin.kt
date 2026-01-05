@@ -65,17 +65,13 @@ class ProxyBungeeCordPlugin: Plugin() {
     }
 
     override fun onDisable() {
-        if(this.adventure != null) {
-            this.adventure!!.close()
-            this.adventure = null
-        }
-
+        this.adventure?.close()
+        this.adventure = null
         this.tabListHandler.stopTabListTask()
     }
 
     fun adventure(): BungeeAudiences {
-        checkNotNull(this.adventure) { "Cannot retrieve audience provider while plugin is not enabled" }
-        return adventure!!
+        return adventure ?: throw IllegalStateException("Cannot retrieve audience provider while plugin is not enabled")
     }
 
     fun deserializeToComponent(text: String, player: ProxiedPlayer? = null): Component {

@@ -13,39 +13,58 @@ class CloudControllerHandler(
 ) {
     private val logger = Logger.getLogger(CloudControllerHandler::class.java.name)
 
-    var groupName: String? = null
-    var numericalId: Int? = null
+    var currentServer: Server? = null
+        private set
 
     init {
-        initializeGroupName()
-        joinStateHandler.registerListener()
+        initialize()
     }
 
-    private fun initializeGroupName() {
+    private fun initialize() {
         val serviceID = System.getenv("SIMPLECLOUD_UNIQUE_ID")
-
         if (serviceID == null) {
             logger.warning("Environment variable SIMPLECLOUD_UNIQUE_ID is not set.")
+            joinStateHandler.registerListener()
             return
         }
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val service = plugin.api.server().getServerById(serviceID).await()
+                currentServer = plugin.api.server().getServerById(serviceID).await()
+                logger.info("Initialized server: ${currentServer?.serverBase?.name}")
 
-                groupName = service.group.name
-                numericalId = service.numericalId
-                logger.info("Group name initialized to: $groupName")
-
-                joinStateHandler.localState = joinStateHandler.getJoinStateAtService(
-                    groupName!!,
-                    numericalId!!
-                )
-
-                joinStateHandler.startCheckGroupStateTask()
+                joinStateHandler.registerListener()
+                initializeJoinState()
             } catch (e: Exception) {
                 logger.severe("Error retrieving server by ID: ${e.message}")
+                joinStateHandler.registerListener()
             }
+        }
+    }
+
+    private suspend fun initializeJoinState() {
+        val server = currentServer ?: return
+
+        if (server.isFromGroup) {
+            val groupName = server.group?.name ?: return
+            joinStateHandler.localState = joinStateHandler.getJoinStateAtService(groupName, server.numericalId)
+            joinStateHandler.startCheckGroupStateTask()
+        } else {
+            val joinState = server.properties?.get(JoinStateHandler.JOINSTATE_KEY)?.toString()
+            if (!joinState.isNullOrEmpty()) {
+                joinStateHandler.localState = joinState
+            }
+        }
+    }
+
+    suspend fun setServerProperty(key: String, value: String): Boolean {
+        val id = currentServer?.serverId ?: return false
+        return try {
+            plugin.api.server().updateServerProperties(id, mapOf(key to value)).await()
+            true
+        } catch (e: Exception) {
+            logger.severe("Error updating server property: ${e.message}")
+            false
         }
     }
 
@@ -150,6 +169,17 @@ class CloudControllerHandler(
 
     suspend fun getAllNumericalIdsFromGroup(groupName: String): List<Int> {
         return getByGroup(groupName).map { it.numericalId }
+    }
+
+    suspend fun getServerByName(name: String): Server? {
+        return try {
+            // TODO: Improve by adding a filter in ServerQuery
+            val servers = plugin.api.server().getAllServers(ServerQuery.create()).await() ?: return null
+            servers.find { it.serverBase.name == name || it.persistentServer?.name == name }
+        } catch (e: Exception) {
+            logger.severe("Error retrieving server by name: ${e.message}")
+            null
+        }
     }
 
     private suspend fun retrievePropertyOrEmpty(retrieve: suspend () -> String?): String {

@@ -11,9 +11,11 @@ import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.io.File
 import java.nio.file.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.logging.Logger
 
 open class YamlConfig(val dirPath: String) {
 
+    private val logger = Logger.getLogger(YamlConfig::class.java.name)
     private val watchService = FileSystems.getDefault().newWatchService()
     private val configCache = ConcurrentHashMap<String, Any>()
     private val reactiveConfigs = ConcurrentHashMap<String, MutableList<ReactiveConfigInfo<*>>>()
@@ -45,7 +47,7 @@ open class YamlConfig(val dirPath: String) {
             return config
         } catch (ex: ParsingException) {
             val file = File(if (path != null) "${dirPath}/${path.lowercase()}.yml" else dirPath)
-            println("Could not load config file ${file.name}. Using cached version if available.")
+            logger.warning("Could not load config file ${file.name}. Using cached version if available.")
             @Suppress("UNCHECKED_CAST")
             return configCache[cacheKey] as? T
         }
@@ -125,12 +127,12 @@ open class YamlConfig(val dirPath: String) {
                         }
                         key.reset()
                     } catch (e: Exception) {
-                        println("Error in config watcher: ${e.message}")
+                        logger.warning("Error in config watcher: ${e.message}")
                     }
                 }
             }
         } catch (e: Exception) {
-            println("Could not start config file watcher: ${e.message}")
+            logger.warning("Could not start config file watcher: ${e.message}")
         }
     }
 
@@ -151,10 +153,10 @@ open class YamlConfig(val dirPath: String) {
                 typedConfigInfo.reactiveConfig.update(newValue)
 
             } catch (ex: ParsingException) {
-                println("Config file ${file.name} has parsing errors. Keeping old version.")
+                logger.warning("Config file ${file.name} has parsing errors. Keeping old version.")
                 // Don't update the reactive config, keep the old cached version
             } catch (e: Exception) {
-                println("Error updating reactive config: ${e.message}")
+                logger.warning("Error updating reactive config: ${e.message}")
             }
         }
     }
@@ -164,7 +166,7 @@ open class YamlConfig(val dirPath: String) {
         try {
             watchService.close()
         } catch (e: Exception) {
-            println("Error closing watch service: ${e.message}")
+            logger.warning("Error closing watch service: ${e.message}")
         }
     }
 

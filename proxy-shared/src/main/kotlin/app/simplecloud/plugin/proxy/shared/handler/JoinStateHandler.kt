@@ -10,6 +10,7 @@ class JoinStateHandler(
 
     private val logger = Logger.getLogger(JoinStateHandler::class.java.name)
 
+    @Volatile
     var localState: String = proxyPlugin.joinStateConfiguration.get().defaultState
 
     companion object {
@@ -35,14 +36,14 @@ class JoinStateHandler(
     suspend fun getJoinStateAtGroup(groupName: String): String {
         val groupProperties = this.proxyPlugin.cloudControllerHandler.getGroupProperties(groupName, JOINSTATE_KEY)
 
-        if (groupProperties.isEmpty()) {
-            logger.warning("No join state found for group $groupName. Using default join state.")
-            setJoinStateAtGroup(groupName, this.proxyPlugin.joinStateConfiguration.get().defaultState)
-
-            return getJoinStateAtGroup(groupName)
+        if (groupProperties.isNotEmpty()) {
+            return groupProperties
         }
 
-        return groupProperties
+        val defaultState = this.proxyPlugin.joinStateConfiguration.get().defaultState
+        logger.warning("No join state found for group $groupName. Setting default: $defaultState")
+        setJoinStateAtGroup(groupName, defaultState)
+        return defaultState
     }
 
     /**
@@ -100,20 +101,24 @@ class JoinStateHandler(
         val serviceProperties =
             this.proxyPlugin.cloudControllerHandler.getServiceProperties(groupName, numericalId, JOINSTATE_KEY)
 
-        if (serviceProperties.isEmpty()) {
-            logger.warning("No join state found for service $numericalId in group $groupName. Using default join state.")
-            setJoinStateAtService(groupName, numericalId, this.proxyPlugin.joinStateConfiguration.get().defaultState)
-
-            return getJoinStateAtService(groupName, numericalId)
+        if (serviceProperties.isNotEmpty()) {
+            return serviceProperties
         }
 
-        return serviceProperties
+        val defaultState = this.proxyPlugin.joinStateConfiguration.get().defaultState
+        logger.warning("No join state found for service $numericalId in group $groupName. Setting default: $defaultState")
+        setJoinStateAtService(groupName, numericalId, defaultState)
+        return defaultState
     }
 
     fun startCheckGroupStateTask() {
         CoroutineScope(Dispatchers.IO).launch {
             while (isActive) {
-                getGroupState()
+                try {
+                    getGroupState()
+                } catch (e: Exception) {
+                    logger.severe("Error in check group state task: ${e.message}")
+                }
                 delay(2000)
             }
         }
@@ -123,18 +128,31 @@ class JoinStateHandler(
         proxyPlugin.api.event().server().onUpdated { event ->
             if (event.serverId != System.getenv("SIMPLECLOUD_UNIQUE_ID")) return@onUpdated
 
-
-            val state = event.server.properties[JOINSTATE_KEY]
+            val server = event.server
+            val state = server.properties?.get(JOINSTATE_KEY)
 
             if (state == null) {
                 this.logger.warning("No join state found for server. Using default join state.")
 
                 CoroutineScope(Dispatchers.IO).launch {
-                    setJoinStateAtGroupAndAllServicesInGroup(
-                        event.server.group.name,
-                        proxyPlugin.joinStateConfiguration.get().defaultState
-                    )
-                    localState = proxyPlugin.joinStateConfiguration.get().defaultState
+                    try {
+                        val defaultState = proxyPlugin.joinStateConfiguration.get().defaultState
+
+                        // Only update group and all services for group-based servers
+                        if (server.isFromGroup) {
+                            val groupName = server.group?.name
+                            if (groupName != null) {
+                                setJoinStateAtGroupAndAllServicesInGroup(groupName, defaultState)
+                            }
+                        } else {
+                            // For persistent servers, just update this server's property
+                            proxyPlugin.cloudControllerHandler.setServerProperty(JOINSTATE_KEY, defaultState)
+                        }
+
+                        localState = defaultState
+                    } catch (e: Exception) {
+                        logger.severe("Error setting default join state: ${e.message}")
+                    }
                 }
                 return@onUpdated
             }
@@ -149,35 +167,21 @@ class JoinStateHandler(
     }
 
     private suspend fun getGroupState() {
-        val cloudControllerHandler = this.proxyPlugin.cloudControllerHandler
+        val server = proxyPlugin.cloudControllerHandler.currentServer ?: return
+        if (!server.isFromGroup) return
 
-        if (cloudControllerHandler.groupName == null) {
-            logger.warning("Group name is not initialized.")
-            return
-        }
+        val groupName = server.group?.name ?: return
+        val numericalId = server.numericalId
 
-        val state = cloudControllerHandler.getGroupProperties(cloudControllerHandler.groupName!!, JOINSTATE_KEY)
-
+        val state = proxyPlugin.cloudControllerHandler.getGroupProperties(groupName, JOINSTATE_KEY)
         if (state.isEmpty()) {
-            logger.warning("No join state found for group ${cloudControllerHandler.groupName}. Using default join state.")
-            setJoinStateAtGroup(
-                cloudControllerHandler.groupName!!,
-                this.proxyPlugin.joinStateConfiguration.get().defaultState
-            )
+            logger.warning("No join state found for group $groupName. Using default.")
+            setJoinStateAtGroup(groupName, proxyPlugin.joinStateConfiguration.get().defaultState)
             return
         }
 
         if (state != localState) {
-            if (getJoinStateAtService(
-                    cloudControllerHandler.groupName!!,
-                    cloudControllerHandler.numericalId!!
-                ) != localState
-            ) {
-                //Skip group state change if service state is different
-                //logger.info("Join state not changed to $state because of different service state.")
-                return
-            }
-
+            if (getJoinStateAtService(groupName, numericalId) != localState) return
             localState = state
             logger.info("Join state changed to $state because of group state change.")
         }
