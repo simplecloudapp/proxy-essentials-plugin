@@ -19,9 +19,11 @@ class ProxyPingListener(
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
         runBlocking {
-            val serverPing = event.ping
-
             val motdConfiguration = plugin.motdLayoutHandler.getCurrentMotdLayout()
+
+            if (!motdConfiguration.enabled) return@runBlocking
+
+            val serverPing = event.ping
 
             val firstLine = motdConfiguration.firstLines.randomOrNull() ?: ""
             val secondLine = motdConfiguration.secondLines.randomOrNull() ?: ""
