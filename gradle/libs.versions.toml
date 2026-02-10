@@ -14,7 +14,7 @@ gson = "2.10.1"
 configurate-yaml = "4.0.0"
 configurate-kotlin = "4.1.2"
 
-simplecloud-api = "0.1.0-platform.6-dev.1766246833786-b1601b3"
+simplecloud-api = "0.1.0-platform.19-dev.1770725947326-23f3f70"
 simplecloud-plugin = "0.0.1-platform.1766000824440-e57ed95"
 
 command-cloud-core = "2.0.0"

@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
+import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
@@ -10,10 +11,11 @@ import kotlinx.coroutines.runBlocking
 import java.util.logging.Logger
 
 class ServerPreConnectListener(
-    private val plugin: ProxyVelocityPlugin,
+    private val proxyPlugin: ProxyPlugin,
+    private val plugin: ProxyVelocityPlugin
 ) {
     private val logger = Logger.getLogger(ServerPreConnectListener::class.java.name)
-    private val resolver = plugin.joinStateResolver
+    private val resolver = proxyPlugin.joinStateResolver
 
     @Subscribe(order = PostOrder.EARLY)
     fun handle(event: ServerPreConnectEvent) {
@@ -25,25 +27,25 @@ class ServerPreConnectListener(
     }
 
     private fun checkAllowProxyJoin(player: Player, event: ServerPreConnectEvent) {
-        val localState = plugin.joinStateHandler.localState
+        val localState = proxyPlugin.joinStateHandler.localState
         val joinState = resolver.resolveJoinState(localState)
 
         if (joinState == null) {
             logger.severe("Neither join state '$localState' nor default state found. Check configuration!")
-            denyAccess(player, plugin.messagesConfiguration.get().kickMessage.noJoinState, false, event)
+            denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noJoinState, false, event)
             return
         }
 
         if (joinState.joinPermission.isNotBlank() && !player.hasPermission(joinState.joinPermission)) {
             logger.info("Player ${player.username} does not have permission to join the proxy.")
-            denyAccess(player, plugin.messagesConfiguration.get().kickMessage.noPermission, false, event)
+            denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noPermission, false, event)
             return
         }
 
         runBlocking {
             try {
                 if (resolver.isServerFull() && !player.hasPermission(joinState.fullJoinPermission)) {
-                    denyAccess(player, plugin.messagesConfiguration.get().kickMessage.networkFull, false, event)
+                    denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.networkFull, false, event)
                 }
             } catch (e: Exception) {
                 logger.severe("Error checking player limits: ${e.message}")
@@ -60,13 +62,13 @@ class ServerPreConnectListener(
 
             if (joinState == null) {
                 logger.severe("Neither join state '$joinStateName' nor default state found. Check configuration!")
-                denyAccess(player, plugin.messagesConfiguration.get().kickMessage.noJoinState, true, event)
+                denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noJoinState, true, event)
                 return@runBlocking
             }
 
             if (joinState.joinPermission.isNotBlank() && !player.hasPermission(joinState.joinPermission)) {
                 logger.info("Player ${player.username} does not have permission to join $serverName.")
-                denyAccess(player, plugin.messagesConfiguration.get().kickMessage.noPermission, true, event)
+                denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noPermission, true, event)
             }
         }
     }

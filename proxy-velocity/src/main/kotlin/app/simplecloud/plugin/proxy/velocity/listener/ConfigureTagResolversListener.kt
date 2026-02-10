@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
+import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.resolver.TagResolverHelper
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import app.simplecloud.plugin.proxy.velocity.event.ConfigureTagResolversEvent
@@ -8,6 +9,7 @@ import com.velocitypowered.api.event.Subscribe
 import kotlin.jvm.optionals.getOrNull
 
 class ConfigureTagResolversListener(
+    private val proxyPlugin: ProxyPlugin,
     private val plugin: ProxyVelocityPlugin
 ) {
 
@@ -16,7 +18,7 @@ class ConfigureTagResolversListener(
         val player = event.player
         val serverName = player?.currentServer?.getOrNull()?.serverInfo?.name ?: "unknown"
         val ping = player?.ping ?: -1
-        val pingColors = plugin.placeHolderConfiguration.get().pingColors
+        val pingColors = proxyPlugin.placeHolderConfiguration.get().pingColors
         val onlinePlayers = plugin.proxyServer.allPlayers.size
         val realMaxPlayers = plugin.proxyServer.configuration.showMaxPlayers
 
@@ -27,7 +29,7 @@ class ConfigureTagResolversListener(
                 pingColors,
                 onlinePlayers,
                 realMaxPlayers,
-                plugin.motdLayoutHandler.getCurrentMotdLayout()
+                proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
             )
         )
     }

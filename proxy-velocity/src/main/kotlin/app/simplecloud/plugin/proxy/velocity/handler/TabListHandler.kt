@@ -1,23 +1,27 @@
 package app.simplecloud.plugin.proxy.velocity.handler
 
+import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
+import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.scheduler.ScheduledTask
 import java.util.concurrent.TimeUnit
 import java.util.logging.Logger
 
 class TabListHandler(
-    private val plugin: ProxyVelocityPlugin
+    private val proxyPlugin: ProxyPlugin,
+    private val plugin: ProxyVelocityPlugin,
+    private val proxyServer: ProxyServer
 ) {
     private val logger = Logger.getLogger(TabListHandler::class.java.name)
-    private val resolver = plugin.tabListResolver
+    private val resolver = proxyPlugin.tabListResolver
     private lateinit var task: ScheduledTask
 
     fun startTabListTask() {
-        task = plugin.proxyServer.scheduler.buildTask(plugin, Runnable {
+        task = proxyServer.scheduler.buildTask(plugin, Runnable {
             resolver.incrementIndices()
-            plugin.proxyServer.allPlayers.forEach { updateTabListForPlayer(it) }
-        }).repeat(plugin.tabListConfiguration.get().tabListUpdateTime, TimeUnit.MILLISECONDS).schedule()
+            proxyServer.allPlayers.forEach { updateTabListForPlayer(it) }
+        }).repeat(proxyPlugin.tabListConfiguration.get().tabListUpdateTime, TimeUnit.MILLISECONDS).schedule()
     }
 
     fun stopTabListTask() {

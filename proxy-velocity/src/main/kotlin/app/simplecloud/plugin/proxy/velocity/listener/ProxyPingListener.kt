@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
+import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.Subscribe
@@ -12,12 +13,13 @@ import kotlin.jvm.optionals.getOrNull
 
 
 class ProxyPingListener(
+    private val proxyPlugin: ProxyPlugin,
     private val plugin: ProxyVelocityPlugin
 ) {
 
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
-        val motdConfiguration = plugin.motdLayoutHandler.getCurrentMotdLayout()
+        val motdConfiguration = proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
 
         if (!motdConfiguration.enabled) return
 

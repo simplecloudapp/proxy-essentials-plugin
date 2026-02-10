@@ -32,25 +32,27 @@ class ProxyVelocityPlugin @Inject constructor(
     @DataDirectory val dataDirectory: Path,
     val logger: Logger,
     val pluginContainer: PluginContainer
-): ProxyPlugin(dataDirectory.pathString) {
+) {
 
-    val tabListHandler = TabListHandler(this)
+    val proxyPlugin = ProxyPlugin(dataDirectory.pathString)
+
+    val tabListHandler = TabListHandler(proxyPlugin, this, proxyServer)
     private val miniMessage = MiniMessage.miniMessage()
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
-        config.save("tablist", this.tabListConfiguration)
-        config.save("placeholder", this.placeHolderConfiguration)
-        config.save("messages", this.messagesConfiguration)
-        config.save("joinstate", this.joinStateConfiguration)
+        proxyPlugin.config.save("tablist", proxyPlugin.tabListConfiguration)
+        proxyPlugin.config.save("placeholder", proxyPlugin.placeHolderConfiguration)
+        proxyPlugin.config.save("messages", proxyPlugin.messagesConfiguration)
+        proxyPlugin.config.save("joinstate", proxyPlugin.joinStateConfiguration)
 
-        this.motdLayoutHandler.loadMotdLayouts()
+        proxyPlugin.motdLayoutHandler.loadMotdLayouts()
 
-        this.proxyServer.eventManager.register(this, ProxyPingListener(this))
-        this.proxyServer.eventManager.register(this, ConfigureTagResolversListener(this))
-        this.proxyServer.eventManager.register(this, ServerPreConnectListener(this))
+        this.proxyServer.eventManager.register(this, ProxyPingListener(proxyPlugin, this))
+        this.proxyServer.eventManager.register(this, ConfigureTagResolversListener(proxyPlugin, this))
+        this.proxyServer.eventManager.register(this, ServerPreConnectListener(proxyPlugin, this))
 
-        if (this.tabListConfiguration.get().tabListUpdateTime > 0)
+        if (proxyPlugin.tabListConfiguration.get().tabListUpdateTime > 0)
             this.tabListHandler.startTabListTask()
         else
             this.logger.info("Tablist update time is set to 0, tablist will not be updated automatically")
@@ -69,8 +71,8 @@ class ProxyVelocityPlugin @Inject constructor(
             senderMapper
         )
 
-        val proxyCommandHandler = JoinStateCommandHandler(commandManager, this)
-        val proxyEssentialsCommandHandler = ProxyEssentialsCommandHandler(commandManager, this)
+        val proxyCommandHandler = JoinStateCommandHandler(commandManager, proxyPlugin)
+        val proxyEssentialsCommandHandler = ProxyEssentialsCommandHandler(commandManager, proxyPlugin)
         proxyCommandHandler.loadCommands()
         proxyEssentialsCommandHandler.loadCommands()
     }
@@ -78,7 +80,7 @@ class ProxyVelocityPlugin @Inject constructor(
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
         this.tabListHandler.stopTabListTask()
-        this.shutdown()
+        this.proxyPlugin.shutdown()
     }
 
     fun deserializeToComponent(text: String, player: Player? = null): Component {

@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.shared
 
 import app.simplecloud.api.CloudApi
+import app.simplecloud.api.CloudApiOptions
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.message.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
@@ -13,11 +14,11 @@ import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
 import app.simplecloud.plugin.proxy.shared.handler.TabListResolver
 import java.io.File
 
-open class ProxyPlugin(
+class ProxyPlugin(
     dirPath: String
 ) {
 
-    val api = CloudApi.create()
+    val api = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
     val config = YamlConfig(dirPath)
     val tabListConfiguration = config.load<TabListConfiguration>("tablist")
     val placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder")
