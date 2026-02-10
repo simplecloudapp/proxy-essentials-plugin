@@ -30,4 +30,10 @@ open class ProxyPlugin(
     val joinStateResolver = JoinStateResolver(this)
     val tabListResolver = TabListResolver { tabListConfiguration.get() }
 
+    fun shutdown() {
+        joinStateHandler.stop()
+        cloudControllerHandler.close()
+        motdLayoutHandler.close()
+        config.close()
+    }
 }

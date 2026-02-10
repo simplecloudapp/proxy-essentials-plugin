@@ -39,6 +39,7 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.proxy.pluginManager.registerListener(this, ProxyPingListener(this))
         this.proxy.pluginManager.registerListener(this, ConfigureTagResolversListener(this))
         this.proxy.pluginManager.registerListener(this, ServerPreConnectListener(this))
+        this.proxy.pluginManager.registerListener(this, TabListListener(this))
 
         if (this.proxyPlugin.tabListConfiguration.get().tabListUpdateTime > 0)
             this.tabListHandler.startTabListTask()
@@ -68,6 +69,7 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.adventure?.close()
         this.adventure = null
         this.tabListHandler.stopTabListTask()
+        this.proxyPlugin.shutdown()
     }
 
     fun adventure(): BungeeAudiences {

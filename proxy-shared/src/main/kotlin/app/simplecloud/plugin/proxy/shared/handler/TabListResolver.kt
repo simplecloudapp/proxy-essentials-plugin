@@ -30,7 +30,8 @@ class TabListResolver(
         if (group.tabLists.isEmpty()) return null
 
         val currentIndex = tabListIndex[group.groupOrService] ?: 0
-        val tabList = group.tabLists[currentIndex]
+        val normalizedIndex = currentIndex % group.tabLists.size
+        val tabList = group.tabLists[normalizedIndex]
 
         val header = tabList.header.joinToString("<newline>")
         val footer = tabList.footer.joinToString("<newline>")

@@ -52,6 +52,9 @@ class JoinStateResolver(
         if (server.isFromGroup) {
             val groupName = server.group?.name ?: return false
             val maxPlayers = proxyPlugin.cloudControllerHandler.getMaxPlayersInGroup(groupName)
+            if (maxPlayers <= 0) {
+                return false
+            }
             val onlinePlayers = proxyPlugin.cloudControllerHandler.getOnlinePlayersInGroup(groupName)
             return onlinePlayers >= maxPlayers
         }

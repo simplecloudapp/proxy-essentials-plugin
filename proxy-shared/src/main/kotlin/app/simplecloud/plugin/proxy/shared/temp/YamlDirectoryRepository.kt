@@ -18,7 +18,9 @@ abstract class YamlDirectoryRepository<E>(
     private val clazz: Class<E>,
 ) {
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val watchService = FileSystems.getDefault().newWatchService()
+    private var watcherJob: Job? = null
     private val loaders = mutableMapOf<File, YamlConfigurationLoader>()
     protected val entities = mutableMapOf<File, E>()
 
@@ -36,7 +38,7 @@ abstract class YamlDirectoryRepository<E>(
             directory.toFile().mkdirs()
         }
 
-        registerWatcher()
+        ensureWatcherRegistered()
 
         return Files.list(directory)
             .toList()
@@ -94,7 +96,10 @@ abstract class YamlDirectoryRepository<E>(
         }
     }
 
-    private fun registerWatcher(): Job {
+    private fun ensureWatcherRegistered() {
+        if (watcherJob?.isActive == true) {
+            return
+        }
         directory.register(
             watchService,
             StandardWatchEventKinds.ENTRY_CREATE,
@@ -102,34 +107,48 @@ abstract class YamlDirectoryRepository<E>(
             StandardWatchEventKinds.ENTRY_MODIFY
         )
 
-        return CoroutineScope(Dispatchers.IO).launch {
+        watcherJob = scope.launch {
             while (isActive) {
-                val key = watchService.take()
-                for (event in key.pollEvents()) {
-                    val path = event.context() as? Path ?: continue
-                    val resolvedPath = directory.resolve(path)
-                    if (Files.isDirectory(resolvedPath) || !resolvedPath.toString().endsWith(".yml")) {
-                        continue
-                    }
-                    val kind = event.kind()
-                    when (kind) {
-                        StandardWatchEventKinds.ENTRY_CREATE -> {
-                            load(resolvedPath.toFile())
+                try {
+                    val key = watchService.take()
+                    for (event in key.pollEvents()) {
+                        val path = event.context() as? Path ?: continue
+                        val resolvedPath = directory.resolve(path)
+                        if (Files.isDirectory(resolvedPath) || !resolvedPath.toString().endsWith(".yml")) {
+                            continue
                         }
+                        val kind = event.kind()
+                        when (kind) {
+                            StandardWatchEventKinds.ENTRY_CREATE -> {
+                                load(resolvedPath.toFile())
+                            }
 
-                        StandardWatchEventKinds.ENTRY_MODIFY -> {
-                            load(resolvedPath.toFile())
-                            watchUpdateEvent(resolvedPath.toFile())
-                        }
+                            StandardWatchEventKinds.ENTRY_MODIFY -> {
+                                load(resolvedPath.toFile())
+                                watchUpdateEvent(resolvedPath.toFile())
+                            }
 
-                        StandardWatchEventKinds.ENTRY_DELETE -> {
-                            deleteFile(resolvedPath.toFile())
+                            StandardWatchEventKinds.ENTRY_DELETE -> {
+                                deleteFile(resolvedPath.toFile())
+                            }
                         }
                     }
+                    if (!key.reset()) {
+                        break
+                    }
+                } catch (_: ClosedWatchServiceException) {
+                    break
+                } catch (_: InterruptedException) {
+                    break
                 }
-                key.reset()
             }
         }
+    }
+
+    fun close() {
+        watcherJob?.cancel()
+        scope.cancel()
+        watchService.close()
     }
 
     private object GenericEnumSerializer : TypeSerializer<Enum<*>> {

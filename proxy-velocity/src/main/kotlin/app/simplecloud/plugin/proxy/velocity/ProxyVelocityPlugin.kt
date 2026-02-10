@@ -78,6 +78,7 @@ class ProxyVelocityPlugin @Inject constructor(
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
         this.tabListHandler.stopTabListTask()
+        this.shutdown()
     }
 
     fun deserializeToComponent(text: String, player: Player? = null): Component {

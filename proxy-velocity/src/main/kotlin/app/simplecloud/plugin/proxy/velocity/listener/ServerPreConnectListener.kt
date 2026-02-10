@@ -18,6 +18,9 @@ class ServerPreConnectListener(
     @Subscribe(order = PostOrder.EARLY)
     fun handle(event: ServerPreConnectEvent) {
         checkAllowProxyJoin(event.player, event)
+        if (event.result.isAllowed.not()) {
+            return
+        }
         checkAllowServerSwitch(event.player, event, event.originalServer)
     }
 

@@ -16,6 +16,10 @@ class JoinStateCommandHandler<C : CommandSender>(
     val proxyPlugin: ProxyPlugin
 ) {
 
+    private fun parseNumericalId(rawValue: String): Int? {
+        return rawValue.toIntOrNull()
+    }
+
     fun loadCommands() {
         loadHelp()
         loadJoinStateService()
@@ -109,8 +113,12 @@ class JoinStateCommandHandler<C : CommandSender>(
                     StringParser.stringParser()
                 ) { a, _ ->
                     runBlocking {
-                        val group = a.rawInput().input().split(" ")[2]
-                        val suggestionList = proxyPlugin.cloudControllerHandler.getAllNumericalIdsFromGroup(group).map { Suggestion.suggestion(it.toString()) }
+                        val inputParts = a.rawInput().input().split(" ").filter { it.isNotBlank() }
+                        val group = inputParts.getOrNull(2)
+                            ?: return@runBlocking CompletableFuture.completedFuture(emptyList<Suggestion>())
+                        val suggestionList = proxyPlugin.cloudControllerHandler
+                            .getAllNumericalIdsFromGroup(group)
+                            .map { Suggestion.suggestion(it.toString()) }
                         CompletableFuture.completedFuture(suggestionList)
                     }
                 }
@@ -125,21 +133,37 @@ class JoinStateCommandHandler<C : CommandSender>(
                 .handler { context: CommandContext<C> ->
                     CoroutineScope(Dispatchers.IO).launch {
                         val group = context.get<String>("group")
-                        val numericalId = context.get<String>("numericalId")
+                        val numericalIdRaw = context.get<String>("numericalId")
                         val state = context.get<String>("state")
+                        val numericalId = parseNumericalId(numericalIdRaw)
+                        if (numericalId == null) {
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateFailure)
+                            return@launch
+                        }
+                        if (proxyPlugin.joinStateResolver.resolveJoinState(state) == null) {
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateFailure)
+                            return@launch
+                        }
 
-                        if (proxyPlugin.joinStateHandler.getJoinStateAtService(group, numericalId.toInt()) == state) {
+                        if (proxyPlugin.joinStateHandler.getJoinStateAtService(group, numericalId) == state) {
                             context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateNoChange)
                             return@launch
                         }
 
-                        proxyPlugin.joinStateHandler.localState = state
-
                         val successfully = proxyPlugin.joinStateHandler.setJoinStateAtService(
                             group,
-                            numericalId.toInt(),
+                            numericalId,
                             state
                         )
+                        if (successfully) {
+                            val currentServer = proxyPlugin.cloudControllerHandler.currentServer
+                            if (currentServer != null && currentServer.isFromGroup) {
+                                val currentGroupName = currentServer.group?.name
+                                if (currentGroupName == group && currentServer.numericalId == numericalId) {
+                                    proxyPlugin.joinStateHandler.localState = state
+                                }
+                            }
+                        }
 
                         if (successfully) {
                             context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateSuccess)
@@ -177,6 +201,10 @@ class JoinStateCommandHandler<C : CommandSender>(
                     CoroutineScope(Dispatchers.IO).launch {
                         val group = context.get<String>("group")
                         val state = context.get<String>("state")
+                        if (proxyPlugin.joinStateResolver.resolveJoinState(state) == null) {
+                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateFailure)
+                            return@launch
+                        }
 
                         if (proxyPlugin.joinStateHandler.getJoinStateAtGroup(group) == state) {
                             context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateNoChange)

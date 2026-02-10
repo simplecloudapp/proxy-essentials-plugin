@@ -20,6 +20,9 @@ class ServerPreConnectListener(
     @EventHandler(priority = EventPriority.HIGH)
     fun handle(event: ServerConnectEvent) {
         checkAllowProxyJoin(event.player, event)
+        if (event.isCancelled) {
+            return
+        }
         checkAllowServerSwitch(event.player, event, event.target)
     }
 

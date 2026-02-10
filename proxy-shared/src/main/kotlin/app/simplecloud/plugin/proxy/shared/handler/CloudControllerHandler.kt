@@ -12,7 +12,10 @@ class CloudControllerHandler(
     private val joinStateHandler: JoinStateHandler
 ) {
     private val logger = Logger.getLogger(CloudControllerHandler::class.java.name)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val serviceId = System.getenv("SIMPLECLOUD_UNIQUE_ID")
 
+    @Volatile
     var currentServer: Server? = null
         private set
 
@@ -21,16 +24,15 @@ class CloudControllerHandler(
     }
 
     private fun initialize() {
-        val serviceID = System.getenv("SIMPLECLOUD_UNIQUE_ID")
-        if (serviceID == null) {
+        if (serviceId.isNullOrBlank()) {
             logger.warning("Environment variable SIMPLECLOUD_UNIQUE_ID is not set.")
             joinStateHandler.registerListener()
             return
         }
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             try {
-                currentServer = plugin.api.server().getServerById(serviceID).await()
+                currentServer = plugin.api.server().getServerById(serviceId).await()
                 logger.info("Initialized server: ${currentServer?.serverBase?.name}")
 
                 joinStateHandler.registerListener()
@@ -48,7 +50,7 @@ class CloudControllerHandler(
         if (server.isFromGroup) {
             val groupName = server.group?.name ?: return
             joinStateHandler.localState = joinStateHandler.getJoinStateAtService(groupName, server.numericalId)
-            joinStateHandler.startCheckGroupStateTask()
+            joinStateHandler.startGroupStateSyncTask()
         } else {
             val joinState = server.properties?.get(JoinStateHandler.JOINSTATE_KEY)?.toString()
             if (!joinState.isNullOrEmpty()) {
@@ -57,10 +59,18 @@ class CloudControllerHandler(
         }
     }
 
-    suspend fun setServerProperty(key: String, value: String): Boolean {
-        val id = currentServer?.serverId ?: return false
+    fun close() {
+        scope.cancel()
+    }
+
+    suspend fun setCurrentServerProperty(key: String, value: String): Boolean {
+        val currentServerId = currentServer?.serverId ?: return false
+        return updateServerProperty(currentServerId, key, value)
+    }
+
+    suspend fun updateServerProperty(serverId: String, key: String, value: String): Boolean {
         return try {
-            plugin.api.server().updateServerProperties(id, mapOf(key to value)).await()
+            plugin.api.server().updateServerProperties(serverId, mapOf(key to value)).await()
             true
         } catch (e: Exception) {
             logger.severe("Error updating server property: ${e.message}")
@@ -68,75 +78,75 @@ class CloudControllerHandler(
         }
     }
 
-    /*suspend fun getServiceProperties(key: String): String {
-        return retrievePropertyOrEmpty {
-            val uniqueId = System.getenv("SIMPLECLOUD_UNIQUE_ID")
-            controllerApi.getServers().getServerById(uniqueId).properties[key]
-        }
-    }*/
-
-    suspend fun getGroupProperties(groupName: String, key: String): String {
-        return retrievePropertyOrEmpty {
-            plugin.api.group().getGroupByName(groupName).await().properties[key].toString()
+    suspend fun getGroupProperty(groupName: String, key: String): String? {
+        return try {
+            getGroupByName(groupName)?.properties?.get(key)?.toString()?.takeIf { it.isNotBlank() }
+        } catch (e: Exception) {
+            logger.severe("Error retrieving group property: ${e.message}")
+            null
         }
     }
 
-    suspend fun getByNumericalId(groupName: String, numericalId: Int) =
-        plugin.api.server().getAllServers(ServerQuery.create()
-            .filterByServerGroupName(groupName)
-            .filterByNumericalId(numericalId)
+    private suspend fun getGroupByName(groupName: String) = try {
+        plugin.api.group().getGroupByName(groupName).await()
+    } catch (e: Exception) {
+        logger.severe("Error retrieving group '$groupName': ${e.message}")
+        null
+    }
+
+    suspend fun getServerByNumericalId(groupName: String, numericalId: Int): Server? = try {
+        plugin.api.server().getAllServers(
+            ServerQuery.create()
+                .filterByServerGroupName(groupName)
+                .filterByNumericalId(numericalId)
         ).await()?.firstOrNull()
-
-    suspend fun getByGroup(groupName: String): List<Server> =
-        plugin.api.server().getAllServers(ServerQuery.create()
-            .filterByServerGroupName(groupName)
-        ).await() ?: emptyList()
-
-    suspend fun getServiceProperties(groupName: String, numericalId: Int, key: String): String {
-        val server = getByNumericalId(groupName, numericalId)
-        if (server == null) {
-            logger.severe("Server not found for group '$groupName' and numerical ID '$numericalId'")
-            return ""
-        }
-        return retrievePropertyOrEmpty {
-            server.properties[key].toString()
-        }
+    } catch (e: Exception) {
+        logger.severe("Error retrieving server '$groupName-$numericalId': ${e.message}")
+        null
     }
 
-    suspend fun setServiceProperties(groupName: String, numericalId: Int, key: String, value: String): Boolean {
-        val server = getByNumericalId(groupName, numericalId)
+    suspend fun getServersByGroup(groupName: String): List<Server> = try {
+        plugin.api.server().getAllServers(
+            ServerQuery.create()
+                .filterByServerGroupName(groupName)
+        ).await() ?: emptyList()
+    } catch (e: Exception) {
+        logger.severe("Error retrieving servers for group '$groupName': ${e.message}")
+        emptyList()
+    }
+
+    suspend fun getServiceProperty(groupName: String, numericalId: Int, key: String): String? {
+        val server = getServerByNumericalId(groupName, numericalId) ?: return null
+        return server.properties[key]?.toString()?.takeIf { it.isNotBlank() }
+    }
+
+    suspend fun updateServiceProperty(groupName: String, numericalId: Int, key: String, value: String): Boolean {
+        val server = getServerByNumericalId(groupName, numericalId)
         if (server == null) {
             logger.severe("Server not found for group '$groupName' and numerical ID '$numericalId'")
             return false
         }
-        return try {
-            plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).await()
-            logger.info("Service property '$key' updated to '$value' for service ${server.group} ${server.numericalId} ${server.serverId}")
-            true
-        } catch (e: Exception) {
-            logger.severe("Error updating service properties: ${e.message}")
-            false
-        }
+        return updateServerProperty(server.serverId, key, value)
     }
 
-    suspend fun setServicePropertiesOnAllGroupServices(groupName: String, key: String, value: String): Boolean {
-        return try {
-            val servers = getByGroup(groupName)
-            servers.forEach { server ->
-                plugin.api.server().updateServerProperties(server.serverId, mapOf(key to value)).await()
+    suspend fun updateServicePropertyOnAllGroupServers(groupName: String, key: String, value: String): Boolean {
+        val servers = getServersByGroup(groupName)
+        var allSuccessful = true
+        servers.forEach { server ->
+            if (!updateServerProperty(server.serverId, key, value)) {
+                allSuccessful = false
             }
-            logger.info("Service property '$key' updated to '$value' for all services in group '$groupName'")
-            true
-        } catch (e: Exception) {
-            logger.severe("Error updating service properties on all group services: ${e.message}")
-            false
         }
+        if (allSuccessful) {
+            logger.info("Service property '$key' updated to '$value' for all services in group '$groupName'")
+        }
+        return allSuccessful
     }
 
-    suspend fun setGroupProperties(groupName: String, key: String, value: String): Boolean {
+    suspend fun updateGroupProperty(groupName: String, key: String, value: String): Boolean {
+        val group = getGroupByName(groupName) ?: return false
         try {
-            val groupId = plugin.api.group().getGroupByName(groupName).await().serverGroupId
-            plugin.api.group().updateGroupProperties(groupId, mapOf(key to value)).await()
+            plugin.api.group().updateGroupProperties(group.serverGroupId, mapOf(key to value)).await()
             logger.info("Group property '$key' updated to '$value' for group '$groupName'")
             return true
         } catch (e: Exception) {
@@ -147,7 +157,7 @@ class CloudControllerHandler(
 
     suspend fun getOnlinePlayersInGroup(groupName: String): Int {
         return try {
-            getByGroup(groupName).sumOf { it.playerCount.toInt() }
+            getServersByGroup(groupName).sumOf { it.playerCount?.toInt() ?: 0 }
         } catch (e: Exception) {
             logger.severe("Error retrieving online players in group: ${e.message}")
             0
@@ -155,39 +165,29 @@ class CloudControllerHandler(
     }
 
     suspend fun getMaxPlayersInGroup(groupName: String): Int {
-        return try {
-            plugin.api.group().getGroupByName(groupName).await().maxPlayers
-        } catch (e: Exception) {
-            logger.severe("Error retrieving max players in group: ${e.message}")
-            0
-        }
+        return getGroupByName(groupName)?.maxPlayers ?: 0
     }
 
     suspend fun getAllGroups(): List<String> {
-        return plugin.api.group().allGroups.await().map { it.name }
+        return try {
+            plugin.api.group().allGroups.await().map { it.name }
+        } catch (e: Exception) {
+            logger.severe("Error retrieving groups: ${e.message}")
+            emptyList()
+        }
     }
 
     suspend fun getAllNumericalIdsFromGroup(groupName: String): List<Int> {
-        return getByGroup(groupName).map { it.numericalId }
+        return getServersByGroup(groupName).map { it.numericalId }
     }
 
     suspend fun getServerByName(name: String): Server? {
         return try {
-            // TODO: Improve by adding a filter in ServerQuery
             val servers = plugin.api.server().getAllServers(ServerQuery.create()).await() ?: return null
             servers.find { it.serverBase.name == name || it.persistentServer?.name == name }
         } catch (e: Exception) {
             logger.severe("Error retrieving server by name: ${e.message}")
             null
-        }
-    }
-
-    private suspend fun retrievePropertyOrEmpty(retrieve: suspend () -> String?): String {
-        return try {
-            retrieve() ?: ""
-        } catch (e: Exception) {
-            logger.severe("Error retrieving property: ${e.message}")
-            ""
         }
     }
 }

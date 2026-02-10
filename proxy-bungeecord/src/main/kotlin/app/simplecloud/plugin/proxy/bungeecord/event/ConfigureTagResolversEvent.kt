@@ -10,7 +10,7 @@ class ConfigureTagResolversEvent(
 ): Event() {
 
     fun withTagResolvers(vararg tagResolvers: TagResolver): ConfigureTagResolversEvent {
-        return this.withTagResolvers(*tagResolvers)
+        return this.withTagResolvers(tagResolvers.toList())
     }
 
     fun withTagResolvers(tagResolvers: List<TagResolver>): ConfigureTagResolversEvent {
