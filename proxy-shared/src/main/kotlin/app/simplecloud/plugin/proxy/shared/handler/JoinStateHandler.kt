@@ -122,24 +122,22 @@ class JoinStateHandler(
                 return@onUpdated
             }
 
-            localState = state.toString()
+            localState = state
             this.logger.info("Join state changed to $state")
         }
     }
 
     private suspend fun applyDefaultJoinStateForCurrentServer(server: Server) {
-        val fallbackState = defaultJoinState()
         try {
-            if (server.isFromGroup) {
+            val stateToApply = if (server.isFromGroup) {
                 val groupName = server.group?.name ?: return
-                proxyPlugin.cloudControllerHandler.updateServerProperty(server.serverId, JOINSTATE_KEY, fallbackState)
-                if (proxyPlugin.cloudControllerHandler.getGroupProperty(groupName, JOINSTATE_KEY).isNullOrBlank()) {
-                    setJoinStateAtGroup(groupName, fallbackState)
-                }
+                ensureJoinStateAtGroup(groupName)
             } else {
-                proxyPlugin.cloudControllerHandler.setCurrentServerProperty(JOINSTATE_KEY, fallbackState)
+                defaultJoinState()
             }
-            localState = fallbackState
+
+            proxyPlugin.cloudControllerHandler.updateServerProperty(server.serverId, JOINSTATE_KEY, stateToApply)
+            localState = stateToApply
         } catch (e: Exception) {
             logger.severe("Error setting default join state: ${e.message}")
         }
