@@ -18,7 +18,6 @@ import java.nio.file.Path
 class ProxyPlugin(
     dirPath: String
 ) {
-
     val api = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
 
     init {

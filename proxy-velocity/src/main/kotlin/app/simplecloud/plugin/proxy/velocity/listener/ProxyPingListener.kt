@@ -36,13 +36,9 @@ class ProxyPingListener(
 
         val remoteAddress = event.connection.remoteAddress.address.hostAddress
         val localAddress = InetAddress.getLocalHost().hostAddress
+        val isLocalPing = remoteAddress == localAddress
 
         val builder = event.ping.asBuilder().description(motd)
-
-        if (remoteAddress == localAddress) {
-            event.ping = builder.build()
-            return
-        }
 
         // server icon
         if (layout.serverIcon.enabled) {
@@ -51,35 +47,37 @@ class ProxyPingListener(
         }
 
         // player list (hover text)
-        val players = event.ping.players.getOrNull()
-        val onlinePlayers = players?.online ?: 0
-        val realMax = players?.max ?: 0
+        if (!isLocalPing) {
+            val players = event.ping.players.getOrNull()
+            val onlinePlayers = players?.online ?: 0
+            val realMax = players?.max ?: 0
 
-        val samplePlayers: List<SamplePlayer> = if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
-            layout.playerList.entries.map { SamplePlayer(it, UUID.randomUUID()) }
-        } else {
-            players?.sample ?: emptyList()
-        }
-
-        // slots
-        val maxPlayers = if (layout.versionSettings.slots.enabled) {
-            when (layout.versionSettings.slots.type) {
-                MaxPlayerDisplayType.REAL -> realMax
-                MaxPlayerDisplayType.FAKE -> layout.versionSettings.slots.fakeSlots
-                MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.versionSettings.slots.dynamicPlayerRange
+            val samplePlayers: List<SamplePlayer> = if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
+                layout.playerList.entries.map { SamplePlayer(it, UUID.randomUUID()) }
+            } else {
+                players?.sample ?: emptyList()
             }
-        } else {
-            realMax
-        }
 
-        builder
-            .onlinePlayers(onlinePlayers)
-            .maximumPlayers(maxPlayers)
-            .samplePlayers(*samplePlayers.toTypedArray())
+            // slots
+            val maxPlayers = if (layout.versionSettings.slots.enabled) {
+                when (layout.versionSettings.slots.type) {
+                    MaxPlayerDisplayType.REAL -> realMax
+                    MaxPlayerDisplayType.FAKE -> layout.versionSettings.slots.fakeSlots
+                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.versionSettings.slots.dynamicPlayerRange
+                }
+            } else {
+                realMax
+            }
 
-        // version name
-        if (layout.versionSettings.name.enabled) {
-            builder.version(ServerPing.Version(-1, layout.versionSettings.name.text))
+            builder
+                .onlinePlayers(onlinePlayers)
+                .maximumPlayers(maxPlayers)
+                .samplePlayers(*samplePlayers.toTypedArray())
+
+            // version name
+            if (layout.versionSettings.name.enabled) {
+                builder.version(ServerPing.Version(-1, layout.versionSettings.name.text))
+            }
         }
 
         event.ping = builder.build()
