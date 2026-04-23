@@ -14,7 +14,7 @@ class JoinStateHandler(
     private var groupStateSyncJob: Job? = null
 
     @Volatile
-    var localState: String = proxyPlugin.joinStateConfiguration.get().defaultState
+    var localState: String = proxyPlugin.proxyEssentialsConfig.get().initialState
 
     companion object {
         const val JOINSTATE_KEY = "joinstate"
@@ -25,7 +25,7 @@ class JoinStateHandler(
         scope.cancel()
     }
 
-    private fun defaultJoinState(): String = proxyPlugin.joinStateConfiguration.get().defaultState
+    private fun defaultJoinState(): String = proxyPlugin.proxyEssentialsConfig.get().initialState
 
     suspend fun setJoinStateAtGroup(groupName: String, joinStateName: String): Boolean {
         return this.proxyPlugin.cloudControllerHandler.updateGroupProperty(groupName, JOINSTATE_KEY, joinStateName)

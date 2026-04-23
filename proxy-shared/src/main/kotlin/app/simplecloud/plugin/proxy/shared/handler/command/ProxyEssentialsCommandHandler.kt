@@ -16,33 +16,61 @@ class ProxyEssentialsCommandHandler<C : CommandSender>(
     private val logger = Logger.getLogger(ProxyEssentialsCommandHandler::class.java.name)
 
     fun loadCommands() {
-        loadReloadCommand()
+        loadHelp()
+        loadReload()
     }
 
-    private fun loadReloadCommand() {
+    private fun loadHelp() {
         commandManager.command(
-            commandManager.commandBuilder("proxyessentials")
-                .literal("reload")
-                .permission("simplecloud.command.proxyessentials.reload")
-                .handler { context: CommandContext<C> ->
+            commandManager.commandBuilder("scproxy")
+                .permission("simplecloud.proxy-essentials.command.help")
+                .handler { context: CommandContext<C> -> sendHelp(context) }
+                .build()
+        )
+        commandManager.command(
+            commandManager.commandBuilder("scproxy")
+                .literal("help")
+                .permission("simplecloud.proxy-essentials.command.help")
+                .handler { context: CommandContext<C> -> sendHelp(context) }
+                .build()
+        )
+    }
 
+    private fun sendHelp(context: CommandContext<C>) {
+        val sender = context.sender()
+        val msgs = proxyPlugin.messagesConfiguration.get()
+        val helpEntry = msgs.command.joinState.help.entry
+        sender.sendMessage(msgs.resolve("<prefix>Available /scproxy commands:"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy help"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy joinstate help"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy joinstate info <group>"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy joinstate info <group> <id>"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy joinstate set <group> <joinstate>"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy joinstate set <group> <id> <joinstate>"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy layout help"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy layout info [group]"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy layout set <group> <layout>"))
+    }
+
+    private fun loadReload() {
+        commandManager.command(
+            commandManager.commandBuilder("scproxy")
+                .literal("reload")
+                .permission("simplecloud.proxy-essentials.command.help")
+                .handler { context: CommandContext<C> ->
                     val sender = context.sender()
-                    sender.sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.configReloading)
+                    sender.sendMessage(proxyPlugin.messagesConfiguration.get().resolve("<prefix>Reloading ProxyEssentials configurations..."))
 
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            proxyPlugin.tabListConfiguration.reload()
+                            proxyPlugin.proxyEssentialsConfig.reload()
                             proxyPlugin.placeHolderConfiguration.reload()
                             proxyPlugin.messagesConfiguration.reload()
-                            proxyPlugin.joinStateConfiguration.reload()
-
                             proxyPlugin.motdLayoutHandler.loadMotdLayouts()
 
-
-                            sender.sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.configReloadedSuccess)
+                            sender.sendMessage(proxyPlugin.messagesConfiguration.get().resolve("<prefix>Successfully reloaded all ProxyEssentials configurations."))
                         } catch (e: Exception) {
-                            sender.sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.configReloadedFailure
-                                .replace("<errorMessage>", e.message ?: "Unknown error"))
+                            sender.sendMessage(proxyPlugin.messagesConfiguration.get().resolve("<prefix>Failed to reload configurations: <color:#ff0000>${e.message ?: "Unknown error"}"))
                             logger.log(Level.SEVERE, "Error reloading configuration", e)
                         }
                     }

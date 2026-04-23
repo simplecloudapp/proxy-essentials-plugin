@@ -37,7 +37,7 @@ open class YamlConfig(val dirPath: String) {
         val cacheKey = path ?: "default"
 
         try {
-            val node = buildNode(path).first
+            val node = buildNode(path, createIfMissing = false).first
             val config = node.get(clazz)
 
             if (config != null) {
@@ -59,21 +59,30 @@ open class YamlConfig(val dirPath: String) {
         configs.add(ReactiveConfigInfo(clazz, reactiveConfig))
     }
 
-    fun buildNode(path: String?): Pair<CommentedConfigurationNode, YamlConfigurationLoader> {
+    fun buildNode(path: String?, createIfMissing: Boolean = true): Pair<CommentedConfigurationNode, YamlConfigurationLoader> {
         val file = File(if (path != null) "${dirPath}/${path.lowercase()}.yml" else dirPath)
         if (!file.exists()) {
+            if (!createIfMissing) {
+                val loader = createLoader(file.toPath())
+                return Pair(loader.createNode(), loader)
+            }
             file.parentFile.mkdirs()
             file.createNewFile()
         }
+        val loader = createLoader(file.toPath())
+        return Pair(loader.load(), loader)
+    }
+
+    private fun createLoader(path: Path): YamlConfigurationLoader {
         val loader = YamlConfigurationLoader.builder()
-            .path(file.toPath())
+            .path(path)
             .nodeStyle(NodeStyle.BLOCK)
             .defaultOptions { options ->
                 options.serializers { builder ->
                     builder.registerAnnotatedObjects(objectMapperFactory())
                 }
             }.build()
-        return Pair(loader.load(), loader)
+        return loader
     }
 
     fun <T> save(obj: T) {

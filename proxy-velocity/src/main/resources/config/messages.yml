@@ -1,0 +1,59 @@
+version: '1'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Variables
+# Reusable variables that can be used throughout the messages.
+# Usage: <variable_name> will be replaced with the defined value.
+# ───────────────────────────────────────────────────────────────────────────────
+variables:
+    prefix: "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>"
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Kick Messages
+# ───────────────────────────────────────────────────────────────────────────────
+kick:
+    no-permission: "<red>The network is currently in maintenance mode. Please try again later."
+    network-full: "<red>The network is currently full. Please try again later."
+    no-join-state: "<red>No join state found for server. Please try again later."
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Command Messages
+# ───────────────────────────────────────────────────────────────────────────────
+command:
+    join-state:
+        server:
+            update-success: "<prefix>Join state of server updated successfully."
+            update-failure: "<prefix>Failed to update join state of server."
+            update-no-change: "<prefix>Join state of server did not change."
+        
+        group:
+            update-success: "<prefix>Join state of group updated successfully."
+            update-failure: "<prefix>Failed to update join state of group."
+            update-no-change: "<prefix>Join state of group did not change."
+        
+        help:
+            header: "<prefix>Commands of join state:"
+            entry: "   <color:#a3a3a3><command>"
+        
+        list:
+            groups:
+                header: "<prefix>Groups with every join states:"
+                entry: "   <color:#a3a3a3><group> <color:#ffffff>- <color:#a3a3a3><state>"
+            
+            states:
+                header: "<prefix>List of every join states:"
+                entry: "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><joinPermission>"
+
+    layout:
+        help:
+            header: "<prefix>Commands of layout:"
+            entry: "   <color:#a3a3a3><command>"
+
+        info:
+            header: "<prefix>Layout for <color:#a3a3a3><group><color:#ffffff>:"
+            entry: "   <color:#a3a3a3><layout>"
+
+        set:
+            update-success: "<prefix>Layout for group updated successfully."
+            update-failure: "<prefix>Failed to update layout for group."
+            update-no-change: "<prefix>Layout for group did not change."

@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.context.CommandContext
+import org.incendo.cloud.parser.standard.IntegerParser
 import org.incendo.cloud.parser.standard.StringParser
 import org.incendo.cloud.suggestion.Suggestion
 import java.util.concurrent.CompletableFuture
@@ -16,159 +17,87 @@ class JoinStateCommandHandler<C : CommandSender>(
     val proxyPlugin: ProxyPlugin
 ) {
 
-    private fun parseNumericalId(rawValue: String): Int? {
-        return rawValue.toIntOrNull()
-    }
-
     fun loadCommands() {
         loadHelp()
-        loadJoinStateService()
-        loadJoinStateGroup()
-        loadJoinStateGroups()
-        loadJoinStateStates()
+        loadInfo()
+        loadSet()
     }
 
+    // ── help ──────────────────────────────────────────────────────────────────
+
     private fun loadHelp() {
+        val builder = commandManager.commandBuilder("scproxy").literal("joinstate")
         commandManager.command(
-            commandManager.commandBuilder("joinstate")
-                .literal("help")
-                .permission("simplecloud.command.joinstate.help")
+            builder.permission("simplecloud.proxy-essentials.command.joinstate.help")
                 .handler { context: CommandContext<C> -> handleHelp(context) }
                 .build()
         )
         commandManager.command(
-            commandManager.commandBuilder("joinstate")
-                .permission("simplecloud.command.joinstate.help")
+            builder.literal("help")
+                .permission("simplecloud.proxy-essentials.command.joinstate.help")
                 .handler { context: CommandContext<C> -> handleHelp(context) }
                 .build()
         )
     }
 
     private fun handleHelp(context: CommandContext<C>) {
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpHeader)
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
-            .replace("<command>", "/joinstate server <group> <numericalId> <state>"))
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
-            .replace("<command>", "/joinstate group <group> <state>"))
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
-            .replace("<command>", "/joinstate groups"))
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
-            .replace("<command>", "/joinstate states"))
-        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateHelpCommand
-            .replace("<command>", "/joinstate help"))
+        val msgs = proxyPlugin.messagesConfiguration.get()
+        val entry = msgs.command.joinState.help.entry
+        context.sender().sendMessage(msgs.resolve(msgs.command.joinState.help.header))
+        context.sender().sendMessage(entry.replace("<command>", "/scproxy joinstate help"))
+        context.sender().sendMessage(entry.replace("<command>", "/scproxy joinstate info <group>"))
+        context.sender().sendMessage(entry.replace("<command>", "/scproxy joinstate info <group> <id>"))
+        context.sender().sendMessage(entry.replace("<command>", "/scproxy joinstate set <group> <joinstate>"))
+        context.sender().sendMessage(entry.replace("<command>", "/scproxy joinstate set <group> <id> <joinstate>"))
     }
 
-    private fun loadJoinStateGroups() {
-        commandManager.command(
-            commandManager.commandBuilder("joinstate")
-                .literal("groups")
-                .permission("simplecloud.command.joinstate.groups")
-                .handler { context: CommandContext<C> ->
-                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupListHeader)
-                    CoroutineScope(Dispatchers.IO).launch {
-                        proxyPlugin.cloudControllerHandler.getAllGroups().forEach { group ->
-                            val state = proxyPlugin.joinStateHandler.getJoinStateAtGroup(group)
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupListEntry
-                                .replace("<group>", group)
-                                .replace("<state>", state))
-                        }
-                    }
-                }
-                .build()
-        )
-    }
+    // ── info ──────────────────────────────────────────────────────────────────
+    // /scproxy joinstate info <group> [id]
 
-    private fun loadJoinStateStates() {
+    private fun loadInfo() {
         commandManager.command(
-            commandManager.commandBuilder("joinstate")
-                .literal("states")
-                .permission("simplecloud.command.joinstate.states")
-                .handler { context: CommandContext<C> ->
-                    context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateStateListHeader)
-                    proxyPlugin.joinStateConfiguration.get().joinStates.forEach { state ->
-                        context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateStateListEntry
-                            .replace("<state>", state.name)
-                            .replace("<joinPermission>", state.joinPermission))
-                    }
-                }
-                .build()
-        )
-    }
-
-    private fun loadJoinStateService() {
-        commandManager.command(
-            commandManager.commandBuilder("joinstate")
-                .literal("server")
-                .required(
-                    "group",
-                    StringParser.stringParser()
-                ) { _, _ ->
+            commandManager.commandBuilder("scproxy")
+                .literal("joinstate")
+                .literal("info")
+                .required("group", StringParser.stringParser()) { _, _ ->
                     runBlocking {
-                        val suggestionList = proxyPlugin.cloudControllerHandler.getAllGroups().map { Suggestion.suggestion(it) }
-                        CompletableFuture.completedFuture(suggestionList)
+                        proxyPlugin.cloudControllerHandler.getAllGroups()
+                            .map { Suggestion.suggestion(it) }
+                            .let { CompletableFuture.completedFuture(it) }
                     }
                 }
-                .required(
-                    "numericalId",
-                    StringParser.stringParser()
-                ) { a, _ ->
+                .optional("id", IntegerParser.integerParser(1)) { context, _ ->
                     runBlocking {
-                        val inputParts = a.rawInput().input().split(" ").filter { it.isNotBlank() }
-                        val group = inputParts.getOrNull(2)
+                        val parts = context.rawInput().input().split(" ").filter { it.isNotBlank() }
+                        val group = parts.getOrNull(3)
                             ?: return@runBlocking CompletableFuture.completedFuture(emptyList<Suggestion>())
-                        val suggestionList = proxyPlugin.cloudControllerHandler
-                            .getAllNumericalIdsFromGroup(group)
+                        proxyPlugin.cloudControllerHandler.getAllNumericalIdsFromGroup(group)
                             .map { Suggestion.suggestion(it.toString()) }
-                        CompletableFuture.completedFuture(suggestionList)
+                            .let { CompletableFuture.completedFuture(it) }
                     }
                 }
-                .required(
-                    "state",
-                    StringParser.stringParser()
-                ) { _, _ ->
-                    val suggestionList = proxyPlugin.joinStateConfiguration.get().joinStates.map { Suggestion.suggestion(it.name) }
-                    CompletableFuture.completedFuture(suggestionList)
-                }
-                .permission("simplecloud.command.joinstate.server")
+                .permission("simplecloud.proxy-essentials.command.joinstate.info")
                 .handler { context: CommandContext<C> ->
                     CoroutineScope(Dispatchers.IO).launch {
                         val group = context.get<String>("group")
-                        val numericalIdRaw = context.get<String>("numericalId")
-                        val state = context.get<String>("state")
-                        val numericalId = parseNumericalId(numericalIdRaw)
-                        if (numericalId == null) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateFailure)
-                            return@launch
-                        }
-                        if (proxyPlugin.joinStateResolver.resolveJoinState(state) == null) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateFailure)
-                            return@launch
-                        }
+                        val optId = context.optional<Int>("id")
+                        val msgs = proxyPlugin.messagesConfiguration.get()
 
-                        if (proxyPlugin.joinStateHandler.getJoinStateAtService(group, numericalId) == state) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateNoChange)
-                            return@launch
-                        }
-
-                        val successfully = proxyPlugin.joinStateHandler.setJoinStateAtService(
-                            group,
-                            numericalId,
-                            state
-                        )
-                        if (successfully) {
-                            val currentServer = proxyPlugin.cloudControllerHandler.currentServer
-                            if (currentServer != null && currentServer.isFromGroup) {
-                                val currentGroupName = currentServer.group?.name
-                                if (currentGroupName == group && currentServer.numericalId == numericalId) {
-                                    proxyPlugin.joinStateHandler.localState = state
-                                }
-                            }
-                        }
-
-                        if (successfully) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateSuccess)
+                        if (optId.isPresent) {
+                            val id = optId.get()
+                            val state = proxyPlugin.joinStateHandler.getJoinStateAtService(group, id)
+                            context.sender().sendMessage(
+                                msgs.resolve(msgs.command.joinState.list.groups.entry)
+                                    .replace("<group>", "$group-$id")
+                                    .replace("<state>", state)
+                            )
                         } else {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateServerUpdateFailure)
+                            val state = proxyPlugin.joinStateHandler.getJoinStateAtGroup(group)
+                            context.sender().sendMessage(
+                                msgs.resolve(msgs.command.joinState.list.groups.entry)
+                                    .replace("<group>", group)
+                                    .replace("<state>", state)
+                            )
                         }
                     }
                 }
@@ -176,55 +105,109 @@ class JoinStateCommandHandler<C : CommandSender>(
         )
     }
 
-    private fun loadJoinStateGroup() {
+    // ── set ───────────────────────────────────────────────────────────────────
+    // /scproxy joinstate set <group> <idOrJoinstate> [joinstate]
+    //   • 2 args → group mode:   idOrJoinstate = joinstate name
+    //   • 3 args → service mode: idOrJoinstate = numerical id, joinstate = state name
+
+    private fun loadSet() {
         commandManager.command(
-            commandManager.commandBuilder("joinstate")
-                .literal("group")
-                .required(
-                    "group",
-                    StringParser.stringParser()
-                ) { _, _ ->
+            commandManager.commandBuilder("scproxy")
+                .literal("joinstate")
+                .literal("set")
+                .required("group", StringParser.stringParser()) { _, _ ->
                     runBlocking {
-                        val suggestionList = proxyPlugin.cloudControllerHandler.getAllGroups().map { Suggestion.suggestion(it) }
-                        CompletableFuture.completedFuture(suggestionList)
+                        proxyPlugin.cloudControllerHandler.getAllGroups()
+                            .map { Suggestion.suggestion(it) }
+                            .let { CompletableFuture.completedFuture(it) }
                     }
                 }
-                .required(
-                    "state",
-                    StringParser.stringParser()
-                ) { _, _ ->
-                    val suggestionList = proxyPlugin.joinStateConfiguration.get().joinStates.map { Suggestion.suggestion(it.name) }
-                    CompletableFuture.completedFuture(suggestionList)
+                .required("idOrJoinstate", StringParser.stringParser()) { context, _ ->
+                    val parts = context.rawInput().input().split(" ").filter { it.isNotBlank() }
+                    // if we already have a group token, suggest IDs first, then states
+                    val group = parts.getOrNull(3)
+                    val stateSuggestions = proxyPlugin.proxyEssentialsConfig.get().joinstates
+                        .map { Suggestion.suggestion(it.name) }
+                    if (group == null) {
+                        CompletableFuture.completedFuture(stateSuggestions)
+                    } else {
+                        runBlocking {
+                            val idSuggestions = proxyPlugin.cloudControllerHandler
+                                .getAllNumericalIdsFromGroup(group)
+                                .map { Suggestion.suggestion(it.toString()) }
+                            CompletableFuture.completedFuture(idSuggestions + stateSuggestions)
+                        }
+                    }
                 }
-                .permission("simplecloud.command.joinstate.group")
+                .optional("joinstate", StringParser.stringParser()) { _, _ ->
+                    val states = proxyPlugin.proxyEssentialsConfig.get().joinstates
+                        .map { Suggestion.suggestion(it.name) }
+                    CompletableFuture.completedFuture(states)
+                }
+                .permission("simplecloud.proxy-essentials.command.joinstate.set")
                 .handler { context: CommandContext<C> ->
                     CoroutineScope(Dispatchers.IO).launch {
                         val group = context.get<String>("group")
-                        val state = context.get<String>("state")
-                        if (proxyPlugin.joinStateResolver.resolveJoinState(state) == null) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateFailure)
-                            return@launch
-                        }
+                        val idOrJoinstate = context.get<String>("idOrJoinstate")
+                        val optJoinstate = context.optional<String>("joinstate")
+                        val msgs = proxyPlugin.messagesConfiguration.get()
 
-                        if (proxyPlugin.joinStateHandler.getJoinStateAtGroup(group) == state) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateNoChange)
-                            return@launch
-                        }
-
-                        val successfully =
-                            proxyPlugin.joinStateHandler.setJoinStateAtGroupAndAllServicesInGroup(
-                                group,
-                                state
-                            )
-
-                        if (successfully) {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateSuccess)
+                        if (optJoinstate.isPresent) {
+                            // service mode: idOrJoinstate must be a valid integer
+                            val id = idOrJoinstate.toIntOrNull()
+                            if (id == null) {
+                                context.sender().sendMessage(msgs.resolve(msgs.command.joinState.server.updateFailure))
+                                return@launch
+                            }
+                            val state = optJoinstate.get()
+                            handleSetService(context.sender(), group, id, state, msgs)
                         } else {
-                            context.sender().sendMessage(proxyPlugin.messagesConfiguration.get().commandMessage.joinStateGroupUpdateFailure)
+                            // group mode: idOrJoinstate is the state name
+                            handleSetGroup(context.sender(), group, idOrJoinstate, msgs)
                         }
                     }
                 }
                 .build()
         )
+    }
+
+    private suspend fun handleSetGroup(sender: CommandSender, group: String, state: String, msgs: app.simplecloud.plugin.proxy.shared.config.message.MessageConfig) {
+        if (proxyPlugin.joinStateResolver.resolveJoinState(state) == null) {
+            sender.sendMessage(msgs.resolve(msgs.command.joinState.group.updateFailure))
+            return
+        }
+        if (proxyPlugin.joinStateHandler.getJoinStateAtGroup(group) == state) {
+            sender.sendMessage(msgs.resolve(msgs.command.joinState.group.updateNoChange))
+            return
+        }
+        val success = proxyPlugin.joinStateHandler.setJoinStateAtGroupAndAllServicesInGroup(group, state)
+        sender.sendMessage(
+            if (success) msgs.resolve(msgs.command.joinState.group.updateSuccess)
+            else msgs.resolve(msgs.command.joinState.group.updateFailure)
+        )
+    }
+
+    private suspend fun handleSetService(sender: CommandSender, group: String, id: Int, state: String, msgs: app.simplecloud.plugin.proxy.shared.config.message.MessageConfig) {
+        if (proxyPlugin.joinStateResolver.resolveJoinState(state) == null) {
+            sender.sendMessage(msgs.resolve(msgs.command.joinState.server.updateFailure))
+            return
+        }
+        if (proxyPlugin.joinStateHandler.getJoinStateAtService(group, id) == state) {
+            sender.sendMessage(msgs.resolve(msgs.command.joinState.server.updateNoChange))
+            return
+        }
+        val success = proxyPlugin.joinStateHandler.setJoinStateAtService(group, id, state)
+        if (success) {
+            val currentServer = proxyPlugin.cloudControllerHandler.currentServer
+            if (currentServer != null && currentServer.isFromGroup) {
+                val currentGroup = currentServer.group?.name
+                if (currentGroup == group && currentServer.numericalId == id) {
+                    proxyPlugin.joinStateHandler.localState = state
+                }
+            }
+            sender.sendMessage(msgs.resolve(msgs.command.joinState.server.updateSuccess))
+        } else {
+            sender.sendMessage(msgs.resolve(msgs.command.joinState.server.updateFailure))
+        }
     }
 }

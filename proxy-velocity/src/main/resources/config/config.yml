@@ -1,0 +1,48 @@
+version: '2'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Join States
+# Configures who can join the proxy and how full or restricted states behave.
+#
+# Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
+# ───────────────────────────────────────────────────────────────────────────────
+
+# Initial settings used when a group is created for the first time.
+initial-state: public
+initial-layout: default
+
+joinstates:
+-   name: public
+    permission:
+        join: ''
+        full: 'simplecloud.proxy-essentials.join.full.public'
+    forced-motd-layout: null
+-   name: maintenance
+    permission:
+        join: 'simplecloud.proxy-essentials.join.maintenance'
+        full: 'simplecloud.proxy-essentials.join.maintenance'
+    forced-motd-layout: maintenance
+
+# Global whitelist for direct player access.
+# Prefer permission-based access for regular users.
+# Use this list only for administrators or emergency access.
+whitelist:
+  enabled: true
+  # Supports player names and UUIDs.
+  players:
+    - Notch
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Tablist
+# Configures tablist layouts and update intervals for connected players.
+#
+# Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
+# ───────────────────────────────────────────────────────────────────────────────
+
+tablist:
+-   name: global
+    layout:
+    -   header: '<br><color:#0ea5e9>SimpleCloud v3<br>'
+        footer: '<br> <color:#ffffff><online_players> players <color:#cbd5e1>are playing on your network <br> <color:#64748b>  sɪᴍᴘʟᴇᴄʟᴏᴜᴅ.ᴀᴘᴘ<br>'
+    # Update interval in ticks.
+    update-time: 20

@@ -6,6 +6,7 @@ import app.simplecloud.plugin.proxy.bungeecord.listener.*
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
 import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
+import app.simplecloud.plugin.proxy.shared.handler.command.LayoutCommandHandler
 import app.simplecloud.plugin.proxy.shared.handler.command.ProxyEssentialsCommandHandler
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.kyori.adventure.text.Component
@@ -28,11 +29,6 @@ class ProxyBungeeCordPlugin: Plugin() {
     private val miniMessage = MiniMessage.miniMessage()
 
     override fun onEnable() {
-        this.proxyPlugin.config.save("tablist", this.proxyPlugin.tabListConfiguration)
-        this.proxyPlugin.config.save("placeholder", this.proxyPlugin.placeHolderConfiguration)
-        this.proxyPlugin.config.save("messages", this.proxyPlugin.messagesConfiguration)
-        this.proxyPlugin.config.save("joinstate", this.proxyPlugin.joinStateConfiguration)
-
         this.proxyPlugin.motdLayoutHandler.loadMotdLayouts()
 
         this.adventure = BungeeAudiences.create(this)
@@ -41,7 +37,7 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.proxy.pluginManager.registerListener(this, ServerPreConnectListener(this))
         this.proxy.pluginManager.registerListener(this, TabListListener(this))
 
-        if (this.proxyPlugin.tabListConfiguration.get().tabListUpdateTime > 0)
+        if (this.proxyPlugin.proxyEssentialsConfig.get().tabListUpdateTimeMillis() > 0)
             this.tabListHandler.startTabListTask()
         else
             this.logger.info("Tablist update time is set to 0, tablist will not be updated automatically")
@@ -59,10 +55,9 @@ class ProxyBungeeCordPlugin: Plugin() {
             senderMapper
         )
 
-        val proxyCommandHandler = JoinStateCommandHandler(commandManager, this.proxyPlugin)
-        val proxyEssentialsCommandHandler = ProxyEssentialsCommandHandler(commandManager, this.proxyPlugin)
-        proxyCommandHandler.loadCommands()
-        proxyEssentialsCommandHandler.loadCommands()
+        ProxyEssentialsCommandHandler(commandManager, this.proxyPlugin).loadCommands()
+        JoinStateCommandHandler(commandManager, this.proxyPlugin).loadCommands()
+        LayoutCommandHandler(commandManager, this.proxyPlugin).loadCommands()
     }
 
     override fun onDisable() {

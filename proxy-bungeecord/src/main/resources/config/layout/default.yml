@@ -1,0 +1,49 @@
+config-version: '1'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Server List Layout
+# Configures how your server appears in the multiplayer server list,
+# including MOTD, server icon, and player count display.
+# 
+# Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
+# ───────────────────────────────────────────────────────────────────────────────
+
+motd:
+  enabled: true
+  # QUEUE, RANDOM
+  update-type: RANDOM
+  #update-type: QUEUE
+  #update-time: 10
+  #update-time: 0 disables updates
+  layouts:
+    - name: 'default'
+      line1: '<color:#0ea5e9>A simplecloud.app network'
+      line2: ' '
+
+server-icon: 
+  enabled: true
+  file: 'simplecloud.png'
+
+# Text displayed when hovering over the player count in the server list
+player-list:
+  enabled: true
+  player-list:
+  - ''
+  - 'simplecloud.app'
+  - ''
+
+# Server version text and player slots configuration
+version:
+  name:
+    enabled: false
+    text: 'Example'
+  slots:
+    enabled: true
+    #     REAL - Displays the actual number of online players
+    #     FAKE - Displays a fixed custom number of online players
+    #     DYNAMIC - Displays a dynamic number based on actual players plus a range
+    type: REAL
+    #type: FAKE
+    #fake-slots: 100
+    #type: DYNAMIC
+    #dynamic-player-range: 5

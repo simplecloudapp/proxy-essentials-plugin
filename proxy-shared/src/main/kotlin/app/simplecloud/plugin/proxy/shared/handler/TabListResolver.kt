@@ -1,40 +1,37 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabListConfiguration
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
 
 class TabListResolver(
-    private val getConfiguration: () -> TabListConfiguration
+    private val getTabListGroups: () -> List<TabListGroup>
 ) {
     private val tabListIndex = mutableMapOf<String, Int>()
 
     fun incrementIndices() {
-        val configuration = getConfiguration()
-        configuration.groups.forEach { group ->
-            if (group.tabLists.isNotEmpty()) {
-                val currentIndex = tabListIndex.getOrPut(group.groupOrService) { 0 }
-                tabListIndex[group.groupOrService] = (currentIndex + 1) % group.tabLists.size
+        getTabListGroups().forEach { group ->
+            if (group.layout.isNotEmpty()) {
+                val currentIndex = tabListIndex.getOrPut(group.name) { 0 }
+                tabListIndex[group.name] = (currentIndex + 1) % group.layout.size
             }
         }
     }
 
     fun findTabListGroup(serviceName: String): TabListGroup? {
-        val groups = getConfiguration().groups
+        val groups = getTabListGroups()
 
-        return groups.find { it.groupOrService.equals(serviceName, true) }
-            ?: groups.find { serviceName.startsWith(it.groupOrService, true) }
-            ?: groups.find { it.groupOrService == "*" }
+        return groups.find { it.name.equals(serviceName, true) }
+            ?: groups.find { serviceName.startsWith(it.name, true) }
+            ?: groups.find { it.name == "*" }
+            ?: groups.find { it.name.equals("global", true) }
     }
 
     fun getCurrentTabList(group: TabListGroup): Pair<String, String>? {
-        if (group.tabLists.isEmpty()) return null
+        if (group.layout.isEmpty()) return null
 
-        val currentIndex = tabListIndex[group.groupOrService] ?: 0
-        val normalizedIndex = currentIndex % group.tabLists.size
-        val tabList = group.tabLists[normalizedIndex]
+        val currentIndex = tabListIndex[group.name] ?: 0
+        val normalizedIndex = currentIndex % group.layout.size
+        val tabList = group.layout[normalizedIndex]
 
-        val header = tabList.header.joinToString("<newline>")
-        val footer = tabList.footer.joinToString("<newline>")
-        return header to footer
+        return tabList.header to tabList.footer
     }
 }

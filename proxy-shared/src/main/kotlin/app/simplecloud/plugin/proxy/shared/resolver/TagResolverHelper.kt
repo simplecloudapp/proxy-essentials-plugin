@@ -52,10 +52,11 @@ object TagResolverHelper {
         realMaxPlayers: Int,
         motdConfiguration: MotdLayoutConfiguration
     ): TagResolver {
-        val maxPlayers = when (motdConfiguration.maxPlayerDisplayType) {
+        val slots = motdConfiguration.versionSettings.slots
+        val maxPlayers = if (!slots.enabled) realMaxPlayers else when (slots.type) {
             MaxPlayerDisplayType.REAL -> realMaxPlayers
-            MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + motdConfiguration.dynamicPlayerRange
-            null -> realMaxPlayers
+            MaxPlayerDisplayType.FAKE -> slots.fakeSlots
+            MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + slots.dynamicPlayerRange
         }
         return Placeholder.unparsed(TagResolverNames.MAX_PLAYERS, maxPlayers.toString())
     }

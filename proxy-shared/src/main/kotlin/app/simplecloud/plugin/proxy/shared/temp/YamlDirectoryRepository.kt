@@ -9,7 +9,9 @@ import org.spongepowered.configurate.serialize.SerializationException
 import org.spongepowered.configurate.serialize.TypeSerializer
 import org.spongepowered.configurate.yaml.NodeStyle
 import org.spongepowered.configurate.yaml.YamlConfigurationLoader
+import java.io.BufferedReader
 import java.io.File
+import java.io.StringReader
 import java.lang.reflect.Type
 import java.nio.file.*
 
@@ -48,14 +50,22 @@ abstract class YamlDirectoryRepository<E>(
 
     open fun watchUpdateEvent(file: File) {}
 
+    protected open fun transformBeforeLoad(file: File, content: String): String = content
+
     private fun load(file: File): E? {
         try {
-            val loader = getOrCreateLoader(file)
+            val loader = getOrCreateLoader(file, forRead = true)
             val node = loader.load(ConfigurationOptions.defaults())
             val entity = node.get(clazz) ?: return null
             entities[file] = entity
             return entity
         } catch (ex: ParsingException) {
+            val existedBefore = entities.containsKey(file)
+            if (existedBefore) {
+                return null
+            }
+            return null
+        } catch (ex: SerializationException) {
             val existedBefore = entities.containsKey(file)
             if (existedBefore) {
                 return null
@@ -72,7 +82,7 @@ abstract class YamlDirectoryRepository<E>(
 
     fun save(fileName: String, entity: E) {
         val file = directory.resolve(fileName).toFile()
-        val loader = getOrCreateLoader(file)
+        val loader = getOrCreateLoader(file, forRead = false)
         val node = loader.createNode(ConfigurationOptions.defaults().serializers {
             it.register(Enum::class.java, GenericEnumSerializer)
         })
@@ -81,19 +91,33 @@ abstract class YamlDirectoryRepository<E>(
         entities[file] = entity
     }
 
-    private fun getOrCreateLoader(file: File): YamlConfigurationLoader {
-        return loaders.getOrPut(file) {
-            YamlConfigurationLoader.builder()
-                .path(file.toPath())
-                .nodeStyle(NodeStyle.BLOCK)
-                .nodeStyle(NodeStyle.BLOCK)
-                .defaultOptions { options ->
-                    options.serializers { builder ->
-                        builder.registerAnnotatedObjects(objectMapperFactory())
-                        builder.register(Enum::class.java, GenericEnumSerializer)
-                    }
-                }.build()
+    private fun getOrCreateLoader(file: File, forRead: Boolean): YamlConfigurationLoader {
+        if (forRead) {
+            return createLoader(file, transformBeforeLoad(file, file.readText()))
         }
+
+        return loaders.getOrPut(file) {
+            createLoader(file)
+        }
+    }
+
+    private fun createLoader(file: File, sourceContent: String? = null): YamlConfigurationLoader {
+        val builder = YamlConfigurationLoader.builder()
+            .path(file.toPath())
+            .nodeStyle(NodeStyle.BLOCK)
+            .nodeStyle(NodeStyle.BLOCK)
+            .defaultOptions { options ->
+                options.serializers { builder ->
+                    builder.registerAnnotatedObjects(objectMapperFactory())
+                    builder.register(Enum::class.java, GenericEnumSerializer)
+                }
+            }
+
+        if (sourceContent != null) {
+            builder.source { BufferedReader(StringReader(sourceContent)) }
+        }
+
+        return builder.build()
     }
 
     private fun ensureWatcherRegistered() {

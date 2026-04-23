@@ -1,0 +1,13 @@
+currentDateFormat: "dd.MM.yyyy"
+currentTimeFormat: "HH:mm:ss"
+pingColors:
+  - ping: 0
+    color: "<green>"
+  - ping: 50
+    color: "<yellow>"
+  - ping: 100
+    color: "<gold>"
+  - ping: 150
+    color: "<red>"
+  - ping: 200
+    color: "<dark_red>"

@@ -21,7 +21,7 @@ class TabListHandler(
         task = proxyServer.scheduler.buildTask(plugin, Runnable {
             resolver.incrementIndices()
             proxyServer.allPlayers.forEach { updateTabListForPlayer(it) }
-        }).repeat(proxyPlugin.tabListConfiguration.get().tabListUpdateTime, TimeUnit.MILLISECONDS).schedule()
+        }).repeat(proxyPlugin.proxyEssentialsConfig.get().tabListUpdateTimeMillis(), TimeUnit.MILLISECONDS).schedule()
     }
 
     fun stopTabListTask() {

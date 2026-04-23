@@ -4,7 +4,10 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class MessageConfig(
-    var version: String = "1",
-    var kickMessage: KickMessageConfig = KickMessageConfig(),
-    var commandMessage: CommandMessageConfig = CommandMessageConfig()
-)
+    val version: String = "1",
+    val variables: MessageVariables = MessageVariables(),
+    val kick: KickMessageConfig = KickMessageConfig(),
+    val command: CommandMessages = CommandMessages()
+) {
+    fun resolve(message: String): String = message.replace("<prefix>", variables.prefix)
+}

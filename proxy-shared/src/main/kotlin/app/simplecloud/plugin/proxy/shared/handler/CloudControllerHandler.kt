@@ -27,6 +27,7 @@ class CloudControllerHandler(
         if (serviceId.isNullOrBlank()) {
             logger.warning("Environment variable SIMPLECLOUD_UNIQUE_ID is not set.")
             joinStateHandler.registerListener()
+            plugin.motdLayoutHandler.registerListener()
             return
         }
 
@@ -36,10 +37,12 @@ class CloudControllerHandler(
                 logger.info("Initialized server: ${currentServer?.serverBase?.name}")
 
                 joinStateHandler.registerListener()
+                plugin.motdLayoutHandler.registerListener()
                 initializeJoinState()
             } catch (e: Exception) {
                 logger.severe("Error retrieving server by ID: ${e.message}")
                 joinStateHandler.registerListener()
+                plugin.motdLayoutHandler.registerListener()
             }
         }
     }
@@ -51,11 +54,16 @@ class CloudControllerHandler(
             val groupName = server.group?.name ?: return
             joinStateHandler.localState = joinStateHandler.getJoinStateAtService(groupName, server.numericalId)
             joinStateHandler.startGroupStateSyncTask()
+            plugin.motdLayoutHandler.setLocalLayout(
+                getServiceProperty(groupName, server.numericalId, MotdLayoutHandler.MOTD_LAYOUT_KEY)
+                    ?: getGroupProperty(groupName, MotdLayoutHandler.MOTD_LAYOUT_KEY)
+            )
         } else {
             val joinState = server.properties?.get(JoinStateHandler.JOINSTATE_KEY)?.toString()
             if (!joinState.isNullOrEmpty()) {
                 joinStateHandler.localState = joinState
             }
+            plugin.motdLayoutHandler.setLocalLayout(server.properties?.get(MotdLayoutHandler.MOTD_LAYOUT_KEY)?.toString())
         }
     }
 

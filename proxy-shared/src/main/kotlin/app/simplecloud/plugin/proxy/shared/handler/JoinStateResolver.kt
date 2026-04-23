@@ -12,19 +12,19 @@ class JoinStateResolver(
 
     private val identifier by lazy {
         ServerPatternIdentifier(
-            proxyPlugin.joinStateConfiguration.get().serverNamePattern,
+            "<group_name>-<numerical_id>",
             cloudApi = proxyPlugin.api
         )
     }
 
     fun resolveJoinState(stateName: String): JoinState? {
-        val joinStates = proxyPlugin.joinStateConfiguration.get().joinStates
-        val defaultStateName = proxyPlugin.joinStateConfiguration.get().defaultState
+        val joinstates = proxyPlugin.proxyEssentialsConfig.get().joinstates
+        val defaultStateName = proxyPlugin.proxyEssentialsConfig.get().initialState
 
-        return joinStates.find { it.name == stateName }
+        return joinstates.find { it.name == stateName }
             ?: run {
                 logger.info("Join state '$stateName' not found. Using default '$defaultStateName'.")
-                joinStates.find { it.name == defaultStateName }
+                joinstates.find { it.name == defaultStateName }
             }
     }
 
@@ -43,7 +43,7 @@ class JoinStateResolver(
             }
         }
 
-        return proxyPlugin.joinStateConfiguration.get().defaultState
+        return proxyPlugin.proxyEssentialsConfig.get().initialState
     }
 
     suspend fun isServerFull(): Boolean {

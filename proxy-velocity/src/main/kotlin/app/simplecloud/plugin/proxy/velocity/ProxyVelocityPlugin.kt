@@ -3,6 +3,7 @@ package app.simplecloud.plugin.proxy.velocity
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
 import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
+import app.simplecloud.plugin.proxy.shared.handler.command.LayoutCommandHandler
 import app.simplecloud.plugin.proxy.shared.handler.command.ProxyEssentialsCommandHandler
 import app.simplecloud.plugin.proxy.velocity.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
@@ -41,18 +42,13 @@ class ProxyVelocityPlugin @Inject constructor(
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
-        proxyPlugin.config.save("tablist", proxyPlugin.tabListConfiguration)
-        proxyPlugin.config.save("placeholder", proxyPlugin.placeHolderConfiguration)
-        proxyPlugin.config.save("messages", proxyPlugin.messagesConfiguration)
-        proxyPlugin.config.save("joinstate", proxyPlugin.joinStateConfiguration)
-
         proxyPlugin.motdLayoutHandler.loadMotdLayouts()
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(proxyPlugin, this))
         this.proxyServer.eventManager.register(this, ConfigureTagResolversListener(proxyPlugin, this))
         this.proxyServer.eventManager.register(this, ServerPreConnectListener(proxyPlugin, this))
 
-        if (proxyPlugin.tabListConfiguration.get().tabListUpdateTime > 0)
+        if (proxyPlugin.proxyEssentialsConfig.get().tabListUpdateTimeMillis() > 0)
             this.tabListHandler.startTabListTask()
         else
             this.logger.info("Tablist update time is set to 0, tablist will not be updated automatically")
@@ -71,10 +67,9 @@ class ProxyVelocityPlugin @Inject constructor(
             senderMapper
         )
 
-        val proxyCommandHandler = JoinStateCommandHandler(commandManager, proxyPlugin)
-        val proxyEssentialsCommandHandler = ProxyEssentialsCommandHandler(commandManager, proxyPlugin)
-        proxyCommandHandler.loadCommands()
-        proxyEssentialsCommandHandler.loadCommands()
+        ProxyEssentialsCommandHandler(commandManager, proxyPlugin).loadCommands()
+        JoinStateCommandHandler(commandManager, proxyPlugin).loadCommands()
+        LayoutCommandHandler(commandManager, proxyPlugin).loadCommands()
     }
 
     @Subscribe

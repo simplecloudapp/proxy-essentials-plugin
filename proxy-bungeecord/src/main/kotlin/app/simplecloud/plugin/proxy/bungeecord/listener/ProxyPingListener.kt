@@ -2,77 +2,74 @@ package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
+import app.simplecloud.plugin.proxy.shared.handler.ServerIconLoader
+import net.md_5.bungee.api.Favicon
 import net.md_5.bungee.api.ServerPing.*
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import java.net.InetAddress
 import java.net.InetSocketAddress
+import java.nio.file.Path
 import java.util.*
 
 class ProxyPingListener(
     private val plugin: ProxyBungeeCordPlugin
 ) : Listener {
 
+    private val serverIconLoader = ServerIconLoader(
+        Path.of(plugin.proxyPlugin.serverIconsPath)
+    ) { image -> Favicon.create(image) }
+
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
-        val motdConfiguration = plugin.proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
+        val layout = plugin.proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
 
-        if (!motdConfiguration.enabled) return
+        if (!layout.motd.enabled) return
+
+        val entry = plugin.proxyPlugin.motdLayoutHandler.selectEntry(layout, layout.configVersion)
+            ?: return
 
         val response = event.response
-
-        val firstLine = motdConfiguration.firstLines.randomOrNull() ?: ""
-        val secondLine = motdConfiguration.secondLines.randomOrNull() ?: ""
-
-        val messageOfTheDay = plugin.deserializeToComponent("$firstLine\n$secondLine")
-
-        response.descriptionComponent = BungeeComponentSerializer.get().serialize(messageOfTheDay)[0]
+        val motd = plugin.deserializeToComponent("${entry.line1}\n${entry.line2}")
+        response.descriptionComponent = net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer.get().serialize(motd)[0]
 
         val socketAddress = event.connection.socketAddress as? InetSocketAddress
-        val hostStringFromConnection = socketAddress?.address?.hostName ?: ""
-        val hostStringFromServer = InetAddress.getLocalHost().hostAddress
+        val remoteAddress = socketAddress?.address?.hostAddress ?: ""
+        val localAddress = InetAddress.getLocalHost().hostAddress
 
-        if (hostStringFromConnection != hostStringFromServer) {
-            val playerList = motdConfiguration.playerInfo.map { PlayerInfo(it, UUID.randomUUID()) }
-            response.players = when (motdConfiguration.maxPlayerDisplayType) {
-                null -> Players(
-                    response.players.max,
-                    response.players.online,
-                    playerList.toTypedArray().ifEmpty { response.players.sample }
-                )
+        if (remoteAddress == localAddress) return
 
-                MaxPlayerDisplayType.REAL -> Players(
-                    response.players.max,
-                    response.players.online,
-                    playerList.toTypedArray().ifEmpty { response.players.sample }
-                )
-
-                else -> Players(
-                    response.players.online + motdConfiguration.dynamicPlayerRange,
-                    response.players.online,
-                    playerList.toTypedArray().ifEmpty { response.players.sample }
-                )
-            }
-
-            response.version = when (motdConfiguration.versionName) {
-                "" -> response.version
-                else -> Protocol(
-                    motdConfiguration.versionName,
-                    -1
-                )
-            }
+        // server icon
+        if (layout.serverIcon.enabled) {
+            serverIconLoader.get(layout.serverIcon.file) { plugin.logger.warning(it) }
+                ?.let { response.setFavicon(it) }
         }
 
-        /*val favicon = if (motdConfiguration.serverIcon == "") {
-            response.faviconObject
+        // player list (hover text)
+        val samplePlayers = if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
+            layout.playerList.entries.map { PlayerInfo(it, UUID.randomUUID()) }.toTypedArray()
         } else {
-            val serverIcon: BufferedImage = ImageIO.read(File(motdConfiguration.serverIcon))
-            Favicon.create(serverIcon)
-        }*/
+            response.players.sample
+        }
 
-        response.setFavicon(response.faviconObject)
+        // slots
+        val onlinePlayers = response.players.online
+        val maxPlayers = if (layout.versionSettings.slots.enabled) {
+            when (layout.versionSettings.slots.type) {
+                MaxPlayerDisplayType.REAL -> response.players.max
+                MaxPlayerDisplayType.FAKE -> layout.versionSettings.slots.fakeSlots
+                MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.versionSettings.slots.dynamicPlayerRange
+            }
+        } else {
+            response.players.max
+        }
+
+        response.players = Players(maxPlayers, onlinePlayers, samplePlayers)
+
+        // version name
+        if (layout.versionSettings.name.enabled) {
+            response.version = Protocol(layout.versionSettings.name.text, -1)
+        }
     }
-
 }

@@ -17,7 +17,7 @@ class TabListHandler(
         task = plugin.proxy.scheduler.schedule(plugin, {
             resolver.incrementIndices()
             plugin.proxy.players.forEach { updateTabListForPlayer(it) }
-        }, 1, plugin.proxyPlugin.tabListConfiguration.get().tabListUpdateTime, TimeUnit.MILLISECONDS)
+        }, 1, plugin.proxyPlugin.proxyEssentialsConfig.get().tabListUpdateTimeMillis(), TimeUnit.MILLISECONDS)
     }
 
     fun stopTabListTask() {

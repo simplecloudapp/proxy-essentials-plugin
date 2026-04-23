@@ -32,20 +32,20 @@ class ServerPreConnectListener(
 
         if (joinState == null) {
             logger.severe("Neither join state '$localState' nor default state found. Check configuration!")
-            denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noJoinState, false, event)
+            denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.noJoinState, false, event)
             return
         }
 
-        if (joinState.joinPermission.isNotBlank() && !player.hasPermission(joinState.joinPermission)) {
+        if (joinState.permission.join.isNotBlank() && !player.hasPermission(joinState.permission.join)) {
             logger.info("Player ${player.username} does not have permission to join the proxy.")
-            denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noPermission, false, event)
+            denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.noPermission, false, event)
             return
         }
 
         runBlocking {
             try {
-                if (resolver.isServerFull() && !player.hasPermission(joinState.fullJoinPermission)) {
-                    denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.networkFull, false, event)
+                if (resolver.isServerFull() && !player.hasPermission(joinState.permission.full)) {
+                    denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.networkFull, false, event)
                 }
             } catch (e: Exception) {
                 logger.severe("Error checking player limits: ${e.message}")
@@ -62,13 +62,13 @@ class ServerPreConnectListener(
 
             if (joinState == null) {
                 logger.severe("Neither join state '$joinStateName' nor default state found. Check configuration!")
-                denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noJoinState, true, event)
+                denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.noJoinState, true, event)
                 return@runBlocking
             }
 
-            if (joinState.joinPermission.isNotBlank() && !player.hasPermission(joinState.joinPermission)) {
+            if (joinState.permission.join.isNotBlank() && !player.hasPermission(joinState.permission.join)) {
                 logger.info("Player ${player.username} does not have permission to join $serverName.")
-                denyAccess(player, proxyPlugin.messagesConfiguration.get().kickMessage.noPermission, true, event)
+                denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.noPermission, true, event)
             }
         }
     }
