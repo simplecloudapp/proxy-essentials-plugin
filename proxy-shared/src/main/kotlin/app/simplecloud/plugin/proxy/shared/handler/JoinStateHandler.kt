@@ -59,6 +59,7 @@ class JoinStateHandler(
 
     suspend fun getJoinStateAtService(groupName: String, numericalId: Int): String {
         return proxyPlugin.cloudControllerHandler.getServiceProperty(groupName, numericalId, JOINSTATE_KEY)
+            ?: proxyPlugin.cloudControllerHandler.getGroupProperty(groupName, JOINSTATE_KEY)
             ?: defaultJoinState()
     }
 
@@ -67,7 +68,7 @@ class JoinStateHandler(
         if (!existingJoinState.isNullOrBlank()) {
             return existingJoinState
         }
-        val fallbackState = defaultJoinState()
+        val fallbackState = proxyPlugin.cloudControllerHandler.getGroupProperty(groupName, JOINSTATE_KEY) ?: defaultJoinState()
         if (!setJoinStateAtService(groupName, numericalId, fallbackState)) {
             logger.warning("Could not persist default join state '$fallbackState' for service '$groupName-$numericalId'")
         }
@@ -172,6 +173,12 @@ class JoinStateHandler(
         }
 
         if (serviceState != localState) {
+            return
+        }
+
+        val synchronized = proxyPlugin.cloudControllerHandler.updateServerProperty(server.serverId, JOINSTATE_KEY, groupState)
+        if (!synchronized) {
+            logger.warning("Could not synchronize join state for '$groupName-$numericalId' with group state '$groupState'")
             return
         }
 
