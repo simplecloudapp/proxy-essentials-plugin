@@ -9,7 +9,7 @@ version: '2'
 
 # Initial settings used when a group is created for the first time.
 initial-state: public
-initial-layout: default
+initial-layout: public
 
 joinstates:
 -   name: public

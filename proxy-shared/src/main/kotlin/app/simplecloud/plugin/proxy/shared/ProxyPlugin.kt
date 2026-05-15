@@ -3,6 +3,7 @@ package app.simplecloud.plugin.proxy.shared
 import app.simplecloud.api.CloudApi
 import app.simplecloud.api.CloudApiOptions
 import app.simplecloud.plugin.proxy.shared.config.DefaultConfigInstaller
+import app.simplecloud.plugin.proxy.shared.config.OldConfigMigrator
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
 import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.message.MessageConfig
@@ -21,7 +22,9 @@ class ProxyPlugin(
     val api = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
 
     init {
-        DefaultConfigInstaller.install(Path.of(dirPath), javaClass.classLoader)
+        val dataDirectory = Path.of(dirPath)
+        OldConfigMigrator.migrate(dataDirectory)
+        DefaultConfigInstaller.install(dataDirectory, javaClass.classLoader)
     }
 
     val config = YamlConfig(dirPath)

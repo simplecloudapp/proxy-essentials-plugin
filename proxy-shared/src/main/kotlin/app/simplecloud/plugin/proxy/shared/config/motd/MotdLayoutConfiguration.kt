@@ -52,7 +52,7 @@ data class VersionConfig(
 
 @ConfigSerializable
 data class MotdLayoutConfiguration(
-    @Setting("config-version") val configVersion: String = "1",
+    @Setting("config-version") val configVersion: String = "2",
     val motd: MotdConfig = MotdConfig(),
     @Setting("server-icon") val serverIcon: ServerIconConfig = ServerIconConfig(),
     @Setting("player-list") val playerList: PlayerListConfig = PlayerListConfig(),

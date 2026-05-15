@@ -67,7 +67,7 @@ object DefaultConfigInstaller {
 
     private fun isDamagedDefaultLayout(sourceBytes: ByteArray, target: Path): Boolean {
         val normalizedPath = target.toString().replace('\\', '/')
-        if (!normalizedPath.endsWith("layout/default.yml") && !normalizedPath.endsWith("layout/maintenance.yml")) {
+        if (!normalizedPath.endsWith("layout/public.yml") && !normalizedPath.endsWith("layout/maintenance.yml")) {
             return false
         }
 
@@ -116,7 +116,7 @@ object DefaultConfigInstaller {
         "config/config.yml",
         "config/messages.yml",
         "config/placeholder.yml",
-        "config/layout/default.yml",
+        "config/layout/public.yml",
         "config/layout/maintenance.yml",
         "config/layout/server-icons/simplecloud.png",
         "config/layout/server-icons/simplecloud-gray.png"

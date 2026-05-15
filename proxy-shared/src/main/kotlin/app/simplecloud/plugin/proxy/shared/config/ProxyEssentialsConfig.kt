@@ -12,7 +12,7 @@ import org.spongepowered.configurate.objectmapping.meta.Setting
 data class ProxyEssentialsConfig(
     val version: String = "2",
     @Setting("initial-state") val initialState: String = "public",
-    @Setting("initial-layout") val initialLayout: String = "default",
+    @Setting("initial-layout") val initialLayout: String = "public",
     val joinstates: List<JoinState> = listOf(
         JoinState("public", JoinStatePermission("", "simplecloud.proxy-essentials.join.full.public")),
         JoinState(

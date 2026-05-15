@@ -1,4 +1,4 @@
-config-version: '1'
+config-version: '2'
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Server List Layout
@@ -16,7 +16,7 @@ motd:
   #update-time: 10
   #update-time: 0 disables updates
   layouts:
-    - name: 'default'
+    - name: 'maintenance'
       line1: '<color:#ACACAC>A simplecloud.app network in maintenance'
       line2: ' '
 
