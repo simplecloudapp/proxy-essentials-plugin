@@ -12,6 +12,8 @@ class JoinStateHandler(
     private val logger = Logger.getLogger(JoinStateHandler::class.java.name)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var groupStateSyncJob: Job? = null
+    @Volatile
+    private var lastObservedGroupState: String? = null
 
     @Volatile
     var localState: String = proxyPlugin.proxyEssentialsConfig.get().initialState
@@ -28,7 +30,11 @@ class JoinStateHandler(
     private fun defaultJoinState(): String = proxyPlugin.proxyEssentialsConfig.get().initialState
 
     suspend fun setJoinStateAtGroup(groupName: String, joinStateName: String): Boolean {
-        return this.proxyPlugin.cloudControllerHandler.updateGroupProperty(groupName, JOINSTATE_KEY, joinStateName)
+        val updated = this.proxyPlugin.cloudControllerHandler.updateGroupProperty(groupName, JOINSTATE_KEY, joinStateName)
+        if (updated) {
+            lastObservedGroupState = joinStateName
+        }
+        return updated
     }
 
     suspend fun getJoinStateAtGroup(groupName: String): String {
@@ -156,7 +162,9 @@ class JoinStateHandler(
             return
         }
 
-        if (groupState == localState) {
+        val previousGroupState = lastObservedGroupState
+        if (previousGroupState == null) {
+            lastObservedGroupState = groupState
             return
         }
 
@@ -172,7 +180,13 @@ class JoinStateHandler(
             return
         }
 
-        if (serviceState != localState) {
+        if (groupState == previousGroupState) {
+            return
+        }
+
+        lastObservedGroupState = groupState
+
+        if (serviceState != previousGroupState) {
             return
         }
 

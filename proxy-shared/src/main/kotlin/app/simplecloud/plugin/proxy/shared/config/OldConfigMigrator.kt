@@ -314,7 +314,7 @@ object OldConfigMigrator {
         target.node("config-version").set(CURRENT_LAYOUT_VERSION)
         target.node("motd").set(
             mapOf(
-                "enabled" to (source.node("enabled").boolean),
+                "enabled" to source.node("enabled").booleanOr(true),
                 "update-type" to "RANDOM",
                 "layouts" to (0 until entryCount).map { index ->
                     mapOf(
@@ -327,7 +327,7 @@ object OldConfigMigrator {
         )
         target.node("server-icon").set(
             mapOf(
-                "enabled" to true,
+                "enabled" to false,
                 "file" to (legacyIconFile ?: "simplecloud.png")
             )
         )
@@ -358,14 +358,36 @@ object OldConfigMigrator {
     }
 
     private fun updateCurrentLayoutVersion(path: Path, source: CommentedConfigurationNode) {
-        if (source.node("config-version").string == CURRENT_LAYOUT_VERSION || source.node("motd").virtual()) {
+        if (source.node("motd").virtual()) {
             return
         }
 
-        source.node("config-version").set(CURRENT_LAYOUT_VERSION)
+        var changed = false
+        if (source.node("config-version").string != CURRENT_LAYOUT_VERSION) {
+            source.node("config-version").set(CURRENT_LAYOUT_VERSION)
+            changed = true
+        }
+        changed = disableServerIconForPreviouslyMigratedLayout(source) || changed
+        if (!changed) return
+
         source.applyLayoutComments()
         createLoader(path).save(source)
         path.writeCommentedYaml(::decorateLayoutYaml)
+    }
+
+    private fun disableServerIconForPreviouslyMigratedLayout(source: CommentedConfigurationNode): Boolean {
+        val serverIcon = source.node("server-icon")
+        val playerList = source.node("player-list")
+        val looksLikePreviouslyMigratedLayout = serverIcon.node("enabled").boolean &&
+            serverIcon.node("file").string == "simplecloud.png" &&
+            playerList.node("enabled").boolean == false &&
+            playerList.node("player-list").childrenList().isEmpty()
+
+        if (looksLikePreviouslyMigratedLayout) {
+            serverIcon.node("enabled").set(false)
+            return true
+        }
+        return false
     }
 
     private fun deleteGeneratedDefaultLayoutIfPublicExists(layoutDirectory: Path) {
@@ -388,7 +410,6 @@ object OldConfigMigrator {
     private fun CommentedConfigurationNode.isLegacyLayout(): Boolean {
         val version = node("version").string ?: return false
         return version == "1" &&
-            !node("enabled").virtual() &&
             !node("first-lines").virtual() &&
             node("motd").virtual()
     }
@@ -405,6 +426,10 @@ object OldConfigMigrator {
 
     private fun CommentedConfigurationNode.stringOr(default: String): String {
         return string ?: default
+    }
+
+    private fun CommentedConfigurationNode.booleanOr(default: Boolean): Boolean {
+        return if (virtual()) default else boolean
     }
 
     private fun CommentedConfigurationNode.applyMainConfigComments() {
