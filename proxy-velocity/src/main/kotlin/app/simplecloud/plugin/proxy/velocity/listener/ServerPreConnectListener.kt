@@ -15,9 +15,16 @@ class ServerPreConnectListener(
 ) {
     private val logger = Logger.getLogger(ServerPreConnectListener::class.java.name)
 
-    private val identifier = ServerPatternIdentifier(
-        this.proxyPlugin.joinStateConfiguration.serverNamePattern
-    )
+    private val identifier = createServerPatternIdentifier()
+
+    private fun createServerPatternIdentifier(): ServerPatternIdentifier? {
+        return try {
+            ServerPatternIdentifier(this.proxyPlugin.joinStateConfiguration.serverNamePattern)
+        } catch (e: Throwable) {
+            logger.warning("ServerPatternIdentifier is unavailable. Server switch checks are disabled: ${e.message}")
+            null
+        }
+    }
 
     @Subscribe(order = PostOrder.EARLY)
     fun handle(event: ServerPreConnectEvent) {
@@ -68,8 +75,13 @@ class ServerPreConnectListener(
 
     private fun checkAllowServerSwitch(player: Player, event: ServerPreConnectEvent, server: RegisteredServer) {
         val serverName = server.serverInfo.name
+        val parser = identifier
 
-        val (groupName, numericalId) = identifier.parse(serverName)
+        if (parser == null) {
+            return
+        }
+
+        val (groupName, numericalId) = parser.parse(serverName)
 
         runBlocking {
             val joinStateName =
@@ -99,8 +111,8 @@ class ServerPreConnectListener(
         val groupName = this.proxyPlugin.cloudControllerHandler.groupName
 
         if (groupName == null) {
-            logger.warning("No group name found for server.")
-            return true
+            logger.warning("No group name found for server. Skipping network-full check.")
+            return false
         }
 
         val maxPlayers = proxyPlugin.cloudControllerHandler.getMaxPlayersInGroup(groupName)

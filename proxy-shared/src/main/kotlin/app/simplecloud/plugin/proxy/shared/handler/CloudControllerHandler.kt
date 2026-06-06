@@ -8,17 +8,36 @@ class CloudControllerHandler(
     private val joinStateHandler: JoinStateHandler
 ) {
 
-    private val controllerApi = ControllerApi.createCoroutineApi()
     private val logger = Logger.getLogger(CloudControllerHandler::class.java.name)
+    private val controllerApi = createControllerApiOrNull()
 
     var groupName: String? = null
     var numericalId: Int? = null
+
+    fun isControllerAvailable(): Boolean {
+        return controllerApi != null
+    }
 
     init {
         initializeGroupName()
     }
 
+    private fun createControllerApiOrNull(): ControllerApi.Coroutine? {
+        return try {
+            ControllerApi.createCoroutineApi()
+        } catch (e: Throwable) {
+            logger.warning("ControllerApi is not available: ${e.message}")
+            null
+        }
+    }
+
     private fun initializeGroupName() {
+        val api = controllerApi
+        if (api == null) {
+            logger.warning("Skipping controller initialization because ControllerApi is unavailable.")
+            return
+        }
+
         val serviceID = System.getenv("SIMPLECLOUD_UNIQUE_ID")
 
         if (serviceID == null) {
@@ -28,7 +47,7 @@ class CloudControllerHandler(
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val service = controllerApi.getServers().getServerById(serviceID)
+                val service = api.getServers().getServerById(serviceID)
                 groupName = service.group
                 numericalId = service.numericalId
                 logger.info("Group name initialized to: $groupName")
@@ -53,15 +72,17 @@ class CloudControllerHandler(
     }*/
 
     suspend fun getGroupProperties(groupName: String, key: String): String {
+        val api = controllerApi ?: return ""
         return groupName.let {
             retrievePropertyOrEmpty {
-                controllerApi.getGroups().getGroupByName(it).properties[key]
+                api.getGroups().getGroupByName(it).properties[key]
             }
         }
     }
 
     suspend fun getServiceProperties(groupName: String, numericalId: Long, key: String): String {
-        return controllerApi.getServers().getServerByNumerical(groupName, numericalId).let { server ->
+        val api = controllerApi ?: return ""
+        return api.getServers().getServerByNumerical(groupName, numericalId).let { server ->
             retrievePropertyOrEmpty {
                 server.properties[key]
             }
@@ -69,9 +90,10 @@ class CloudControllerHandler(
     }
 
     suspend fun setServiceProperties(groupName: String, numericalId: Long, key: String, value: String): Boolean {
-        controllerApi.getServers().getServerByNumerical(groupName, numericalId).let { server ->
+        val api = controllerApi ?: return false
+        api.getServers().getServerByNumerical(groupName, numericalId).let { server ->
             try {
-                controllerApi.getServers().updateServerProperty(server.uniqueId, key, value)
+                api.getServers().updateServerProperty(server.uniqueId, key, value)
                 logger.info("Service property '$key' updated to '$value'")
                 return true
             } catch (e: Exception) {
@@ -82,11 +104,12 @@ class CloudControllerHandler(
     }
 
     suspend fun setServicePropertiesOnAllGroupServices(groupName: String, key: String, value: String): Boolean {
+        val api = controllerApi ?: return false
         groupName.let { name ->
             try {
-                controllerApi.getServers().getServersByGroup(name).forEach { server ->
+                api.getServers().getServersByGroup(name).forEach { server ->
                     logger.info("Updating service property '$key' to '$value' on service ${server.group} ${server.numericalId} ${server.uniqueId}")
-                    controllerApi.getServers().updateServerProperty(server.uniqueId, key, value)
+                    api.getServers().updateServerProperty(server.uniqueId, key, value)
                 }
                 logger.info("Service property '$key' updated to '$value' on all services in group '$name'")
                 return true
@@ -98,11 +121,12 @@ class CloudControllerHandler(
     }
 
     suspend fun setGroupProperties(groupName: String, key: String, value: String): Boolean {
+        val api = controllerApi ?: return false
         groupName.let { name ->
             try {
-                val group = controllerApi.getGroups().getGroupByName(name)
+                val group = api.getGroups().getGroupByName(name)
                 val updatedGroup = group.copy(properties = group.properties + (key to value))
-                controllerApi.getGroups().updateGroup(updatedGroup)
+                api.getGroups().updateGroup(updatedGroup)
                 logger.info("Group property '$key' updated to '$value'")
                 return true
             } catch (e: Exception) {
@@ -113,9 +137,10 @@ class CloudControllerHandler(
     }
 
     suspend fun getOnlinePlayersInGroup(groupName: String): Int {
+        val api = controllerApi ?: return 0
         return groupName.let { name ->
             try {
-                controllerApi.getServers().getServersByGroup(name).sumOf { it.playerCount.toInt() }
+                api.getServers().getServersByGroup(name).sumOf { it.playerCount.toInt() }
             } catch (e: Exception) {
                 logger.severe("Error retrieving online players in group: ${e.message}")
                 0
@@ -125,9 +150,10 @@ class CloudControllerHandler(
     }
 
     suspend fun getMaxPlayersInGroup(groupName: String): Int {
+        val api = controllerApi ?: return 0
         return groupName.let {
             try {
-                controllerApi.getGroups().getGroupByName(it).maxPlayers.toInt()
+                api.getGroups().getGroupByName(it).maxPlayers.toInt()
             } catch (e: Exception) {
                 logger.severe("Error retrieving max players in group: ${e.message}")
                 0
@@ -136,11 +162,13 @@ class CloudControllerHandler(
     }
 
     suspend fun getAllGroups(): List<String> {
-        return controllerApi.getGroups().getAllGroups().map { it.name }
+        val api = controllerApi ?: return emptyList()
+        return api.getGroups().getAllGroups().map { it.name }
     }
 
     suspend fun getAllNumericalIdsFromGroup(groupName: String): List<Int> {
-        return controllerApi.getServers().getServersByGroup(groupName).map { it.numericalId }
+        val api = controllerApi ?: return emptyList()
+        return api.getServers().getServersByGroup(groupName).map { it.numericalId }
     }
 
     private suspend fun retrievePropertyOrEmpty(retrieve: suspend () -> String?): String {

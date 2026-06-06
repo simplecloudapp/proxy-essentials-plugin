@@ -23,6 +23,11 @@ class JoinStateHandler(
      * @param joinStateName The name of the join state.
      */
     suspend fun setJoinStateAtGroup(groupName: String, joinStateName: String) {
+        if (!this.proxyPlugin.cloudControllerHandler.isControllerAvailable()) {
+            this.localState = joinStateName
+            return
+        }
+
         this.proxyPlugin.cloudControllerHandler.setGroupProperties(groupName, JOINSTATE_KEY, joinStateName)
     }
 
@@ -33,13 +38,16 @@ class JoinStateHandler(
      * @return The name of the join state.
      */
     suspend fun getJoinStateAtGroup(groupName: String): String {
+        if (!this.proxyPlugin.cloudControllerHandler.isControllerAvailable()) {
+            return this.localState
+        }
+
         val groupProperties = this.proxyPlugin.cloudControllerHandler.getGroupProperties(groupName, JOINSTATE_KEY)
 
         if (groupProperties.isEmpty()) {
             logger.warning("No join state found for group $groupName. Using default join state.")
             setJoinStateAtGroup(groupName, this.proxyPlugin.joinStateConfiguration.defaultState)
-
-            return getJoinStateAtGroup(groupName)
+            return this.proxyPlugin.joinStateConfiguration.defaultState
         }
 
         return groupProperties
@@ -55,6 +63,11 @@ class JoinStateHandler(
      * @return True if the join state was set successfully, false otherwise.
      */
     suspend fun setJoinStateAtService(groupName: String, numericalId: Long, joinStateName: String): Boolean {
+        if (!this.proxyPlugin.cloudControllerHandler.isControllerAvailable()) {
+            this.localState = joinStateName
+            return true
+        }
+
         return this.proxyPlugin.cloudControllerHandler.setServiceProperties(groupName, numericalId, JOINSTATE_KEY, joinStateName)
     }
 
@@ -67,6 +80,12 @@ class JoinStateHandler(
      * @return True if the join state was set successfully, false otherwise.
      */
     suspend fun setJoinStateAtGroupAndAllServicesInGroup(groupName: String, joinStateName: String): Boolean {
+        if (!this.proxyPlugin.cloudControllerHandler.isControllerAvailable()) {
+            this.localState = joinStateName
+            logger.warning("Controller API unavailable. Updated local join state only.")
+            return true
+        }
+
         val groupProperties =
             this.proxyPlugin.cloudControllerHandler.setGroupProperties(groupName, JOINSTATE_KEY, joinStateName)
         val servicePropertiesOnAllGroupServices =
@@ -92,13 +111,16 @@ class JoinStateHandler(
      * @return The name of the join state.
      */
     suspend fun getJoinStateAtService(groupName: String, numericalId: Long): String {
+        if (!this.proxyPlugin.cloudControllerHandler.isControllerAvailable()) {
+            return this.localState
+        }
+
         val serviceProperties = this.proxyPlugin.cloudControllerHandler.getServiceProperties(groupName, numericalId, JOINSTATE_KEY)
 
         if (serviceProperties.isEmpty()) {
             logger.warning("No join state found for service $numericalId in group $groupName. Using default join state.")
             setJoinStateAtService(groupName, numericalId, this.proxyPlugin.joinStateConfiguration.defaultState)
-
-            return getJoinStateAtService(groupName, numericalId)
+            return this.proxyPlugin.joinStateConfiguration.defaultState
         }
 
         return serviceProperties

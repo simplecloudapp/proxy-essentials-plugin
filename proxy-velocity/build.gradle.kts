@@ -12,7 +12,7 @@ dependencies {
     compileOnly(rootProject.libs.velocity)
     annotationProcessor(rootProject.libs.velocity)
 
-    compileOnly(rootProject.libs.simplecloud.event.wrapper.velocity)
+    implementation(rootProject.libs.simplecloud.event.wrapper.velocity)
     compileOnly(rootProject.libs.simplecloud.controller)
 
     implementation(rootProject.libs.simplecloud.plugin.api)
@@ -22,6 +22,9 @@ dependencies {
 }
 
 tasks.shadowJar {
+    from(sourceSets.main.get().resources)
+    configurations = listOf(project.configurations.runtimeClasspath.get())
+    
     relocate("org.incendo", "app.simplecloud.relocate.incendo")
     relocate("org.spongepowered", "app.simplecloud.relocate.spongepowered")
     relocate("app.simplecloud.plugin.api", "app.simplecloud.relocate.plugin.api")

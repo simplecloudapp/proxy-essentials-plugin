@@ -14,13 +14,24 @@ open class ProxyPlugin(
 ) {
 
     val config = YamlConfig(dirPath)
-    val tabListConfiguration = config.load<TabListConfiguration>("tablist")!!
-    val placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder")!!
-    val messagesConfiguration = config.load<MessageConfig>("messages")!!
-    val joinStateConfiguration = config.load<JoinStateConfiguration>("joinstate")!!
+
+    val tabListConfiguration = loadOrCreate("tablist", TabListConfiguration())
+    val placeHolderConfiguration = loadOrCreate("placeholder", PlaceHolderConfiguration())
+    val messagesConfiguration = loadOrCreate("messages", MessageConfig())
+    val joinStateConfiguration = loadOrCreate("joinstate", JoinStateConfiguration())
 
     val motdLayoutHandler = MotdLayoutHandler(config, this)
     val joinStateHandler = JoinStateHandler(this)
     val cloudControllerHandler = CloudControllerHandler(joinStateHandler)
+
+    private inline fun <reified T : Any> loadOrCreate(path: String, defaultValue: T): T {
+        val loaded = config.load<T>(path)
+        if (loaded != null) {
+            return loaded
+        }
+
+        config.save(path, defaultValue)
+        return defaultValue
+    }
 
 }
