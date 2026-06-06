@@ -13,6 +13,7 @@ class JoinStateResolver(
     private val identifier by lazy {
         ServerPatternIdentifier(
             "<group_name>-<numerical_id>",
+            "(?<groupName>[a-zA-Z0-9_-]+)-(?<numericalId>\\d+)",
             cloudApi = proxyPlugin.api
         )
     }

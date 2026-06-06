@@ -19,10 +19,13 @@ class ServerPreConnectListener(
 
     @Subscribe(order = PostOrder.EARLY)
     fun handle(event: ServerPreConnectEvent) {
-        checkAllowProxyJoin(event.player, event)
-        if (event.result.isAllowed.not()) {
-            return
+        if (event.previousServer == null) {
+            checkAllowProxyJoin(event.player, event)
+            if (event.result.isAllowed.not()) {
+                return
+            }
         }
+
         checkAllowServerSwitch(event.player, event, event.originalServer)
     }
 
@@ -67,7 +70,7 @@ class ServerPreConnectListener(
             }
 
             if (joinState.permission.join.isNotBlank() && !player.hasPermission(joinState.permission.join)) {
-                logger.info("Player ${player.username} does not have permission to join $serverName.")
+                logger.info("Player ${player.username} does not have permission to join $serverName. (JoinState: ${joinStateName}, Permission: ${joinState.permission.join})")
                 denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.noPermission, true, event)
             }
         }

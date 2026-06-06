@@ -6,6 +6,7 @@ import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.config.ServerInfo
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.event.ServerConnectEvent
+import net.md_5.bungee.api.event.ServerConnectEvent.Reason
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import net.md_5.bungee.event.EventPriority
@@ -19,11 +20,18 @@ class ServerPreConnectListener(
 
     @EventHandler(priority = EventPriority.HIGH)
     fun handle(event: ServerConnectEvent) {
-        checkAllowProxyJoin(event.player, event)
-        if (event.isCancelled) {
-            return
+        if (isProxyJoin(event)) {
+            checkAllowProxyJoin(event.player, event)
+            if (event.isCancelled) {
+                return
+            }
         }
+
         checkAllowServerSwitch(event.player, event, event.target)
+    }
+
+    private fun isProxyJoin(event: ServerConnectEvent): Boolean {
+        return event.reason == Reason.JOIN_PROXY || event.player.server == null
     }
 
     private fun checkAllowProxyJoin(player: ProxiedPlayer, event: ServerConnectEvent) {
