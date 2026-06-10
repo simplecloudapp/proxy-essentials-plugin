@@ -33,6 +33,21 @@ whitelist:
     - Notch
 
 # ───────────────────────────────────────────────────────────────────────────────
+# Player Count
+# Displays the summed player count for this proxy group and optional extra targets.
+#
+# Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
+# ───────────────────────────────────────────────────────────────────────────────
+
+player-count:
+  # Additional SimpleCloud groups included in the displayed player count.
+  additional-groups: []
+  # Persistent servers included in the displayed player count.
+  additional-persistent-servers: []
+  # Player count update interval in ticks.
+  update-time: 20
+
+# ───────────────────────────────────────────────────────────────────────────────
 # Tablist
 # Configures tablist layouts and update intervals for connected players.
 #

@@ -25,6 +25,7 @@ data class ProxyEssentialsConfig(
         )
     ),
     val whitelist: WhitelistConfig = WhitelistConfig(),
+    @Setting("player-count") val playerCount: PlayerCountConfig = PlayerCountConfig(),
     val tablist: List<TabListGroup> = listOf(
         TabListGroup(
             name = "global",
@@ -36,5 +37,9 @@ data class ProxyEssentialsConfig(
     fun tabListUpdateTimeMillis(): Long {
         val ticks = tablist.minOfOrNull { it.updateTime } ?: 20L
         return ticks * 50L
+    }
+
+    fun playerCountUpdateTimeMillis(): Long {
+        return playerCount.updateTime.coerceAtLeast(1L) * 50L
     }
 }

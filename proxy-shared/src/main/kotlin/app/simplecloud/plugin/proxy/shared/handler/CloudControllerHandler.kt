@@ -113,6 +113,13 @@ class CloudControllerHandler(
         null
     }
 
+    suspend fun getServerById(serverId: String): Server? = try {
+        plugin.api.server().getServerById(serverId).await()
+    } catch (e: Exception) {
+        logger.severe("Error retrieving server by ID '$serverId': ${e.message}")
+        null
+    }
+
     suspend fun getServersByGroup(groupName: String): List<Server> = try {
         plugin.api.server().getAllServers(
             ServerQuery.create()
@@ -196,6 +203,20 @@ class CloudControllerHandler(
         } catch (e: Exception) {
             logger.severe("Error retrieving server by name: ${e.message}")
             null
+        }
+    }
+
+    suspend fun getPersistentServersByNames(names: Set<String>): List<Server> {
+        if (names.isEmpty()) {
+            return emptyList()
+        }
+
+        return try {
+            val servers = plugin.api.server().getAllServers(ServerQuery.create()).await() ?: return emptyList()
+            servers.filter { server -> server.persistentServer?.name?.let { it in names } == true }
+        } catch (e: Exception) {
+            logger.severe("Error retrieving persistent servers by name: ${e.message}")
+            emptyList()
         }
     }
 }

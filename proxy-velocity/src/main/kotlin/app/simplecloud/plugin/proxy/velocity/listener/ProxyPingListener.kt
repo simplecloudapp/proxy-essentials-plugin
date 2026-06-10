@@ -49,8 +49,9 @@ class ProxyPingListener(
         // player list (hover text)
         if (!isLocalPing) {
             val players = event.ping.players.getOrNull()
-            val onlinePlayers = players?.online ?: 0
-            val realMax = players?.max ?: 0
+            val playerCountHandler = proxyPlugin.playerCountHandler
+            val onlinePlayers = playerCountHandler.onlinePlayersOr(players?.online ?: 0)
+            val realMax = playerCountHandler.maxPlayersOr(players?.max ?: 0)
 
             val samplePlayers: List<SamplePlayer> = if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
                 layout.playerList.entries.map { SamplePlayer(it, UUID.randomUUID()) }

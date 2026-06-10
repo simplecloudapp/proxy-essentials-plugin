@@ -47,6 +47,7 @@ object OldConfigMigrator {
 
         node.node("version").set(CURRENT_CONFIG_VERSION)
         migrateJoinStates(joinStateNode, node)
+        node.node("player-count").set(defaultPlayerCount())
         migrateTabList(tabListNode, node)
         node.applyMainConfigComments()
 
@@ -436,6 +437,10 @@ object OldConfigMigrator {
         node("initial-state").comment(JOIN_STATES_COMMENT)
         node("whitelist").comment(WHITELIST_COMMENT)
         node("whitelist", "players").comment("Supports player names and UUIDs.")
+        node("player-count").comment(PLAYER_COUNT_COMMENT)
+        node("player-count", "additional-groups").comment("Additional SimpleCloud groups included in the displayed player count.")
+        node("player-count", "additional-persistent-servers").comment("Persistent servers included in the displayed player count.")
+        node("player-count", "update-time").comment("Player count update interval in ticks.")
         node("tablist").comment(TABLIST_COMMENT)
         node("tablist").childrenList().forEach { group ->
             group.node("update-time").comment("Update interval in ticks.")
@@ -489,6 +494,15 @@ object OldConfigMigrator {
         }
     }
 
+    private fun defaultPlayerCount(): Map<String, Any> {
+        val playerCount = ProxyEssentialsConfig().playerCount
+        return mapOf(
+            "additional-groups" to playerCount.additionalGroups,
+            "additional-persistent-servers" to playerCount.additionalPersistentServers,
+            "update-time" to playerCount.updateTime
+        )
+    }
+
     private fun Path.loadYaml(): CommentedConfigurationNode {
         return createLoader(this).load()
     }
@@ -506,8 +520,12 @@ object OldConfigMigrator {
             .insertBefore("initial-state:", JOIN_STATES_YAML_COMMENT)
             .insertBefore("whitelist:", WHITELIST_YAML_COMMENT)
             .insertBefore("    players:", "    # Supports player names and UUIDs.\n")
+            .insertBefore("player-count:", PLAYER_COUNT_YAML_COMMENT)
+            .insertBeforeInSection("player-count:", "    additional-groups:", "    # Additional SimpleCloud groups included in the displayed player count.\n")
+            .insertBeforeInSection("player-count:", "    additional-persistent-servers:", "    # Persistent servers included in the displayed player count.\n")
+            .insertBeforeInSection("player-count:", "    update-time:", "    # Player count update interval in ticks.\n")
             .insertBefore("tablist:", TABLIST_YAML_COMMENT)
-            .insertBefore("    update-time:", "    # Update interval in ticks.\n")
+            .insertBeforeInSection("tablist:", "    update-time:", "    # Update interval in ticks.\n")
     }
 
     private fun decorateLayoutYaml(content: String): String {
@@ -538,6 +556,22 @@ object OldConfigMigrator {
         return lines.joinToString("\n").trimEnd() + "\n"
     }
 
+    private fun String.insertBeforeInSection(sectionPrefix: String, linePrefix: String, comment: String): String {
+        if (comment.isEmpty() || contains(comment.trimEnd())) return this
+        val lines = lines().toMutableList()
+        val sectionIndex = lines.indexOfFirst { it.startsWith(sectionPrefix) }
+        if (sectionIndex == -1) return this
+
+        val relativeIndex = lines
+            .drop(sectionIndex + 1)
+            .indexOfFirst { it.startsWith(linePrefix) }
+        if (relativeIndex == -1) return this
+
+        val commentLines = comment.trimEnd().lines()
+        lines.addAll(sectionIndex + 1 + relativeIndex, commentLines)
+        return lines.joinToString("\n").trimEnd() + "\n"
+    }
+
     private fun createLoader(path: Path): YamlConfigurationLoader {
         return YamlConfigurationLoader.builder()
             .path(path)
@@ -562,6 +596,13 @@ object OldConfigMigrator {
         "Global whitelist for direct player access.\n" +
             "Prefer permission-based access for regular users.\n" +
             "Use this list only for administrators or emergency access."
+
+    private const val PLAYER_COUNT_COMMENT =
+        "───────────────────────────────────────────────────────────────────────────────\n" +
+            "Player Count\n" +
+            "Displays the summed player count for this proxy group and optional extra targets.\n\n" +
+            "Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials\n" +
+            "───────────────────────────────────────────────────────────────────────────────"
 
     private const val TABLIST_COMMENT =
         "───────────────────────────────────────────────────────────────────────────────\n" +
@@ -609,6 +650,14 @@ object OldConfigMigrator {
         "\n# Global whitelist for direct player access.\n" +
             "# Prefer permission-based access for regular users.\n" +
             "# Use this list only for administrators or emergency access.\n"
+
+    private const val PLAYER_COUNT_YAML_COMMENT =
+        "\n# ───────────────────────────────────────────────────────────────────────────────\n" +
+            "# Player Count\n" +
+            "# Displays the summed player count for this proxy group and optional extra targets.\n" +
+            "#\n" +
+            "# Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials\n" +
+            "# ───────────────────────────────────────────────────────────────────────────────\n"
 
     private const val TABLIST_YAML_COMMENT =
         "\n# ───────────────────────────────────────────────────────────────────────────────\n" +

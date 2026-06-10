@@ -19,8 +19,9 @@ class ConfigureTagResolversListener(
         val serverName = player?.currentServer?.getOrNull()?.serverInfo?.name ?: "unknown"
         val ping = player?.ping ?: -1
         val pingColors = proxyPlugin.placeHolderConfiguration.get().pingColors
-        val onlinePlayers = plugin.proxyServer.allPlayers.size
-        val realMaxPlayers = plugin.proxyServer.configuration.showMaxPlayers
+        val playerCountHandler = proxyPlugin.playerCountHandler
+        val onlinePlayers = playerCountHandler.onlinePlayersOr(plugin.proxyServer.allPlayers.size)
+        val realMaxPlayers = playerCountHandler.maxPlayersOr(plugin.proxyServer.configuration.showMaxPlayers)
 
         event.withTagResolvers(
             TagResolverHelper.getDefaultTagResolvers(
