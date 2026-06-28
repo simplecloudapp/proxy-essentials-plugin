@@ -10,10 +10,7 @@ class TrustedPingSourceMatcher(
     private val localAddresses: Set<InetAddress> by lazy { discoverLocalAddresses() }
 
     @Volatile
-    private var cachedSourceEntries: List<String> = emptyList()
-
-    @Volatile
-    private var cachedRanges: List<TrustedAddressRange> = emptyList()
+    private var cachedRanges = TrustedAddressRangeCache()
 
     fun isTrusted(remoteAddress: InetAddress?): Boolean {
         if (remoteAddress == null) return false
@@ -24,8 +21,9 @@ class TrustedPingSourceMatcher(
 
     private fun ranges(): List<TrustedAddressRange> {
         val currentEntries = trustedSources().map { it.trim() }.filter { it.isNotEmpty() }
-        if (currentEntries == cachedSourceEntries) {
-            return cachedRanges
+        val currentCache = cachedRanges
+        if (currentEntries == currentCache.entries) {
+            return currentCache.ranges
         }
 
         val parsedRanges = currentEntries.mapNotNull { entry ->
@@ -35,8 +33,7 @@ class TrustedPingSourceMatcher(
             }
         }
 
-        cachedSourceEntries = currentEntries
-        cachedRanges = parsedRanges
+        cachedRanges = TrustedAddressRangeCache(currentEntries, parsedRanges)
         return parsedRanges
     }
 
@@ -57,6 +54,11 @@ class TrustedPingSourceMatcher(
 
         return addresses
     }
+
+    private data class TrustedAddressRangeCache(
+        val entries: List<String> = emptyList(),
+        val ranges: List<TrustedAddressRange> = emptyList()
+    )
 
     private data class TrustedAddressRange(
         private val addressBytes: ByteArray,
@@ -81,10 +83,12 @@ class TrustedPingSourceMatcher(
 
         companion object {
             private const val BITS_PER_BYTE = 8
+            private val IPV4_REGEX = Regex("""\d{1,3}(?:\.\d{1,3}){3}""")
+            private val IPV6_REGEX = Regex("""[0-9a-fA-F:.]+""")
 
             fun parse(entry: String): TrustedAddressRange? {
                 val parts = entry.split('/', limit = 2).map { it.trim() }
-                val address = runCatching { InetAddress.getByName(parts[0]) }.getOrNull() ?: return null
+                val address = parseLiteralAddress(parts[0]) ?: return null
                 val maxPrefixLength = address.address.size * BITS_PER_BYTE
                 val prefixLength = when (parts.size) {
                     1 -> maxPrefixLength
@@ -94,6 +98,21 @@ class TrustedPingSourceMatcher(
                 if (prefixLength !in 0..maxPrefixLength) return null
 
                 return TrustedAddressRange(address.address, prefixLength)
+            }
+
+            private fun parseLiteralAddress(entry: String): InetAddress? {
+                if (entry.matches(IPV4_REGEX)) {
+                    val octets = entry.split('.').map { it.toInt() }
+                    if (octets.all { it in 0..255 }) {
+                        return InetAddress.getByAddress(octets.map { it.toByte() }.toByteArray())
+                    }
+                }
+
+                if (':' in entry && entry.matches(IPV6_REGEX)) {
+                    return runCatching { InetAddress.getByName(entry) }.getOrNull()
+                }
+
+                return null
             }
         }
     }
