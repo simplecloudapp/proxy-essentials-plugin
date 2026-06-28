@@ -32,6 +32,11 @@ whitelist:
   players:
     - Notch
 
+# Internal ping sources that should keep the proxy's real player count response.
+# Local interface addresses are detected automatically. Add CIDR ranges here only
+# when another trusted internal host pings this proxy, for example 192.168.102.10/32.
+trusted-ping-sources: []
+
 # ───────────────────────────────────────────────────────────────────────────────
 # Tablist
 # Configures tablist layouts and update intervals for connected players.

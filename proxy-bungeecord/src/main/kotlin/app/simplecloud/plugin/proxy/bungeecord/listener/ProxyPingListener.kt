@@ -3,12 +3,12 @@ package app.simplecloud.plugin.proxy.bungeecord.listener
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
 import app.simplecloud.plugin.proxy.shared.handler.ServerIconLoader
+import app.simplecloud.plugin.proxy.shared.handler.TrustedPingSourceMatcher
 import net.md_5.bungee.api.Favicon
 import net.md_5.bungee.api.ServerPing.*
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
-import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.nio.file.Path
 import java.util.*
@@ -20,6 +20,11 @@ class ProxyPingListener(
     private val serverIconLoader = ServerIconLoader(
         Path.of(plugin.proxyPlugin.serverIconsPath)
     ) { image -> Favicon.create(image) }
+
+    private val trustedPingSourceMatcher = TrustedPingSourceMatcher(
+        { plugin.proxyPlugin.proxyEssentialsConfig.get().trustedPingSources },
+        { plugin.logger.warning(it) }
+    )
 
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
@@ -35,9 +40,7 @@ class ProxyPingListener(
         response.descriptionComponent = net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer.get().serialize(motd)[0]
 
         val socketAddress = event.connection.socketAddress as? InetSocketAddress
-        val remoteAddress = socketAddress?.address?.hostAddress ?: ""
-        val localAddress = InetAddress.getLocalHost().hostAddress
-        val isLocalPing = remoteAddress == localAddress
+        val isTrustedPing = trustedPingSourceMatcher.isTrusted(socketAddress?.address)
 
         // server icon
         if (layout.serverIcon.enabled) {
@@ -45,7 +48,7 @@ class ProxyPingListener(
                 ?.let { response.setFavicon(it) }
         }
 
-        if (!isLocalPing) {
+        if (!isTrustedPing) {
             // player list (hover text)
             val samplePlayers = if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
                 layout.playerList.entries.map { PlayerInfo(it, UUID.randomUUID()) }.toTypedArray()

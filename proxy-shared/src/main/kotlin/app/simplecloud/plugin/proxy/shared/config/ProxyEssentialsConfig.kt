@@ -25,6 +25,7 @@ data class ProxyEssentialsConfig(
         )
     ),
     val whitelist: WhitelistConfig = WhitelistConfig(),
+    @Setting("trusted-ping-sources") val trustedPingSources: List<String> = emptyList(),
     val tablist: List<TabListGroup> = listOf(
         TabListGroup(
             name = "global",

@@ -3,13 +3,13 @@ package app.simplecloud.plugin.proxy.velocity.listener
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
 import app.simplecloud.plugin.proxy.shared.handler.ServerIconLoader
+import app.simplecloud.plugin.proxy.shared.handler.TrustedPingSourceMatcher
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyPingEvent
 import com.velocitypowered.api.proxy.server.ServerPing
 import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer
 import com.velocitypowered.api.util.Favicon
-import java.net.InetAddress
 import java.nio.file.Path
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -23,6 +23,11 @@ class ProxyPingListener(
         Path.of(proxyPlugin.serverIconsPath)
     ) { image -> Favicon.create(image) }
 
+    private val trustedPingSourceMatcher = TrustedPingSourceMatcher(
+        { proxyPlugin.proxyEssentialsConfig.get().trustedPingSources },
+        { plugin.logger.warn(it) }
+    )
+
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
         val layout = proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
@@ -34,9 +39,7 @@ class ProxyPingListener(
 
         val motd = plugin.deserializeToComponent("${entry.line1}\n${entry.line2}")
 
-        val remoteAddress = event.connection.remoteAddress.address.hostAddress
-        val localAddress = InetAddress.getLocalHost().hostAddress
-        val isLocalPing = remoteAddress == localAddress
+        val isTrustedPing = trustedPingSourceMatcher.isTrusted(event.connection.remoteAddress.address)
 
         val builder = event.ping.asBuilder().description(motd)
 
@@ -47,7 +50,7 @@ class ProxyPingListener(
         }
 
         // player list (hover text)
-        if (!isLocalPing) {
+        if (!isTrustedPing) {
             val players = event.ping.players.getOrNull()
             val onlinePlayers = players?.online ?: 0
             val realMax = players?.max ?: 0
