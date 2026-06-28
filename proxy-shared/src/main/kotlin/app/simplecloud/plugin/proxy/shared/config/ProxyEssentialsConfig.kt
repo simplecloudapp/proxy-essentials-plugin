@@ -39,7 +39,11 @@ data class ProxyEssentialsConfig(
         return ticks * 50L
     }
 
-    fun playerCountUpdateTimeMillis(): Long {
-        return playerCount.updateTime.coerceAtLeast(1L) * 50L
+    fun playerCountUpdateTimeMillis(): Long? {
+        if (!playerCount.enabled || playerCount.updateTime <= 0L) {
+            return null
+        }
+
+        return playerCount.updateTime * 50L
     }
 }

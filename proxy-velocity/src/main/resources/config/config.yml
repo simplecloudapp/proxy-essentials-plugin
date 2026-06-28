@@ -40,11 +40,13 @@ whitelist:
 # ───────────────────────────────────────────────────────────────────────────────
 
 player-count:
+  # Enables summed player counts for the server list and placeholders.
+  enabled: true
   # Additional SimpleCloud groups included in the displayed player count.
   additional-groups: []
   # Persistent servers included in the displayed player count.
   additional-persistent-servers: []
-  # Player count update interval in ticks.
+  # Player count update interval in ticks. Set to 0 to disable automatic updates.
   update-time: 20
 
 # ───────────────────────────────────────────────────────────────────────────────

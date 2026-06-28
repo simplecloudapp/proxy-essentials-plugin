@@ -22,8 +22,15 @@ class PlayerCountHandler(
 
         syncJob = scope.launch {
             while (isActive) {
+                val updateTimeMillis = proxyPlugin.proxyEssentialsConfig.get().playerCountUpdateTimeMillis()
+                if (updateTimeMillis == null) {
+                    snapshot = null
+                    delay(DISABLED_CHECK_INTERVAL_MILLIS)
+                    continue
+                }
+
                 refresh()
-                delay(proxyPlugin.proxyEssentialsConfig.get().playerCountUpdateTimeMillis())
+                delay(updateTimeMillis)
             }
         }
     }
@@ -128,4 +135,8 @@ class PlayerCountHandler(
         val onlinePlayers: Int,
         val maxPlayers: Int?
     )
+
+    private companion object {
+        const val DISABLED_CHECK_INTERVAL_MILLIS = 1000L
+    }
 }

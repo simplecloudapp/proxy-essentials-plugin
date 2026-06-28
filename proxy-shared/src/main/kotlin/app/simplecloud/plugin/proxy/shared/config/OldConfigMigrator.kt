@@ -21,6 +21,7 @@ object OldConfigMigrator {
         Files.createDirectories(dataDirectory)
 
         migrateMainConfig(dataDirectory)
+        ensureMainConfigDefaults(dataDirectory.resolve("config.yml"))
         migrateMessages(dataDirectory.resolve("messages.yml"))
         migratePlaceholder(dataDirectory.resolve("placeholder.yml"))
         migrateLayouts(dataDirectory.resolve("layout"))
@@ -55,6 +56,29 @@ object OldConfigMigrator {
         target.writeCommentedYaml(::decorateMainConfigYaml)
         deleteIfExists(joinStateFile)
         deleteIfExists(tabListFile)
+    }
+
+    private fun ensureMainConfigDefaults(target: Path) {
+        if (!Files.exists(target)) return
+
+        val loader = createLoader(target)
+        val node = loader.load()
+        val playerCountNode = node.node("player-count")
+        var changed = false
+
+        if (playerCountNode.virtual()) {
+            playerCountNode.set(defaultPlayerCount())
+            changed = true
+        } else if (playerCountNode.node("enabled").virtual()) {
+            playerCountNode.node("enabled").set(ProxyEssentialsConfig().playerCount.enabled)
+            changed = true
+        }
+
+        if (!changed) return
+
+        node.applyMainConfigComments()
+        loader.save(node)
+        target.writeCommentedYaml(::decorateMainConfigYaml)
     }
 
     private fun CommentedConfigurationNode.containsMigratedMainConfig(
@@ -438,9 +462,10 @@ object OldConfigMigrator {
         node("whitelist").comment(WHITELIST_COMMENT)
         node("whitelist", "players").comment("Supports player names and UUIDs.")
         node("player-count").comment(PLAYER_COUNT_COMMENT)
+        node("player-count", "enabled").comment("Enables summed player counts for the server list and placeholders.")
         node("player-count", "additional-groups").comment("Additional SimpleCloud groups included in the displayed player count.")
         node("player-count", "additional-persistent-servers").comment("Persistent servers included in the displayed player count.")
-        node("player-count", "update-time").comment("Player count update interval in ticks.")
+        node("player-count", "update-time").comment("Player count update interval in ticks. Set to 0 to disable automatic updates.")
         node("tablist").comment(TABLIST_COMMENT)
         node("tablist").childrenList().forEach { group ->
             group.node("update-time").comment("Update interval in ticks.")
@@ -497,6 +522,7 @@ object OldConfigMigrator {
     private fun defaultPlayerCount(): Map<String, Any> {
         val playerCount = ProxyEssentialsConfig().playerCount
         return mapOf(
+            "enabled" to playerCount.enabled,
             "additional-groups" to playerCount.additionalGroups,
             "additional-persistent-servers" to playerCount.additionalPersistentServers,
             "update-time" to playerCount.updateTime
@@ -521,9 +547,10 @@ object OldConfigMigrator {
             .insertBefore("whitelist:", WHITELIST_YAML_COMMENT)
             .insertBefore("    players:", "    # Supports player names and UUIDs.\n")
             .insertBefore("player-count:", PLAYER_COUNT_YAML_COMMENT)
+            .insertBeforeInSection("player-count:", "    enabled:", "    # Enables summed player counts for the server list and placeholders.\n")
             .insertBeforeInSection("player-count:", "    additional-groups:", "    # Additional SimpleCloud groups included in the displayed player count.\n")
             .insertBeforeInSection("player-count:", "    additional-persistent-servers:", "    # Persistent servers included in the displayed player count.\n")
-            .insertBeforeInSection("player-count:", "    update-time:", "    # Player count update interval in ticks.\n")
+            .insertBeforeInSection("player-count:", "    update-time:", "    # Player count update interval in ticks. Set to 0 to disable automatic updates.\n")
             .insertBefore("tablist:", TABLIST_YAML_COMMENT)
             .insertBeforeInSection("tablist:", "    update-time:", "    # Update interval in ticks.\n")
     }

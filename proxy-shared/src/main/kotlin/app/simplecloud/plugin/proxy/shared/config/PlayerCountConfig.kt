@@ -5,6 +5,7 @@ import org.spongepowered.configurate.objectmapping.meta.Setting
 
 @ConfigSerializable
 data class PlayerCountConfig(
+    val enabled: Boolean = true,
     @Setting("additional-groups") val additionalGroups: List<String> = emptyList(),
     @Setting("additional-persistent-servers") val additionalPersistentServers: List<String> = emptyList(),
     @Setting("update-time") val updateTime: Long = 20L
