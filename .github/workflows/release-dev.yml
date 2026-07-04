@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - develop
   workflow_dispatch:
 
 jobs:
@@ -16,7 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          ref: develop  # Ensure it works from the develop branch
+          ref: main
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -51,20 +50,19 @@ jobs:
       - name: Publish to Modrinth
         run: ./gradlew modrinth && ./gradlew modrinthSyncBody
         env:
-          COMMIT_HASH: ${{ env.COMMIT_HASH }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
 
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: v${{ env.GRADLE_VERSION }}-dev.${{ env.COMMIT_HASH }}
-          release_name: v${{ env.GRADLE_VERSION }}-dev.${{ env.COMMIT_HASH }}
+          tag_name: v${{ env.GRADLE_VERSION }}
+          release_name: v${{ env.GRADLE_VERSION }}
           draft: false
-          prerelease: true
-          commitish: develop
+          prerelease: false
+          commitish: main
           body: |
-            This release contains dev builds for all Gradle modules.
+            This release contains release builds for all Gradle modules.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -77,7 +75,7 @@ jobs:
               echo "Skipping $jar due to version number"
             else
               echo "Uploading $jar"
-              gh release upload v${{ env.GRADLE_VERSION }}-dev.${{ env.COMMIT_HASH }} "$jar"
+              gh release upload v${{ env.GRADLE_VERSION }} "$jar"
             fi
           done
         env:
