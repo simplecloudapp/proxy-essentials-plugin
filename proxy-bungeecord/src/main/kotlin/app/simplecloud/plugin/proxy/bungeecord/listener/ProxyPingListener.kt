@@ -55,8 +55,8 @@ class ProxyPingListener(
 
             // slots
             val playerCountHandler = plugin.proxyPlugin.playerCountHandler
-            val onlinePlayers = playerCountHandler.onlinePlayersOr(response.players.online)
-            val realMax = playerCountHandler.maxPlayersOr(response.players.max)
+            val onlinePlayers = playerCountHandler.onlinePlayers(plugin.proxy.players.size)
+            val realMax = playerCountHandler.maxPlayers(plugin.proxy.config.playerLimit)
             val maxPlayers = if (layout.versionSettings.slots.enabled) {
                 when (layout.versionSettings.slots.type) {
                     MaxPlayerDisplayType.REAL -> realMax

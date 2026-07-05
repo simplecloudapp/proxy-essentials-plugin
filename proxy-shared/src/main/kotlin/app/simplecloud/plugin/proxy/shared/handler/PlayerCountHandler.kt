@@ -40,12 +40,12 @@ class PlayerCountHandler(
         scope.cancel()
     }
 
-    fun onlinePlayersOr(fallback: Int): Int {
-        return snapshot?.onlinePlayers ?: fallback
+    fun onlinePlayers(currentProxyOnlinePlayers: Int): Int {
+        return currentProxyOnlinePlayers + (snapshot?.otherOnlinePlayers ?: 0)
     }
 
-    fun maxPlayersOr(fallback: Int): Int {
-        return snapshot?.maxPlayers?.takeIf { it > 0 } ?: fallback
+    fun maxPlayers(currentProxyMaxPlayers: Int): Int {
+        return snapshot?.maxPlayers?.takeIf { it > 0 } ?: currentProxyMaxPlayers
     }
 
     private suspend fun refresh() {
@@ -57,19 +57,19 @@ class PlayerCountHandler(
     }
 
     private suspend fun resolveSnapshot(): PlayerCountSnapshot? {
-        val snapshots = resolveCountSnapshots()
+        val count = resolveCount()
 
-        if (snapshots.isEmpty()) {
+        if (count.otherOnlinePlayers <= 0 && count.maxPlayers <= 0) {
             return null
         }
 
         return PlayerCountSnapshot(
-            onlinePlayers = snapshots.sumOf { it.onlinePlayers },
-            maxPlayers = snapshots.sumOf { it.maxPlayers ?: 0 }.takeIf { it > 0 }
+            otherOnlinePlayers = count.otherOnlinePlayers,
+            maxPlayers = count.maxPlayers.takeIf { it > 0 }
         )
     }
 
-    private suspend fun resolveCountSnapshots(): List<PlayerCountSnapshot> {
+    private suspend fun resolveCount(): PlayerCount {
         val currentServer = proxyPlugin.cloudControllerHandler.currentServer
         val config = proxyPlugin.proxyEssentialsConfig.get().playerCount
         val currentGroupName = currentServer
@@ -81,58 +81,63 @@ class PlayerCountHandler(
             ?.persistentServer
             ?.name
 
-        val groupNames = (
-            listOfNotNull(currentGroupName) +
-                config.additionalGroups
-            )
+        val currentServerId = currentServer?.serverId
+        val additionalGroupNames = config.additionalGroups
             .map { it.trim() }
             .filter { it.isNotEmpty() }
+            .filter { it != currentGroupName }
             .distinct()
-        val groupSnapshots = groupNames.mapNotNull { resolveGroupSnapshot(it) }
 
         val additionalPersistentServerNames = config.additionalPersistentServers
             .map { it.trim() }
             .filter { it.isNotEmpty() }
             .filter { it != currentPersistentServerName }
             .toSet()
-        val persistentServerSnapshots = proxyPlugin.cloudControllerHandler
+
+        val currentGroupOtherOnlinePlayers = currentGroupName
+            ?.let { resolveGroupOnlinePlayers(it, currentServerId) }
+            ?: 0
+        val currentMaxPlayers = resolveCurrentMaxPlayers(currentServer, currentGroupName)
+        val groupOnlinePlayers = additionalGroupNames.sumOf { proxyPlugin.cloudControllerHandler.getOnlinePlayersInGroup(it) }
+        val groupMaxPlayers = additionalGroupNames.sumOf { proxyPlugin.cloudControllerHandler.getMaxPlayersInGroup(it) }
+        val persistentServers = proxyPlugin.cloudControllerHandler
             .getPersistentServersByNames(additionalPersistentServerNames)
-            .map { resolveServerSnapshot(it) }
+        val persistentOnlinePlayers = persistentServers.sumOf { it.playerCount?.toInt() ?: 0 }
+        val persistentMaxPlayers = persistentServers.sumOf { it.maxPlayers?.toInt() ?: 0 }
 
-        return listOfNotNull(resolveCurrentServerSnapshot(currentServer)) + groupSnapshots + persistentServerSnapshots
-    }
-
-    private suspend fun resolveCurrentServerSnapshot(currentServer: Server?): PlayerCountSnapshot? {
-        if (currentServer == null || currentServer.isFromGroup) {
-            return null
-        }
-
-        val server = proxyPlugin.cloudControllerHandler.getServerById(currentServer.serverId) ?: currentServer
-        return resolveServerSnapshot(server)
-    }
-
-    private suspend fun resolveGroupSnapshot(groupName: String): PlayerCountSnapshot? {
-        val onlinePlayers = proxyPlugin.cloudControllerHandler.getOnlinePlayersInGroup(groupName)
-        val maxPlayers = proxyPlugin.cloudControllerHandler.getMaxPlayersInGroup(groupName)
-        if (onlinePlayers <= 0 && maxPlayers <= 0) {
-            return null
-        }
-
-        return PlayerCountSnapshot(
-            onlinePlayers = onlinePlayers,
-            maxPlayers = maxPlayers.takeIf { it > 0 }
+        return PlayerCount(
+            otherOnlinePlayers = currentGroupOtherOnlinePlayers + groupOnlinePlayers + persistentOnlinePlayers,
+            maxPlayers = currentMaxPlayers + groupMaxPlayers + persistentMaxPlayers
         )
     }
 
-    private fun resolveServerSnapshot(server: Server): PlayerCountSnapshot {
-        return PlayerCountSnapshot(
-            onlinePlayers = server.playerCount?.toInt() ?: 0,
-            maxPlayers = server.maxPlayers?.toInt()?.takeIf { it > 0 }
-        )
+    private suspend fun resolveGroupOnlinePlayers(groupName: String, excludedServerId: String?): Int {
+        return proxyPlugin.cloudControllerHandler
+            .getServersByGroup(groupName)
+            .asSequence()
+            .filter { it.serverId != excludedServerId }
+            .sumOf { it.playerCount?.toInt() ?: 0 }
     }
+
+    private suspend fun resolveCurrentMaxPlayers(currentServer: Server?, currentGroupName: String?): Int {
+        if (currentServer == null) {
+            return 0
+        }
+
+        if (currentGroupName != null) {
+            return proxyPlugin.cloudControllerHandler.getMaxPlayersInGroup(currentGroupName)
+        }
+
+        return currentServer.maxPlayers?.toInt() ?: 0
+    }
+
+    private data class PlayerCount(
+        val otherOnlinePlayers: Int,
+        val maxPlayers: Int
+    )
 
     private data class PlayerCountSnapshot(
-        val onlinePlayers: Int,
+        val otherOnlinePlayers: Int,
         val maxPlayers: Int?
     )
 
