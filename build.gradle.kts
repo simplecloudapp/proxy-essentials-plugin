@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-val baseVersion = "0.0.3"
+val baseVersion = "0.0.4"
 val commitHash = System.getenv("COMMIT_HASH")
 val snapshotversion = "${baseVersion}-dev.$commitHash"
 
@@ -40,8 +40,9 @@ subprojects {
     }
 
     dependencies {
-        compileOnly(rootProject.libs.kotlin.jvm)
-        compileOnly(rootProject.libs.kotlin.coroutines)
+        implementation(rootProject.libs.kotlin.jvm)
+        implementation(rootProject.libs.kotlin.reflect)
+        implementation(rootProject.libs.kotlin.coroutines)
 
         compileOnly(rootProject.libs.simplecloud.api)
 
