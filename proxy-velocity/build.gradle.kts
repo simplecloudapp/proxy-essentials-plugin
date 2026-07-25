@@ -1,17 +1,14 @@
 plugins {
     alias(libs.plugins.minotaur)
+    alias(libs.plugins.blossom)
+    kotlin("kapt")
 }
 
 dependencies {
     api(project(":proxy-shared"))
-
-    compileOnly(rootProject.libs.adventure.minimessage)
-
-    compileOnly(rootProject.libs.velocity)
-    annotationProcessor(rootProject.libs.velocity)
-
-    implementation(rootProject.libs.command.cloud.core)
-    implementation(rootProject.libs.command.cloud.velocity)
+    compileOnly(libs.velocity.api)
+    kapt(libs.velocity.api)
+    implementation(libs.cloud.command.velocity)
 }
 
 modrinth {
