@@ -15,6 +15,8 @@ import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
+import com.velocitypowered.api.plugin.Dependency
+import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.Player
@@ -28,6 +30,17 @@ import org.slf4j.Logger
 import java.nio.file.Path
 import kotlin.io.path.pathString
 
+@Plugin(
+    id = "simplecloud-proxy-essentials",
+    name = "simplecloud-proxy-essentials",
+    version = BuildConstants.VERSION,
+    authors = ["D151l"],
+    description = "Proxy plugin for SimpleCloud v3 that configures MOTDs, tablist and join states",
+    url = "https://github.com/simplecloudapp/proxy-essentials-plugin",
+    dependencies = [
+        Dependency("simplecloud-api")
+    ]
+)
 class ProxyVelocityPlugin @Inject constructor(
     val proxyServer: ProxyServer,
     @DataDirectory val dataDirectory: Path,
