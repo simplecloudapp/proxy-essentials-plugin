@@ -2,6 +2,7 @@ package app.simplecloud.plugin.proxy.velocity.listener
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
+import app.simplecloud.plugin.proxy.shared.handler.LocalPingSourceMatcher
 import app.simplecloud.plugin.proxy.shared.handler.ServerIconLoader
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.Subscribe
@@ -9,7 +10,6 @@ import com.velocitypowered.api.event.proxy.ProxyPingEvent
 import com.velocitypowered.api.proxy.server.ServerPing
 import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer
 import com.velocitypowered.api.util.Favicon
-import java.net.InetAddress
 import java.nio.file.Path
 import java.util.*
 import kotlin.jvm.optionals.getOrNull
@@ -22,6 +22,7 @@ class ProxyPingListener(
     private val serverIconLoader = ServerIconLoader(
         Path.of(proxyPlugin.serverIconsPath)
     ) { image -> Favicon.create(image) }
+    private val localPingSourceMatcher = LocalPingSourceMatcher()
 
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
@@ -34,9 +35,7 @@ class ProxyPingListener(
 
         val motd = plugin.deserializeToComponent("${entry.line1}\n${entry.line2}")
 
-        val remoteAddress = event.connection.remoteAddress.address.hostAddress
-        val localAddress = InetAddress.getLocalHost().hostAddress
-        val isLocalPing = remoteAddress == localAddress
+        val isLocalPing = localPingSourceMatcher.isLocal(event.connection.remoteAddress.address)
 
         val builder = event.ping.asBuilder().description(motd)
 
