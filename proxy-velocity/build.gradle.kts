@@ -10,6 +10,9 @@ dependencies {
     compileOnly(rootProject.libs.velocity)
     annotationProcessor(rootProject.libs.velocity)
 
+    testImplementation(kotlin("test"))
+    testImplementation(rootProject.libs.velocity)
+
     implementation(rootProject.libs.command.cloud.core)
     implementation(rootProject.libs.command.cloud.velocity)
 }

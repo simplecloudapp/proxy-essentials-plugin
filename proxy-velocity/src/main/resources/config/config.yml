@@ -11,6 +11,10 @@ version: '2'
 initial-state: public
 initial-layout: public
 
+# Disconnects players with the backend server's kick reason instead of sending them to a fallback server.
+# Disable to keep the proxy's standard fallback handling.
+show-kick-reason: false
+
 joinstates:
 -   name: public
     permission:

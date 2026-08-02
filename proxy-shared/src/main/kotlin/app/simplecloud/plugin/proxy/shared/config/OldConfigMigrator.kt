@@ -48,6 +48,7 @@ object OldConfigMigrator {
 
         node.node("version").set(CURRENT_CONFIG_VERSION)
         migrateJoinStates(joinStateNode, node)
+        node.node("show-kick-reason").set(ProxyEssentialsConfig().showKickReason)
         node.node("player-count").set(defaultPlayerCount())
         migrateTabList(tabListNode, node)
         node.applyMainConfigComments()
@@ -65,6 +66,11 @@ object OldConfigMigrator {
         val node = loader.load()
         val playerCountNode = node.node("player-count")
         var changed = false
+
+        if (node.node("show-kick-reason").virtual()) {
+            node.node("show-kick-reason").set(ProxyEssentialsConfig().showKickReason)
+            changed = true
+        }
 
         if (playerCountNode.virtual()) {
             playerCountNode.set(defaultPlayerCount())
@@ -459,6 +465,7 @@ object OldConfigMigrator {
 
     private fun CommentedConfigurationNode.applyMainConfigComments() {
         node("initial-state").comment(JOIN_STATES_COMMENT)
+        node("show-kick-reason").comment(SHOW_KICK_REASON_COMMENT)
         node("whitelist").comment(WHITELIST_COMMENT)
         node("whitelist", "players").comment("Supports player names and UUIDs.")
         node("player-count").comment(PLAYER_COUNT_COMMENT)
@@ -544,6 +551,7 @@ object OldConfigMigrator {
     private fun decorateMainConfigYaml(content: String): String {
         return content
             .insertBefore("initial-state:", JOIN_STATES_YAML_COMMENT)
+            .insertBefore("show-kick-reason:", SHOW_KICK_REASON_YAML_COMMENT)
             .insertBefore("whitelist:", WHITELIST_YAML_COMMENT)
             .insertBefore("    players:", "    # Supports player names and UUIDs.\n")
             .insertBefore("player-count:", PLAYER_COUNT_YAML_COMMENT)
@@ -624,6 +632,10 @@ object OldConfigMigrator {
             "Prefer permission-based access for regular users.\n" +
             "Use this list only for administrators or emergency access."
 
+    private const val SHOW_KICK_REASON_COMMENT =
+        "Disconnects players with the backend server's kick reason instead of sending them to a fallback server.\n" +
+            "Disable to keep the proxy's standard fallback handling."
+
     private const val PLAYER_COUNT_COMMENT =
         "───────────────────────────────────────────────────────────────────────────────\n" +
             "Player Count\n" +
@@ -677,6 +689,10 @@ object OldConfigMigrator {
         "\n# Global whitelist for direct player access.\n" +
             "# Prefer permission-based access for regular users.\n" +
             "# Use this list only for administrators or emergency access.\n"
+
+    private const val SHOW_KICK_REASON_YAML_COMMENT =
+        "\n# Disconnects players with the backend server's kick reason instead of sending them to a fallback server.\n" +
+            "# Disable to keep the proxy's standard fallback handling.\n"
 
     private const val PLAYER_COUNT_YAML_COMMENT =
         "\n# ───────────────────────────────────────────────────────────────────────────────\n" +

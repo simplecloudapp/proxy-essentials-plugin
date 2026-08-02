@@ -13,6 +13,7 @@ data class ProxyEssentialsConfig(
     val version: String = "2",
     @Setting("initial-state") val initialState: String = "public",
     @Setting("initial-layout") val initialLayout: String = "public",
+    @Setting("show-kick-reason") val showKickReason: Boolean = false,
     val joinstates: List<JoinState> = listOf(
         JoinState("public", JoinStatePermission("", "simplecloud.proxy-essentials.join.full.public")),
         JoinState(

@@ -7,6 +7,9 @@ dependencies {
 
     compileOnly(rootProject.libs.bungeecord)
 
+    testImplementation(kotlin("test"))
+    testImplementation(rootProject.libs.bungeecord)
+
     implementation(rootProject.libs.adventure.legacy.serializer)
     implementation(rootProject.libs.adventure.minimessage)
     implementation(rootProject.libs.adventure.bungeecord.platform)
