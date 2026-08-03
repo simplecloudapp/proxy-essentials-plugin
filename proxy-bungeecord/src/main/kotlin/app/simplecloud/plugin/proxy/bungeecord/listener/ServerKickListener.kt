@@ -14,11 +14,13 @@ class ServerKickListener internal constructor(
         proxyPlugin.proxyEssentialsConfig.get().showKickReason
     })
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.LOWEST)
     fun handle(event: ServerKickEvent) {
-        if (!showKickReason() || event.reason == null) return
+        val serverReason = event.reason
+        if (!showKickReason() || serverReason == null) return
 
         event.isCancelled = false
         event.cancelServer = null
+        event.player.disconnect(serverReason)
     }
 }
