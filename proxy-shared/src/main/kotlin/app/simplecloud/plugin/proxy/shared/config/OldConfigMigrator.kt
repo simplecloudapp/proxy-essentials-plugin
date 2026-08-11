@@ -23,6 +23,7 @@ object OldConfigMigrator {
         migrateMainConfig(dataDirectory)
         ensureMainConfigDefaults(dataDirectory.resolve("config.yml"))
         migrateMessages(dataDirectory.resolve("messages.yml"))
+        ensureMessageDefaults(dataDirectory.resolve("messages.yml"))
         migratePlaceholder(dataDirectory.resolve("placeholder.yml"))
         migrateLayouts(dataDirectory.resolve("layout"))
     }
@@ -281,6 +282,11 @@ object OldConfigMigrator {
                         "update-failure" to defaults.command.layout.set.updateFailure,
                         "update-no-change" to defaults.command.layout.set.updateNoChange
                     )
+                ),
+                "reload" to mapOf(
+                    "start" to defaults.command.reload.start,
+                    "success" to defaults.command.reload.success,
+                    "failure" to defaults.command.reload.failure
                 )
             )
         )
@@ -288,6 +294,36 @@ object OldConfigMigrator {
 
         loader.save(target)
         path.writeCommentedYaml(::decorateMessagesYaml)
+    }
+
+    private fun ensureMessageDefaults(path: Path) {
+        if (!Files.exists(path)) return
+
+        val loader = createLoader(path)
+        val node = loader.load()
+        val defaults = MessageConfig()
+        var changed = false
+
+        if (node.node("version").string == null || node.node("version").string == "1") {
+            node.node("version").set(defaults.version)
+            changed = true
+        }
+
+        val reload = node.node("command", "reload")
+        listOf(
+            "start" to defaults.command.reload.start,
+            "success" to defaults.command.reload.success,
+            "failure" to defaults.command.reload.failure
+        ).forEach { (key, value) ->
+            if (reload.node(key).virtual()) {
+                reload.node(key).set(value)
+                changed = true
+            }
+        }
+
+        if (changed) {
+            loader.save(node)
+        }
     }
 
     private fun migratePlaceholder(path: Path) {

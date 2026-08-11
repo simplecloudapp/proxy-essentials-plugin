@@ -4,7 +4,7 @@ import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class MessageConfig(
-    val version: String = "1",
+    val version: String = "2",
     val variables: MessageVariables = MessageVariables(),
     val kick: KickMessageConfig = KickMessageConfig(),
     val command: CommandMessages = CommandMessages()

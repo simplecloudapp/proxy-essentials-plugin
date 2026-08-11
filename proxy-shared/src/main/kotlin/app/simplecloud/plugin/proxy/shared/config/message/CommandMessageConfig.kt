@@ -13,6 +13,13 @@ data class UpdateMessages(
 )
 
 @ConfigSerializable
+data class ReloadCommandMessages(
+    val start: String = "${PREFIX}Reloading ProxyEssentials configurations...",
+    val success: String = "${PREFIX}Successfully reloaded all ProxyEssentials configurations.",
+    val failure: String = "${PREFIX}Failed to reload configurations: <color:#ff0000><error>"
+)
+
+@ConfigSerializable
 data class JoinStateHelpMessages(
     val header: String = "${PREFIX}Commands of join state:",
     val entry: String = "   <color:#a3a3a3><command>"
@@ -80,6 +87,7 @@ data class LayoutCommandMessages(
 
 @ConfigSerializable
 data class CommandMessages(
+    val reload: ReloadCommandMessages = ReloadCommandMessages(),
     @Setting("join-state") val joinState: JoinStateCommandMessages = JoinStateCommandMessages(),
     val layout: LayoutCommandMessages = LayoutCommandMessages()
 )

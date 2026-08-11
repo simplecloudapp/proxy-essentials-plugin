@@ -1,4 +1,4 @@
-version: '1'
+version: '2'
 
 # ───────────────────────────────────────────────────────────────────────────────
 # Variables
@@ -20,6 +20,11 @@ kick:
 # Command Messages
 # ───────────────────────────────────────────────────────────────────────────────
 command:
+    reload:
+        start: "<prefix>Reloading ProxyEssentials configurations..."
+        success: "<prefix>Successfully reloaded all ProxyEssentials configurations."
+        failure: "<prefix>Failed to reload configurations: <color:#ff0000><error>"
+
     join-state:
         server:
             update-success: "<prefix>Join state of server updated successfully."
