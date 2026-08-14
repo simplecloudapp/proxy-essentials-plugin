@@ -15,6 +15,7 @@ motd:
   #update-type: QUEUE
   #update-time: 10
   #update-time: 0 disables updates
+  # Wrap a line in <center>...</center> to center it using vanilla font metrics.
   layouts:
     - name: 'public'
       line1: '<color:#0ea5e9>A simplecloud.app network'

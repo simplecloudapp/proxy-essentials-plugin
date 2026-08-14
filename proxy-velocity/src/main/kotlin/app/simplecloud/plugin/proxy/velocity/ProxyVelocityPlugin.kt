@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.velocity
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
+import app.simplecloud.plugin.proxy.shared.format.MotdMiniMessageFormatter
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
 import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
 import app.simplecloud.plugin.proxy.shared.handler.command.LayoutCommandHandler
@@ -85,6 +86,16 @@ class ProxyVelocityPlugin @Inject constructor(
         return this.miniMessage.deserialize(
             text,
             *configureTagResolversEvent.tagResolvers.toTypedArray()
+        )
+    }
+
+    fun deserializeMotd(line1: String, line2: String): Component {
+        val configureTagResolversEvent = this.proxyServer.eventManager.fire(ConfigureTagResolversEvent(null)).get()
+        return MotdMiniMessageFormatter.deserialize(
+            miniMessage,
+            line1,
+            line2,
+            configureTagResolversEvent.tagResolvers
         )
     }
 

@@ -32,7 +32,7 @@ class ProxyPingListener(
             ?: return
 
         val response = event.response
-        val motd = plugin.deserializeToComponent("${entry.line1}\n${entry.line2}")
+        val motd = plugin.deserializeMotd(entry.line1, entry.line2)
         response.descriptionComponent = net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer.get().serialize(motd)[0]
 
         val socketAddress = event.connection.socketAddress as? InetSocketAddress

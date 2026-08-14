@@ -4,6 +4,7 @@ import app.simplecloud.plugin.proxy.bungeecord.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.bungeecord.handler.TabListHandler
 import app.simplecloud.plugin.proxy.bungeecord.listener.*
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
+import app.simplecloud.plugin.proxy.shared.format.MotdMiniMessageFormatter
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
 import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
 import app.simplecloud.plugin.proxy.shared.handler.command.LayoutCommandHandler
@@ -77,6 +78,16 @@ class ProxyBungeeCordPlugin: Plugin() {
         return this.miniMessage.deserialize(
             text,
             *configureTagResolversEvent.tagResolvers.toTypedArray()
+        )
+    }
+
+    fun deserializeMotd(line1: String, line2: String): Component {
+        val configureTagResolversEvent = this.proxy.pluginManager.callEvent(ConfigureTagResolversEvent(null))
+        return MotdMiniMessageFormatter.deserialize(
+            miniMessage,
+            line1,
+            line2,
+            configureTagResolversEvent.tagResolvers
         )
     }
 }

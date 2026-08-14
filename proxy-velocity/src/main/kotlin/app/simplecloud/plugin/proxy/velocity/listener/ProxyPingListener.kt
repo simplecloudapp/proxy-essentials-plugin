@@ -33,7 +33,7 @@ class ProxyPingListener(
         val entry = proxyPlugin.motdLayoutHandler.selectEntry(layout, layout.configVersion)
             ?: return
 
-        val motd = plugin.deserializeToComponent("${entry.line1}\n${entry.line2}")
+        val motd = plugin.deserializeMotd(entry.line1, entry.line2)
 
         val isLocalPing = localPingSourceMatcher.isLocal(event.connection.remoteAddress.address)
 
