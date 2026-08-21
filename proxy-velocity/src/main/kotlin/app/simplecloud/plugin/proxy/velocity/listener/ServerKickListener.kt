@@ -12,13 +12,13 @@ class ServerKickListener internal constructor(
         proxyPlugin.proxyEssentialsConfig.get().showKickReason
     })
 
-    @Subscribe(priority = Short.MAX_VALUE)
+    @Subscribe(priority = Short.MIN_VALUE)
     fun handle(event: KickedFromServerEvent) {
         if (!showKickReason()) return
+        if (event.result !is KickedFromServerEvent.DisconnectPlayer) return
 
         event.serverKickReason.ifPresent { serverReason ->
             event.result = KickedFromServerEvent.DisconnectPlayer.create(serverReason)
-            event.player.disconnect(serverReason)
         }
     }
 }
