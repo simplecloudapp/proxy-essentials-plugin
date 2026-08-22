@@ -4,6 +4,7 @@ import app.simplecloud.api.server.Server
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import kotlinx.coroutines.*
 import java.util.logging.Logger
+import kotlin.time.Duration.Companion.milliseconds
 
 class JoinStateHandler(
     private val proxyPlugin: ProxyPlugin
@@ -12,6 +13,7 @@ class JoinStateHandler(
     private val logger = Logger.getLogger(JoinStateHandler::class.java.name)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var groupStateSyncJob: Job? = null
+
     @Volatile
     private var lastObservedGroupState: String? = null
 
@@ -69,16 +71,49 @@ class JoinStateHandler(
             ?: defaultJoinState()
     }
 
-    suspend fun ensureJoinStateAtService(groupName: String, numericalId: Int): String {
-        val existingJoinState = proxyPlugin.cloudControllerHandler.getServiceProperty(groupName, numericalId, JOINSTATE_KEY)
+    suspend fun getJoinStateAtPersistentServer(serverName: String): String {
+        return proxyPlugin.cloudControllerHandler.getPersistentServerProperty(serverName, JOINSTATE_KEY)
+            ?: defaultJoinState()
+    }
+
+    suspend fun ensureJoinStateAtPersistentServer(serverName: String): String {
+        val existingJoinState =
+            proxyPlugin.cloudControllerHandler.getPersistentServerProperty(serverName, JOINSTATE_KEY)
+
         if (!existingJoinState.isNullOrBlank()) {
             return existingJoinState
         }
-        val fallbackState = proxyPlugin.cloudControllerHandler.getGroupProperty(groupName, JOINSTATE_KEY) ?: defaultJoinState()
-        if (!setJoinStateAtService(groupName, numericalId, fallbackState)) {
-            logger.warning("Could not persist default join state '$fallbackState' for service '$groupName-$numericalId'")
+
+        val fallbackState = defaultJoinState()
+
+        if (!setJoinStateAtPersistentServer(serverName, fallbackState)) {
+            logger.warning("Could not persist default join state '$fallbackState' for persistent server '$serverName'")
         }
+
         return fallbackState
+    }
+
+    suspend fun setJoinStateAtPersistentServer(serverName: String, joinStateName: String): Boolean {
+        val updated =
+            proxyPlugin.cloudControllerHandler.updatePersistentServerProperty(serverName, JOINSTATE_KEY, joinStateName)
+
+        if (updated) {
+            val currentServer = proxyPlugin.cloudControllerHandler.currentServer
+
+            if (currentServer != null && !currentServer.isFromGroup && currentServer.persistentServer?.name == serverName) {
+                val synchronized = proxyPlugin.cloudControllerHandler.updateServerProperty(
+                    currentServer.serverId,
+                    JOINSTATE_KEY,
+                    joinStateName
+                )
+
+                if (synchronized) {
+                    localState = joinStateName
+                }
+            }
+        }
+
+        return updated
     }
 
     suspend fun setJoinStateAtGroupAndAllServicesInGroup(groupName: String, joinStateName: String): Boolean {
@@ -106,7 +141,7 @@ class JoinStateHandler(
                 } catch (e: Exception) {
                     logger.severe("Error while syncing local/group join state: ${e.message}")
                 }
-                delay(2000)
+                delay(2000.milliseconds)
             }
         }
     }
@@ -140,7 +175,8 @@ class JoinStateHandler(
                 val groupName = server.group?.name ?: return
                 ensureJoinStateAtGroup(groupName)
             } else {
-                defaultJoinState()
+                val persistentName = server.persistentServer?.name
+                if (persistentName != null) ensureJoinStateAtPersistentServer(persistentName) else defaultJoinState()
             }
 
             proxyPlugin.cloudControllerHandler.updateServerProperty(server.serverId, JOINSTATE_KEY, stateToApply)
@@ -170,7 +206,8 @@ class JoinStateHandler(
 
         val serviceState = proxyPlugin.cloudControllerHandler.getServiceProperty(groupName, numericalId, JOINSTATE_KEY)
         if (serviceState.isNullOrBlank()) {
-            val synchronized = proxyPlugin.cloudControllerHandler.updateServerProperty(server.serverId, JOINSTATE_KEY, groupState)
+            val synchronized =
+                proxyPlugin.cloudControllerHandler.updateServerProperty(server.serverId, JOINSTATE_KEY, groupState)
             if (!synchronized) {
                 logger.warning("Could not synchronize missing service join state for '$groupName-$numericalId'")
                 return
@@ -190,7 +227,8 @@ class JoinStateHandler(
             return
         }
 
-        val synchronized = proxyPlugin.cloudControllerHandler.updateServerProperty(server.serverId, JOINSTATE_KEY, groupState)
+        val synchronized =
+            proxyPlugin.cloudControllerHandler.updateServerProperty(server.serverId, JOINSTATE_KEY, groupState)
         if (!synchronized) {
             logger.warning("Could not synchronize join state for '$groupName-$numericalId' with group state '$groupState'")
             return

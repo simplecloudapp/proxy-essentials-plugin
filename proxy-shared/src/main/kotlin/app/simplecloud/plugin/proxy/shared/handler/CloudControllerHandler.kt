@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
+import app.simplecloud.api.persistentserver.PersistentServer
 import app.simplecloud.api.server.Server
 import app.simplecloud.api.server.ServerQuery
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
@@ -62,6 +63,11 @@ class CloudControllerHandler(
             val joinState = server.properties?.get(JoinStateHandler.JOINSTATE_KEY)?.toString()
             if (!joinState.isNullOrEmpty()) {
                 joinStateHandler.localState = joinState
+            } else {
+                val persistentName = server.persistentServer?.name
+                if (persistentName != null) {
+                    joinStateHandler.localState = joinStateHandler.ensureJoinStateAtPersistentServer(persistentName)
+                }
             }
             plugin.motdLayoutHandler.setLocalLayout(server.properties?.get(MotdLayoutHandler.MOTD_LAYOUT_KEY)?.toString())
         }
@@ -69,11 +75,6 @@ class CloudControllerHandler(
 
     fun close() {
         scope.cancel()
-    }
-
-    suspend fun setCurrentServerProperty(key: String, value: String): Boolean {
-        val currentServerId = currentServer?.serverId ?: return false
-        return updateServerProperty(currentServerId, key, value)
     }
 
     suspend fun updateServerProperty(serverId: String, key: String, value: String): Boolean {
@@ -102,6 +103,51 @@ class CloudControllerHandler(
         null
     }
 
+    suspend fun groupExists(groupName: String): Boolean {
+        return try {
+            plugin.api.group().getGroupByName(groupName).await() != null
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    suspend fun getPersistentServerByName(name: String): PersistentServer? = try {
+        plugin.api.persistentServer().getPersistentServerByName(name).await()
+    } catch (e: Exception) {
+        logger.severe("Error retrieving persistent server '$name': ${e.message}")
+        null
+    }
+
+    suspend fun getPersistentServerProperty(name: String, key: String): String? {
+        return try {
+            getPersistentServerByName(name)?.properties?.get(key)?.toString()?.takeIf { it.isNotBlank() }
+        } catch (e: Exception) {
+            logger.severe("Error retrieving persistent server property: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun updatePersistentServerProperty(name: String, key: String, value: String): Boolean {
+        val persistentServer = getPersistentServerByName(name) ?: return false
+        return try {
+            plugin.api.persistentServer().updatePersistentServerProperty(persistentServer.persistentServerId, key, value).await()
+            logger.info("Persistent server property '$key' updated to '$value' for persistent server '$name'")
+            true
+        } catch (e: Exception) {
+            logger.severe("Error updating persistent server property: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun getAllPersistentServerNames(): List<String> {
+        return try {
+            plugin.api.persistentServer().allPersistentServers.await().map { it.name }
+        } catch (e: Exception) {
+            logger.severe("Error retrieving persistent servers: ${e.message}")
+            emptyList()
+        }
+    }
+
     suspend fun getServerByNumericalId(groupName: String, numericalId: Int): Server? = try {
         plugin.api.server().getAllServers(
             ServerQuery.create()
@@ -110,13 +156,6 @@ class CloudControllerHandler(
         ).await()?.firstOrNull()
     } catch (e: Exception) {
         logger.severe("Error retrieving server '$groupName-$numericalId': ${e.message}")
-        null
-    }
-
-    suspend fun getServerById(serverId: String): Server? = try {
-        plugin.api.server().getServerById(serverId).await()
-    } catch (e: Exception) {
-        logger.severe("Error retrieving server by ID '$serverId': ${e.message}")
         null
     }
 
@@ -172,7 +211,7 @@ class CloudControllerHandler(
 
     suspend fun getOnlinePlayersInGroup(groupName: String): Int {
         return try {
-            getServersByGroup(groupName).sumOf { it.playerCount?.toInt() ?: 0 }
+            getServersByGroup(groupName).sumOf { it.playerCount ?: 0 }
         } catch (e: Exception) {
             logger.severe("Error retrieving online players in group: ${e.message}")
             0

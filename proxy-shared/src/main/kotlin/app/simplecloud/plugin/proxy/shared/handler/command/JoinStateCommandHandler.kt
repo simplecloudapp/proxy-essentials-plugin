@@ -49,6 +49,7 @@ class JoinStateCommandHandler<C : CommandSender>(
         context.sender().sendMessage(entry.replace("<command>", "/scproxy joinstate info <group> <id>"))
         context.sender().sendMessage(entry.replace("<command>", "/scproxy joinstate set <group> <joinstate>"))
         context.sender().sendMessage(entry.replace("<command>", "/scproxy joinstate set <group> <id> <joinstate>"))
+        context.sender().sendMessage(entry.replace("<command>", "<group> can also be the name of a persistent server"))
     }
 
     // ── info ──────────────────────────────────────────────────────────────────
@@ -61,7 +62,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                 .literal("info")
                 .required("group", StringParser.stringParser()) { _, _ ->
                     runBlocking {
-                        proxyPlugin.cloudControllerHandler.getAllGroups()
+                        (proxyPlugin.cloudControllerHandler.getAllGroups() + proxyPlugin.cloudControllerHandler.getAllPersistentServerNames())
                             .map { Suggestion.suggestion(it) }
                             .let { CompletableFuture.completedFuture(it) }
                     }
@@ -92,7 +93,11 @@ class JoinStateCommandHandler<C : CommandSender>(
                                     .replace("<state>", state)
                             )
                         } else {
-                            val state = proxyPlugin.joinStateHandler.getJoinStateAtGroup(group)
+                            val state = if (proxyPlugin.cloudControllerHandler.groupExists(group)) {
+                                proxyPlugin.joinStateHandler.getJoinStateAtGroup(group)
+                            } else {
+                                proxyPlugin.joinStateHandler.getJoinStateAtPersistentServer(group)
+                            }
                             context.sender().sendMessage(
                                 msgs.resolve(msgs.command.joinState.list.groups.entry)
                                     .replace("<group>", group)
@@ -117,7 +122,7 @@ class JoinStateCommandHandler<C : CommandSender>(
                 .literal("set")
                 .required("group", StringParser.stringParser()) { _, _ ->
                     runBlocking {
-                        proxyPlugin.cloudControllerHandler.getAllGroups()
+                        (proxyPlugin.cloudControllerHandler.getAllGroups() + proxyPlugin.cloudControllerHandler.getAllPersistentServerNames())
                             .map { Suggestion.suggestion(it) }
                             .let { CompletableFuture.completedFuture(it) }
                     }
@@ -176,14 +181,27 @@ class JoinStateCommandHandler<C : CommandSender>(
             sender.sendMessage(msgs.resolve(msgs.command.joinState.group.updateFailure))
             return
         }
-        if (proxyPlugin.joinStateHandler.getJoinStateAtGroup(group) == state) {
-            sender.sendMessage(msgs.resolve(msgs.command.joinState.group.updateNoChange))
+        if (proxyPlugin.cloudControllerHandler.groupExists(group)) {
+            if (proxyPlugin.joinStateHandler.getJoinStateAtGroup(group) == state) {
+                sender.sendMessage(msgs.resolve(msgs.command.joinState.group.updateNoChange))
+                return
+            }
+            val success = proxyPlugin.joinStateHandler.setJoinStateAtGroupAndAllServicesInGroup(group, state)
+            sender.sendMessage(
+                if (success) msgs.resolve(msgs.command.joinState.group.updateSuccess)
+                else msgs.resolve(msgs.command.joinState.group.updateFailure)
+            )
             return
         }
-        val success = proxyPlugin.joinStateHandler.setJoinStateAtGroupAndAllServicesInGroup(group, state)
+
+        if (proxyPlugin.joinStateHandler.getJoinStateAtPersistentServer(group) == state) {
+            sender.sendMessage(msgs.resolve(msgs.command.joinState.server.updateNoChange))
+            return
+        }
+        val success = proxyPlugin.joinStateHandler.setJoinStateAtPersistentServer(group, state)
         sender.sendMessage(
-            if (success) msgs.resolve(msgs.command.joinState.group.updateSuccess)
-            else msgs.resolve(msgs.command.joinState.group.updateFailure)
+            if (success) msgs.resolve(msgs.command.joinState.server.updateSuccess)
+            else msgs.resolve(msgs.command.joinState.server.updateFailure)
         )
     }
 

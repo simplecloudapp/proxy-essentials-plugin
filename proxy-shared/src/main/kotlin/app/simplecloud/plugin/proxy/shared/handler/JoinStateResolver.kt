@@ -42,6 +42,11 @@ class JoinStateResolver(
             if (!joinState.isNullOrEmpty()) {
                 return joinState
             }
+
+            val persistentName = server.persistentServer?.name
+            if (persistentName != null) {
+                return proxyPlugin.joinStateHandler.getJoinStateAtPersistentServer(persistentName)
+            }
         }
 
         return proxyPlugin.proxyEssentialsConfig.get().initialState
