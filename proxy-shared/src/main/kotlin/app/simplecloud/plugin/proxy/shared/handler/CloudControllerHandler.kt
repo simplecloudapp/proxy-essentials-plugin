@@ -98,25 +98,40 @@ class CloudControllerHandler(
 
     private suspend fun getGroupByName(groupName: String) = try {
         plugin.api.group().getGroupByName(groupName).await()
-    } catch (e: Exception) {
-        logger.severe("Error retrieving group '$groupName': ${e.message}")
-        null
+            ?: findGroupCaseInsensitive(groupName)
+    } catch (_: Exception) {
+        try {
+            findGroupCaseInsensitive(groupName)
+        } catch (e2: Exception) {
+            logger.severe("Error retrieving group '$groupName': ${e2.message}")
+            null
+        }
     }
 
+    private suspend fun findGroupCaseInsensitive(groupName: String) =
+        plugin.api.group().allGroups.await().firstOrNull { it.name.equals(groupName, ignoreCase = true) }
+
+    private suspend fun resolveGroupNameCasing(groupName: String): String =
+        getGroupByName(groupName)?.name ?: groupName
+
     suspend fun groupExists(groupName: String): Boolean {
-        return try {
-            plugin.api.group().getGroupByName(groupName).await() != null
-        } catch (_: Exception) {
-            false
-        }
+        return getGroupByName(groupName) != null
     }
 
     suspend fun getPersistentServerByName(name: String): PersistentServer? = try {
         plugin.api.persistentServer().getPersistentServerByName(name).await()
-    } catch (e: Exception) {
-        logger.severe("Error retrieving persistent server '$name': ${e.message}")
-        null
+            ?: findPersistentServerCaseInsensitive(name)
+    } catch (_: Exception) {
+        try {
+            findPersistentServerCaseInsensitive(name)
+        } catch (e2: Exception) {
+            logger.severe("Error retrieving persistent server '$name': ${e2.message}")
+            null
+        }
     }
+
+    private suspend fun findPersistentServerCaseInsensitive(name: String) =
+        plugin.api.persistentServer().allPersistentServers.await().firstOrNull { it.name.equals(name, ignoreCase = true) }
 
     suspend fun getPersistentServerProperty(name: String, key: String): String? {
         return try {
@@ -151,7 +166,7 @@ class CloudControllerHandler(
     suspend fun getServerByNumericalId(groupName: String, numericalId: Int): Server? = try {
         plugin.api.server().getAllServers(
             ServerQuery.create()
-                .filterByServerGroupName(groupName)
+                .filterByServerGroupName(resolveGroupNameCasing(groupName))
                 .filterByNumericalId(numericalId)
         ).await()?.firstOrNull()
     } catch (e: Exception) {
@@ -162,7 +177,7 @@ class CloudControllerHandler(
     suspend fun getServersByGroup(groupName: String): List<Server> = try {
         plugin.api.server().getAllServers(
             ServerQuery.create()
-                .filterByServerGroupName(groupName)
+                .filterByServerGroupName(resolveGroupNameCasing(groupName))
         ).await() ?: emptyList()
     } catch (e: Exception) {
         logger.severe("Error retrieving servers for group '$groupName': ${e.message}")

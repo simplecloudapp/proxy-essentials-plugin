@@ -9,6 +9,7 @@ import app.simplecloud.plugin.proxy.shared.config.YamlConfig
 import app.simplecloud.plugin.proxy.shared.config.message.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.handler.CloudControllerHandler
+import app.simplecloud.plugin.proxy.shared.handler.DomainMotdHandler
 import app.simplecloud.plugin.proxy.shared.handler.JoinStateHandler
 import app.simplecloud.plugin.proxy.shared.handler.JoinStateResolver
 import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
@@ -40,12 +41,17 @@ class ProxyPlugin(
     val playerCountHandler = PlayerCountHandler(this).also { it.start() }
     val joinStateResolver = JoinStateResolver(this)
     val tabListResolver = TabListResolver { proxyEssentialsConfig.get().tablist }
+    val domainMotdHandler = DomainMotdHandler(this).also {
+        it.registerListener()
+        it.startSyncTask()
+    }
 
     fun shutdown() {
         playerCountHandler.stop()
         joinStateHandler.stop()
         cloudControllerHandler.close()
         motdLayoutHandler.close()
+        domainMotdHandler.stop()
         config.close()
     }
 }

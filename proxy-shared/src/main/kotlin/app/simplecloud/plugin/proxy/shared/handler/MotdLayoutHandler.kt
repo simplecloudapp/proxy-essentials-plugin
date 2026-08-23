@@ -56,6 +56,9 @@ class MotdLayoutHandler(
     private fun getMotdLayout(name: String): MotdLayoutConfiguration =
         entities[directory.resolve("${name}.yml").toFile()] ?: MotdLayoutConfiguration()
 
+    fun getLayoutByName(name: String): MotdLayoutConfiguration? =
+        entities[directory.resolve("${name}.yml").toFile()]
+
     fun getCurrentMotdLayout(): MotdLayoutConfiguration {
         val layoutName = localLayout?.takeIf(::hasLayout) ?: fallbackLayoutName()
         return getMotdLayout(layoutName)

@@ -24,7 +24,11 @@ class ProxyPingListener(
 
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
-        val layout = plugin.proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
+        val virtualHost = event.connection.virtualHost?.hostName
+        val layout = virtualHost
+            ?.let { plugin.proxyPlugin.domainMotdHandler.getLayoutNameForDomain(it) }
+            ?.let { plugin.proxyPlugin.motdLayoutHandler.getLayoutByName(it) }
+            ?: plugin.proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
 
         if (!layout.motd.enabled) return
 
@@ -70,7 +74,7 @@ class ProxyPingListener(
 
             // version name
             if (layout.versionSettings.name.enabled) {
-                response.version = Protocol(layout.versionSettings.name.text, -1)
+                response.version = Protocol(layout.versionSettings.name.text, response.version.protocol)
             }
         }
     }

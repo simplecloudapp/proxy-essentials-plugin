@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.shared.config
 
+import app.simplecloud.plugin.proxy.shared.config.domain.DomainMotdRoute
 import app.simplecloud.plugin.proxy.shared.config.state.JoinState
 import app.simplecloud.plugin.proxy.shared.config.state.JoinStatePermission
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabList
@@ -25,6 +26,7 @@ data class ProxyEssentialsConfig(
             "maintenance"
         )
     ),
+    val domains: List<DomainMotdRoute> = listOf(),
     val whitelist: WhitelistConfig = WhitelistConfig(),
     @Setting("player-count") val playerCount: PlayerCountConfig = PlayerCountConfig(),
     val tablist: List<TabListGroup> = listOf(

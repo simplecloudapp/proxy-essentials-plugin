@@ -26,17 +26,18 @@ class ProxyPingListener(
 
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
-        val layout = proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
+        val virtualHost = event.connection.virtualHost.getOrNull()?.hostName
+        val layout = virtualHost
+            ?.let { proxyPlugin.domainMotdHandler.getLayoutNameForDomain(it) }
+            ?.let { proxyPlugin.motdLayoutHandler.getLayoutByName(it) }
+            ?: proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
 
         if (!layout.motd.enabled) return
 
         val entry = proxyPlugin.motdLayoutHandler.selectEntry(layout, layout.configVersion)
             ?: return
-
         val motd = plugin.deserializeMotd(entry.line1, entry.line2)
-
         val isLocalPing = localPingSourceMatcher.isLocal(event.connection.remoteAddress.address)
-
         val builder = event.ping.asBuilder().description(motd)
 
         // server icon
@@ -52,11 +53,12 @@ class ProxyPingListener(
             val onlinePlayers = playerCountHandler.onlinePlayers(plugin.proxyServer.allPlayers.size)
             val realMax = playerCountHandler.maxPlayers(plugin.proxyServer.configuration.showMaxPlayers)
 
-            val samplePlayers: List<SamplePlayer> = if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
-                layout.playerList.entries.map { SamplePlayer(it, UUID.randomUUID()) }
-            } else {
-                players?.sample ?: emptyList()
-            }
+            val samplePlayers: List<SamplePlayer> =
+                if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
+                    layout.playerList.entries.map { SamplePlayer(it, UUID.randomUUID()) }
+                } else {
+                    players?.sample ?: emptyList()
+                }
 
             // slots
             val maxPlayers = if (layout.versionSettings.slots.enabled) {
@@ -76,7 +78,7 @@ class ProxyPingListener(
 
             // version name
             if (layout.versionSettings.name.enabled) {
-                builder.version(ServerPing.Version(-1, layout.versionSettings.name.text))
+                builder.version(ServerPing.Version(event.ping.version.protocol, layout.versionSettings.name.text))
             }
         }
 
