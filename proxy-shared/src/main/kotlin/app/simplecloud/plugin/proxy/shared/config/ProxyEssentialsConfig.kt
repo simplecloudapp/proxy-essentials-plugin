@@ -1,42 +1,22 @@
 package app.simplecloud.plugin.proxy.shared.config
 
-import app.simplecloud.plugin.proxy.shared.config.domain.DomainMotdRoute
-import app.simplecloud.plugin.proxy.shared.config.state.JoinState
-import app.simplecloud.plugin.proxy.shared.config.state.JoinStatePermission
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabList
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
-import app.simplecloud.plugin.proxy.shared.config.state.WhitelistConfig
+import app.simplecloud.plugin.api.shared.config.VersionedConfig
+import app.simplecloud.plugin.proxy.shared.utilities.config.ConfigVersion
+import app.simplecloud.plugin.proxy.shared.utilities.config.DefaultConfigs
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
-import org.spongepowered.configurate.objectmapping.meta.Setting
 
 @ConfigSerializable
 data class ProxyEssentialsConfig(
-    val version: String = "2",
-    @Setting("initial-state") val initialState: String = "public",
-    @Setting("initial-layout") val initialLayout: String = "public",
-    @Setting("show-kick-reason") val showKickReason: Boolean = false,
-    val joinstates: List<JoinState> = listOf(
-        JoinState("public", JoinStatePermission("", "simplecloud.proxy-essentials.join.full.public")),
-        JoinState(
-            "maintenance",
-            JoinStatePermission(
-                "simplecloud.proxy-essentials.join.maintenance",
-                "simplecloud.proxy-essentials.join.maintenance"
-            ),
-            "maintenance"
-        )
-    ),
+    override val version: Int = ConfigVersion.VERSION,
+    val initialState: String = "public",
+    val initialLayout: String = "public",
+    val showKickReason: Boolean = false,
+    val joinstates: List<JoinState> = DefaultConfigs.JOIN_STATES,
     val domains: List<DomainMotdRoute> = listOf(),
     val whitelist: WhitelistConfig = WhitelistConfig(),
-    @Setting("player-count") val playerCount: PlayerCountConfig = PlayerCountConfig(),
-    val tablist: List<TabListGroup> = listOf(
-        TabListGroup(
-            name = "global",
-            layout = listOf(TabList()),
-            updateTime = 20L
-        )
-    )
-) {
+    val playerCount: PlayerCountConfig = PlayerCountConfig(),
+    val tablist: List<TabListGroup> = DefaultConfigs.TABLIST_GROUPS
+) : VersionedConfig {
     fun tabListUpdateTimeMillis(): Long {
         val ticks = tablist.minOfOrNull { it.updateTime } ?: 20L
         return ticks * 50L
@@ -50,3 +30,56 @@ data class ProxyEssentialsConfig(
         return playerCount.updateTime * 50L
     }
 }
+
+@ConfigSerializable
+data class JoinState(
+    val name: String = "",
+    val permission: JoinStatePermission = JoinStatePermission(),
+    val forcedMotdLayout: String? = null
+)
+
+@ConfigSerializable
+data class JoinStatePermission(
+    val join: String = "",
+    val full: String = ""
+)
+
+@ConfigSerializable
+data class DomainMotdRoute(
+    val domain: String = "",
+    val target: String = "",
+    val rules: List<DomainMotdRule> = listOf()
+)
+
+@ConfigSerializable
+data class DomainMotdRule(
+    val state: String = "",
+    val layout: String = ""
+)
+
+@ConfigSerializable
+data class WhitelistConfig(
+    val enabled: Boolean = true,
+    val players: List<String> = listOf("Notch")
+)
+
+@ConfigSerializable
+data class PlayerCountConfig(
+    val enabled: Boolean = true,
+    val additionalGroups: List<String> = emptyList(),
+    val additionalPersistentServers: List<String> = emptyList(),
+    val updateTime: Long = 20L
+)
+
+@ConfigSerializable
+data class TabListGroup(
+    val name: String = "*",
+    val layout: List<TabList> = listOf(TabList()),
+    val updateTime: Long = 20L,
+)
+
+@ConfigSerializable
+data class TabList(
+    val header: String = "<br><color:#0ea5e9>SimpleCloud v3<br>",
+    val footer: String = "<br> <color:#ffffff><online_players> players <color:#cbd5e1>are playing on your network <br> <color:#64748b>  sɪᴍᴘʟᴇᴄʟᴏᴜᴅ.ᴀᴘᴘ<br>",
+)

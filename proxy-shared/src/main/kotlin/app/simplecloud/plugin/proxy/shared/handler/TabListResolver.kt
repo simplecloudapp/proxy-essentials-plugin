@@ -1,6 +1,6 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
-import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
+import app.simplecloud.plugin.proxy.shared.config.TabListGroup
 
 class TabListResolver(
     private val getTabListGroups: () -> List<TabListGroup>

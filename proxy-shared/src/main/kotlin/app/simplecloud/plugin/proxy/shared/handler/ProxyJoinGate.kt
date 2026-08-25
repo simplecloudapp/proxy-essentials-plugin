@@ -1,7 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
-import app.simplecloud.plugin.proxy.shared.config.message.KickMessageConfig
-import app.simplecloud.plugin.proxy.shared.config.state.JoinState
+import app.simplecloud.plugin.proxy.shared.config.KickMessageConfig
+import app.simplecloud.plugin.proxy.shared.config.JoinState
 import java.util.logging.Logger
 
 class ProxyJoinGate(

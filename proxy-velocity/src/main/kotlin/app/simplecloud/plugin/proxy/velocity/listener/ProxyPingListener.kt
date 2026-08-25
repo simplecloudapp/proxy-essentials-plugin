@@ -1,9 +1,9 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
-import app.simplecloud.plugin.proxy.shared.handler.LocalPingSourceMatcher
-import app.simplecloud.plugin.proxy.shared.handler.ServerIconLoader
+import app.simplecloud.plugin.proxy.shared.config.MaxPlayerDisplayType
+import app.simplecloud.plugin.proxy.shared.utilities.LocalPingSourceMatcher
+import app.simplecloud.plugin.proxy.shared.utilities.ServerIconLoader
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyPingEvent
@@ -54,18 +54,18 @@ class ProxyPingListener(
             val realMax = playerCountHandler.maxPlayers(plugin.proxyServer.configuration.showMaxPlayers)
 
             val samplePlayers: List<SamplePlayer> =
-                if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
-                    layout.playerList.entries.map { SamplePlayer(it, UUID.randomUUID()) }
+                if (layout.playerList.enabled && layout.playerList.playerList.isNotEmpty()) {
+                    layout.playerList.playerList.map { SamplePlayer(it, UUID.randomUUID()) }
                 } else {
                     players?.sample ?: emptyList()
                 }
 
             // slots
-            val maxPlayers = if (layout.versionSettings.slots.enabled) {
-                when (layout.versionSettings.slots.type) {
+            val maxPlayers = if (layout.version.slots.enabled) {
+                when (layout.version.slots.type) {
                     MaxPlayerDisplayType.REAL -> realMax
-                    MaxPlayerDisplayType.FAKE -> layout.versionSettings.slots.fakeSlots
-                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.versionSettings.slots.dynamicPlayerRange
+                    MaxPlayerDisplayType.FAKE -> layout.version.slots.fakeSlots
+                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.version.slots.dynamicPlayerRange
                 }
             } else {
                 realMax
@@ -77,8 +77,8 @@ class ProxyPingListener(
                 .samplePlayers(*samplePlayers.toTypedArray())
 
             // version name
-            if (layout.versionSettings.name.enabled) {
-                builder.version(ServerPing.Version(event.ping.version.protocol, layout.versionSettings.name.text))
+            if (layout.version.name.enabled) {
+                builder.version(ServerPing.Version(event.ping.version.protocol, layout.version.name.text))
             }
         }
 

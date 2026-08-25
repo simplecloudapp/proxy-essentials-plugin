@@ -2,7 +2,7 @@ package app.simplecloud.plugin.proxy.shared.handler
 
 import app.simplecloud.plugin.api.shared.pattern.ServerPatternIdentifier
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.config.state.JoinState
+import app.simplecloud.plugin.proxy.shared.config.JoinState
 import java.util.logging.Logger
 
 class JoinStateResolver(

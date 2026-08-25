@@ -25,6 +25,7 @@ object MotdMiniMessageFormatter {
     private const val SPACE_WIDTH = 4
     private const val PIXEL_PADDING_CHARACTER = '\u200c'
     private val defaultFont = Key.key("minecraft", "default")
+    private val mergesWithoutInsertion = Style.Merge.all().minus(Style.Merge.INSERTION)
 
     private val centerTagResolver = TagResolver.resolver(CENTER_TAG) { _, _ ->
         Tag.inserting(Component.empty().insertion(CENTER_MARKER))
@@ -46,6 +47,11 @@ object MotdMiniMessageFormatter {
             .append(applyCentering(miniMessage.deserialize(line2, *resolvers)))
     }
 
+    /** Drops the [CENTER_MARKER] insertion again once the marked component has been measured. */
+    private fun clearInsertion(style: Style): Style {
+        return Style.empty().merge(style, Style.Merge.Strategy.ALWAYS, mergesWithoutInsertion)
+    }
+
     private fun applyCentering(component: Component, inheritedStyle: Style = Style.empty()): Component {
         val style = component.style().merge(inheritedStyle, Style.Merge.Strategy.IF_ABSENT_ON_TARGET)
         var processed = component.children(
@@ -55,7 +61,7 @@ object MotdMiniMessageFormatter {
         // Resolve on the finished tree so styles outside <center> and inserted components are measurable.
         if (processed.insertion() != CENTER_MARKER) return processed
 
-        processed = processed.insertion(null)
+        processed = processed.style(clearInsertion(processed.style()))
         val contentWidth = MinecraftTextWidth.width(processed, inheritedStyle)
         val paddingWidth = ((MOTD_CENTER_WIDTH - contentWidth) / 2f)
             .roundToInt()
@@ -90,6 +96,7 @@ internal object MinecraftTextWidth {
     private const val UNIHEX_BOLD_OFFSET = 0.5f
     private const val UNICODE_CODE_POINT_COUNT = 0x110000
     private val defaultFont = Key.key("minecraft", "default")
+    private val mergesWithoutInsertion = Style.Merge.all().minus(Style.Merge.INSERTION)
     private val altFont = Key.key("minecraft", "alt")
     private val uniformFont = Key.key("minecraft", "uniform")
 

@@ -2,12 +2,12 @@ package app.simplecloud.plugin.proxy.shared
 
 import app.simplecloud.api.CloudApi
 import app.simplecloud.api.CloudApiOptions
+import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.proxy.shared.config.DefaultConfigInstaller
+import app.simplecloud.plugin.proxy.shared.config.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.OldConfigMigrator
+import app.simplecloud.plugin.proxy.shared.config.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
-import app.simplecloud.plugin.proxy.shared.config.YamlConfig
-import app.simplecloud.plugin.proxy.shared.config.message.MessageConfig
-import app.simplecloud.plugin.proxy.shared.config.placeholder.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.handler.CloudControllerHandler
 import app.simplecloud.plugin.proxy.shared.handler.DomainMotdHandler
 import app.simplecloud.plugin.proxy.shared.handler.JoinStateHandler
@@ -17,23 +17,27 @@ import app.simplecloud.plugin.proxy.shared.handler.PlayerCountHandler
 import app.simplecloud.plugin.proxy.shared.handler.ProxyJoinGate
 import app.simplecloud.plugin.proxy.shared.handler.TabListResolver
 import java.io.File
-import java.nio.file.Path
 
 class ProxyPlugin(
     dirPath: String
 ) {
     val api = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
 
+    private val dataDirectory = File(dirPath)
+
     init {
-        val dataDirectory = Path.of(dirPath)
-        OldConfigMigrator.migrate(dataDirectory)
-        DefaultConfigInstaller.install(dataDirectory, javaClass.classLoader)
+        dataDirectory.mkdirs()
+        OldConfigMigrator.migrate(dataDirectory.toPath())
+        DefaultConfigInstaller.install(dataDirectory.toPath(), javaClass.classLoader)
     }
 
-    val config = YamlConfig(dirPath)
-    val proxyEssentialsConfig = config.load<ProxyEssentialsConfig>("config")
-    val placeHolderConfiguration = config.load<PlaceHolderConfiguration>("placeholder")
-    val messagesConfiguration = config.load<MessageConfig>("messages")
+    val proxyEssentialsConfig = ConfigurationFactory(File(dataDirectory, "config.yml"), ProxyEssentialsConfig::class.java)
+    val messagesConfiguration = ConfigurationFactory(File(dataDirectory, "messages.yml"), MessageConfig::class.java)
+    val placeHolderConfiguration = ConfigurationFactory(File(dataDirectory, "placeholder.yml"), PlaceHolderConfiguration::class.java)
+
+    init {
+        loadConfigurations()
+    }
 
     val serverIconsPath = "$dirPath/layout/server-icons"
     val motdLayoutHandler = MotdLayoutHandler(File("$dirPath/layout").toPath(), this)
@@ -53,12 +57,21 @@ class ProxyPlugin(
         it.startSyncTask()
     }
 
+    fun reload() {
+        loadConfigurations()
+        motdLayoutHandler.loadMotdLayouts()
+    }
+
     fun shutdown() {
         playerCountHandler.stop()
         joinStateHandler.stop()
         cloudControllerHandler.close()
-        motdLayoutHandler.close()
         domainMotdHandler.stop()
-        config.close()
+    }
+
+    private fun loadConfigurations() {
+        proxyEssentialsConfig.loadOrCreate(ProxyEssentialsConfig())
+        messagesConfiguration.loadOrCreate(MessageConfig())
+        placeHolderConfiguration.loadOrCreate(PlaceHolderConfiguration())
     }
 }

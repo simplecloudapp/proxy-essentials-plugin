@@ -1,4 +1,4 @@
-package app.simplecloud.plugin.proxy.shared.handler
+package app.simplecloud.plugin.proxy.shared.utilities
 
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage

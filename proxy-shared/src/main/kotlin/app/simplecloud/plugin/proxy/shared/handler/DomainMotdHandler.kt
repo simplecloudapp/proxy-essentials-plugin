@@ -1,7 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.handler
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.config.domain.DomainMotdRoute
+import app.simplecloud.plugin.proxy.shared.config.DomainMotdRoute
 import kotlinx.coroutines.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger

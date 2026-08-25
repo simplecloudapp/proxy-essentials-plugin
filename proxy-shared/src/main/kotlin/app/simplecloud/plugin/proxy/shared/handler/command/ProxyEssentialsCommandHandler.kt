@@ -42,6 +42,7 @@ class ProxyEssentialsCommandHandler<C : CommandSender>(
         val helpEntry = msgs.command.joinState.help.entry
         sender.sendMessage(msgs.resolve("<prefix>Available /scproxy commands:"))
         sender.sendMessage(helpEntry.replace("<command>", "/scproxy help"))
+        sender.sendMessage(helpEntry.replace("<command>", "/scproxy reload"))
         sender.sendMessage(helpEntry.replace("<command>", "/scproxy joinstate help"))
         sender.sendMessage(helpEntry.replace("<command>", "/scproxy joinstate info <group>"))
         sender.sendMessage(helpEntry.replace("<command>", "/scproxy joinstate info <group> <id>"))
@@ -56,32 +57,30 @@ class ProxyEssentialsCommandHandler<C : CommandSender>(
         commandManager.command(
             commandManager.commandBuilder("scproxy")
                 .literal("reload")
-                .permission("simplecloud.proxy-essentials.command.help")
-                .handler { context: CommandContext<C> ->
-                    val sender = context.sender()
-
-                    CoroutineScope(Dispatchers.IO).launch {
-                        try {
-                            proxyPlugin.messagesConfiguration.reload()
-                            val messages = proxyPlugin.messagesConfiguration.get()
-                            sender.sendMessage(messages.resolve(messages.command.reload.start))
-
-                            proxyPlugin.proxyEssentialsConfig.reload()
-                            proxyPlugin.placeHolderConfiguration.reload()
-                            proxyPlugin.motdLayoutHandler.loadMotdLayouts()
-
-                            sender.sendMessage(messages.resolve(messages.command.reload.success))
-                        } catch (e: Exception) {
-                            val messages = proxyPlugin.messagesConfiguration.get()
-                            sender.sendMessage(
-                                messages.resolve(messages.command.reload.failure)
-                                    .replace("<error>", e.message ?: "Unknown error")
-                            )
-                            logger.log(Level.SEVERE, "Error reloading configuration", e)
-                        }
-                    }
-                }
+                .permission("simplecloud.proxy-essentials.command.reload")
+                .handler { context: CommandContext<C> -> reload(context.sender()) }
                 .build()
         )
+    }
+
+    private fun reload(sender: C) {
+        val messagesBeforeReload = proxyPlugin.messagesConfiguration.get()
+        sender.sendMessage(messagesBeforeReload.resolve(messagesBeforeReload.command.reload.start))
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                proxyPlugin.reload()
+
+                val messages = proxyPlugin.messagesConfiguration.get()
+                sender.sendMessage(messages.resolve(messages.command.reload.success))
+            } catch (e: Exception) {
+                val messages = proxyPlugin.messagesConfiguration.get()
+                sender.sendMessage(
+                    messages.resolve(messages.command.reload.failure)
+                        .replace("<error>", e.message ?: "Unknown error")
+                )
+                logger.log(Level.SEVERE, "Error reloading configuration", e)
+            }
+        }
     }
 }

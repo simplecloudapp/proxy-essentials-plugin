@@ -1,7 +1,5 @@
 package app.simplecloud.plugin.proxy.shared.config
 
-import app.simplecloud.plugin.proxy.shared.config.message.MessageConfig
-import app.simplecloud.plugin.proxy.shared.config.state.WhitelistConfig
 import org.spongepowered.configurate.CommentedConfigurationNode
 import org.spongepowered.configurate.kotlin.objectMapperFactory
 import org.spongepowered.configurate.yaml.NodeStyle
@@ -232,7 +230,7 @@ object OldConfigMigrator {
         val target = loader.createNode()
 
         target.node("version").set(defaults.version)
-        target.node("variables").set(mapOf("prefix" to defaults.variables.prefix))
+        target.node("variables").set(defaults.variables)
         target.node("kick").set(
             mapOf(
                 "no-permission" to source.node("kick-message", "no-permission").stringOr(defaults.kick.noPermission),
@@ -330,19 +328,38 @@ object OldConfigMigrator {
         if (!Files.exists(path)) return
 
         val source = path.loadYaml()
-        if (source.node("current-date-format").virtual() && source.node("current-time-format").virtual()) return
+        val legacyCamelCase = !source.node("currentDateFormat").virtual() || !source.node("currentTimeFormat").virtual()
+        val legacyKebabCase = !source.node("current-date-format").virtual() &&
+            source.node("ping-colors").empty() &&
+            !source.node("pingColors").empty()
+        if (!legacyCamelCase && !legacyKebabCase) return
+
+        val defaults = PlaceHolderConfiguration()
+        val pingColors = source.node("ping-colors")
+            .childrenList()
+            .ifEmpty { source.node("pingColors").childrenList() }
 
         val loader = createLoader(path)
         val target = loader.createNode()
-        target.node("currentDateFormat").set(source.node("current-date-format").string ?: "dd.MM.yyyy")
-        target.node("currentTimeFormat").set(source.node("current-time-format").string ?: "HH:mm:ss")
-        target.node("pingColors").set(
-            source.node("ping-colors").childrenList().map { color ->
-                mapOf(
-                    "ping" to color.node("ping").int,
-                    "color" to color.node("color").string.orEmpty()
-                )
-            }
+        target.node("current-date-format").set(
+            source.node("current-date-format").string
+                ?: source.node("currentDateFormat").string
+                ?: defaults.currentDateFormat
+        )
+        target.node("current-time-format").set(
+            source.node("current-time-format").string
+                ?: source.node("currentTimeFormat").string
+                ?: defaults.currentTimeFormat
+        )
+        target.node("ping-colors").set(
+            pingColors
+                .map { color ->
+                    mapOf(
+                        "ping" to color.node("ping").int,
+                        "color" to color.node("color").string.orEmpty()
+                    )
+                }
+                .ifEmpty { defaults.pingColors.map { mapOf("ping" to it.ping, "color" to it.color) } }
         )
 
         loader.save(target)
@@ -354,9 +371,34 @@ object OldConfigMigrator {
         Files.list(layoutDirectory).use { paths ->
             paths
                 .filter { it.isRegularFile() && it.extension == "yml" }
-                .forEach(::migrateLayout)
+                .forEach { path ->
+                    removeStaleLayoutVersionLine(path)
+                    migrateLayout(path)
+                }
         }
         deleteGeneratedDefaultLayoutIfPublicExists(layoutDirectory)
+    }
+
+    /**
+     * Layouts migrated by older plugin versions can still carry the legacy `version: '1'`
+     * scalar in front of the `version:` section, which makes the file fail to parse.
+     */
+    private fun removeStaleLayoutVersionLine(path: Path) {
+        val lines = Files.readString(path).lines().toMutableList()
+        val firstContentIndex = lines.indexOfFirst { it.isNotBlank() }
+        if (firstContentIndex == -1 || !lines[firstContentIndex].isLegacyLayoutVersionLine()) return
+        if (lines.drop(firstContentIndex + 1).none { it.trim() == "version:" }) return
+
+        lines.removeAt(firstContentIndex)
+        if (firstContentIndex < lines.size && lines[firstContentIndex].isBlank()) {
+            lines.removeAt(firstContentIndex)
+        }
+        Files.writeString(path, lines.joinToString(System.lineSeparator()))
+    }
+
+    private fun String.isLegacyLayoutVersionLine(): Boolean {
+        val trimmed = trim()
+        return trimmed == "version: '1'" || trimmed == "version: \"1\"" || trimmed == "version: 1"
     }
 
     private fun migrateLayout(path: Path) {

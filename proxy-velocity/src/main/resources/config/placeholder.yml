@@ -1,6 +1,6 @@
-currentDateFormat: "dd.MM.yyyy"
-currentTimeFormat: "HH:mm:ss"
-pingColors:
+current-date-format: "dd.MM.yyyy"
+current-time-format: "HH:mm:ss"
+ping-colors:
   - ping: 0
     color: "<green>"
   - ping: 50

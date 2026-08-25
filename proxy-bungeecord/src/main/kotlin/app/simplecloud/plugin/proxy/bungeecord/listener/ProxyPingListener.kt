@@ -1,9 +1,9 @@
 package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
-import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
-import app.simplecloud.plugin.proxy.shared.handler.LocalPingSourceMatcher
-import app.simplecloud.plugin.proxy.shared.handler.ServerIconLoader
+import app.simplecloud.plugin.proxy.shared.config.MaxPlayerDisplayType
+import app.simplecloud.plugin.proxy.shared.utilities.LocalPingSourceMatcher
+import app.simplecloud.plugin.proxy.shared.utilities.ServerIconLoader
 import net.md_5.bungee.api.Favicon
 import net.md_5.bungee.api.ServerPing.*
 import net.md_5.bungee.api.event.ProxyPingEvent
@@ -50,8 +50,8 @@ class ProxyPingListener(
 
         if (!isLocalPing) {
             // player list (hover text)
-            val samplePlayers = if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
-                layout.playerList.entries.map { PlayerInfo(it, UUID.randomUUID()) }.toTypedArray()
+            val samplePlayers = if (layout.playerList.enabled && layout.playerList.playerList.isNotEmpty()) {
+                layout.playerList.playerList.map { PlayerInfo(it, UUID.randomUUID()) }.toTypedArray()
             } else {
                 response.players.sample
             }
@@ -60,11 +60,11 @@ class ProxyPingListener(
             val playerCountHandler = plugin.proxyPlugin.playerCountHandler
             val onlinePlayers = playerCountHandler.onlinePlayers(plugin.proxy.players.size)
             val realMax = playerCountHandler.maxPlayers(plugin.proxy.config.playerLimit)
-            val maxPlayers = if (layout.versionSettings.slots.enabled) {
-                when (layout.versionSettings.slots.type) {
+            val maxPlayers = if (layout.version.slots.enabled) {
+                when (layout.version.slots.type) {
                     MaxPlayerDisplayType.REAL -> realMax
-                    MaxPlayerDisplayType.FAKE -> layout.versionSettings.slots.fakeSlots
-                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.versionSettings.slots.dynamicPlayerRange
+                    MaxPlayerDisplayType.FAKE -> layout.version.slots.fakeSlots
+                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.version.slots.dynamicPlayerRange
                 }
             } else {
                 realMax
@@ -73,8 +73,8 @@ class ProxyPingListener(
             response.players = Players(maxPlayers, onlinePlayers, samplePlayers)
 
             // version name
-            if (layout.versionSettings.name.enabled) {
-                response.version = Protocol(layout.versionSettings.name.text, response.version.protocol)
+            if (layout.version.name.enabled) {
+                response.version = Protocol(layout.version.name.text, response.version.protocol)
             }
         }
     }

@@ -1,8 +1,8 @@
 package app.simplecloud.plugin.proxy.shared.resolver
 
-import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
-import app.simplecloud.plugin.proxy.shared.config.motd.MotdLayoutConfiguration
-import app.simplecloud.plugin.proxy.shared.config.placeholder.PingColor
+import app.simplecloud.plugin.proxy.shared.config.MaxPlayerDisplayType
+import app.simplecloud.plugin.proxy.shared.config.MotdLayoutConfiguration
+import app.simplecloud.plugin.proxy.shared.config.PingColor
 import net.kyori.adventure.text.minimessage.Context
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue
@@ -52,7 +52,7 @@ object TagResolverHelper {
         realMaxPlayers: Int,
         motdConfiguration: MotdLayoutConfiguration
     ): TagResolver {
-        val slots = motdConfiguration.versionSettings.slots
+        val slots = motdConfiguration.version.slots
         val maxPlayers = if (!slots.enabled) realMaxPlayers else when (slots.type) {
             MaxPlayerDisplayType.REAL -> realMaxPlayers
             MaxPlayerDisplayType.FAKE -> slots.fakeSlots

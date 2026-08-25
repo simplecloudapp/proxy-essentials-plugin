@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.shared.handler.command
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
+import app.simplecloud.plugin.proxy.shared.config.MessageConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -176,7 +177,7 @@ class JoinStateCommandHandler<C : CommandSender>(
         )
     }
 
-    private suspend fun handleSetGroup(sender: CommandSender, group: String, state: String, msgs: app.simplecloud.plugin.proxy.shared.config.message.MessageConfig) {
+    private suspend fun handleSetGroup(sender: CommandSender, group: String, state: String, msgs: MessageConfig) {
         if (proxyPlugin.joinStateResolver.resolveJoinState(state) == null) {
             sender.sendMessage(msgs.resolve(msgs.command.joinState.group.updateFailure))
             return
@@ -205,7 +206,7 @@ class JoinStateCommandHandler<C : CommandSender>(
         )
     }
 
-    private suspend fun handleSetService(sender: CommandSender, group: String, id: Int, state: String, msgs: app.simplecloud.plugin.proxy.shared.config.message.MessageConfig) {
+    private suspend fun handleSetService(sender: CommandSender, group: String, id: Int, state: String, msgs: MessageConfig) {
         if (proxyPlugin.joinStateResolver.resolveJoinState(state) == null) {
             sender.sendMessage(msgs.resolve(msgs.command.joinState.server.updateFailure))
             return
