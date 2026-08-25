@@ -5,10 +5,7 @@ dependencies {
     testImplementation(rootProject.libs.adventure.minimessage)
 
     implementation(rootProject.libs.configurate.yaml)
-    implementation(rootProject.libs.configurate.kotlin) {
-        exclude(group = "org.jetbrains.kotlin")
-        exclude(group = "org.jetbrains.kotlinx")
-    }
+    implementation(rootProject.libs.configurate.kotlin)
 
     compileOnly(rootProject.libs.command.cloud.core)
 }
