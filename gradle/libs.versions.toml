@@ -1,9 +1,10 @@
 [versions]
 kotlin = "2.4.10"
-kotlin-coroutines = "1.11.0"
+kotlinx-coroutines = "1.11.0"
 
 shadow = "9.6.1"
 minotaur = "2.9.0"
+blossom = "2.2.0"
 
 velocity = "4.1.0-SNAPSHOT"
 bungeecord = "1.21-R0.4"
@@ -22,10 +23,9 @@ command-cloud-velocity = "2.0.0"
 command-cloud-bungeecord = "2.0.0"
 
 [libraries]
-kotlin-jvm = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlin-coroutines = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlin-coroutines" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 
 command-cloud-core = { module = "org.incendo:cloud-core", version.ref = "command-cloud-core" }
 command-cloud-velocity = { module = "org.incendo:cloud-velocity", version.ref = "command-cloud-velocity" }
@@ -46,3 +46,4 @@ simplecloud-plugin = { module = "app.simplecloud.plugin:plugin-shared", version.
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
 minotaur = { id = "com.modrinth.minotaur", version.ref = "minotaur" }
+blossom = { id = "net.kyori.blossom", version.ref = "blossom" }

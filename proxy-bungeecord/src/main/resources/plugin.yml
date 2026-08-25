@@ -1,5 +1,6 @@
 name: proxy-essentials-bungeecord
 main: app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
-version: 1.0.0
+version: ${version}
 author: D151l
+description: Configure SimpleCloud MOTDs, tablists, join states, player counts, and proxy layouts
 depends: [simplecloud-api]

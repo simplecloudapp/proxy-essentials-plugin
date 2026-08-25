@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.velocity
 
+import app.simplecloud.plugin.api.shared.extension.miniMessage
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.format.MotdMiniMessageFormatter
 import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
@@ -18,12 +19,13 @@ import com.velocitypowered.api.command.CommandSource
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent
 import com.velocitypowered.api.event.proxy.ProxyShutdownEvent
+import com.velocitypowered.api.plugin.Dependency
+import com.velocitypowered.api.plugin.Plugin
 import com.velocitypowered.api.plugin.PluginContainer
 import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.velocity.VelocityCommandManager
@@ -31,6 +33,17 @@ import org.slf4j.Logger
 import java.nio.file.Path
 import kotlin.io.path.pathString
 
+@Plugin(
+    id = "proxy-essentials-velocity",
+    name = "proxy-essentials-velocity",
+    version = BuildConstants.VERSION,
+    authors = ["D151l"],
+    description = "Configure SimpleCloud MOTDs, tablists, join states, player counts, and proxy layouts",
+    url = "https://github.com/simplecloudapp/proxy-essentials-plugin",
+    dependencies = [
+        Dependency("simplecloud-api")
+    ]
+)
 class ProxyVelocityPlugin @Inject constructor(
     val proxyServer: ProxyServer,
     @DataDirectory val dataDirectory: Path,
@@ -39,9 +52,7 @@ class ProxyVelocityPlugin @Inject constructor(
 ) {
 
     val proxyPlugin = ProxyPlugin(dataDirectory.pathString)
-
     val tabListHandler = TabListHandler(proxyPlugin, this, proxyServer)
-    private val miniMessage = MiniMessage.miniMessage()
 
     @Subscribe
     fun onProxyInitialize(event: ProxyInitializeEvent) {
@@ -85,7 +96,7 @@ class ProxyVelocityPlugin @Inject constructor(
 
     fun deserializeToComponent(text: String, player: Player? = null): Component {
         val configureTagResolversEvent = this.proxyServer.eventManager.fire(ConfigureTagResolversEvent(player)).get()
-        return this.miniMessage.deserialize(
+        return miniMessage.deserialize(
             text,
             *configureTagResolversEvent.tagResolvers.toTypedArray()
         )

@@ -4,23 +4,17 @@ plugins {
 
 dependencies {
     api(project(":proxy-shared"))
-
-    compileOnly(rootProject.libs.bungeecord)
-
-    testImplementation(kotlin("test"))
-    testImplementation(rootProject.libs.bungeecord)
-
-    implementation(rootProject.libs.adventure.legacy.serializer)
-    implementation(rootProject.libs.adventure.minimessage)
-    implementation(rootProject.libs.adventure.bungeecord.platform)
-
-    implementation(rootProject.libs.command.cloud.core)
-    implementation(rootProject.libs.command.cloud.bungeecord)
+    compileOnly(libs.bungeecord)
+    implementation(libs.adventure.legacy.serializer)
+    implementation(libs.adventure.minimessage)
+    implementation(libs.adventure.bungeecord.platform)
+    implementation(libs.command.cloud.core)
+    implementation(libs.command.cloud.bungeecord)
 }
 
 
 tasks.shadowJar {
-    relocate("net.kyori", "app.simplecloud.relocate.kyori")
+    relocate("net.kyori.adventure", "app.simplecloud.relocate.kyori")
 }
 
 modrinth {

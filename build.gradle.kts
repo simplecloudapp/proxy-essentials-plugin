@@ -30,9 +30,9 @@ subprojects {
     }
 
     dependencies {
-        implementation(rootProject.libs.kotlin.jvm)
         implementation(rootProject.libs.kotlin.reflect)
-        implementation(rootProject.libs.kotlin.coroutines)
+        implementation(rootProject.libs.kotlinx.coroutines.core)
+        testImplementation(rootProject.libs.kotlin.test)
 
         compileOnly(rootProject.libs.simplecloud.api)
 
@@ -60,4 +60,13 @@ subprojects {
         mergeServiceFiles()
         archiveFileName.set("${project.name}.jar")
     }
+
+    tasks.processResources {
+        filesMatching("plugin.yml") {
+            expand(
+                "version" to project.version
+            )
+        }
+    }
+
 }
