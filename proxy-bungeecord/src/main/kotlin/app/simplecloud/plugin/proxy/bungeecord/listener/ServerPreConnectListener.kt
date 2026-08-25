@@ -2,6 +2,7 @@ package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import app.simplecloud.plugin.proxy.bungeecord.toBaseComponent
+import app.simplecloud.plugin.proxy.shared.handler.ProxyJoinGate
 import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.config.ServerInfo
 import net.md_5.bungee.api.connection.ProxiedPlayer
@@ -35,29 +36,12 @@ class ServerPreConnectListener(
     }
 
     private fun checkAllowProxyJoin(player: ProxiedPlayer, event: ServerConnectEvent) {
-        val localState = plugin.proxyPlugin.joinStateHandler.localState
-        val joinState = resolver.resolveJoinState(localState)
-
-        if (joinState == null) {
-            logger.severe("Neither join state '$localState' nor default state found. Check configuration!")
-            denyAccess(player, plugin.proxyPlugin.messagesConfiguration.get().kick.noJoinState, false, event)
-            return
+        val result = runBlocking {
+            plugin.proxyPlugin.proxyJoinGate.evaluate(player.name) { permission -> player.hasPermission(permission) }
         }
 
-        if (joinState.permission.join.isNotBlank() && !player.hasPermission(joinState.permission.join)) {
-            logger.info("Player ${player.name} does not have permission to join the proxy.")
-            denyAccess(player, plugin.proxyPlugin.messagesConfiguration.get().kick.noPermission, false, event)
-            return
-        }
-
-        runBlocking {
-            try {
-                if (resolver.isServerFull() && !player.hasPermission(joinState.permission.full)) {
-                    denyAccess(player, plugin.proxyPlugin.messagesConfiguration.get().kick.networkFull, false, event)
-                }
-            } catch (e: Exception) {
-                logger.severe("Error checking player limits: ${e.message}")
-            }
+        if (result is ProxyJoinGate.Result.Denied) {
+            denyAccess(player, result.kickMessage, false, event)
         }
     }
 

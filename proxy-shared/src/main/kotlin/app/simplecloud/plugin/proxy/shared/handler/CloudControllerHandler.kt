@@ -254,6 +254,10 @@ class CloudControllerHandler(
         return try {
             val servers = plugin.api.server().getAllServers(ServerQuery.create()).await() ?: return null
             servers.find { it.serverBase.name == name || it.persistentServer?.name == name }
+                ?: servers.find {
+                    it.serverBase.name.equals(name, ignoreCase = true)
+                            || it.persistentServer?.name.equals(name, ignoreCase = true)
+                }
         } catch (e: Exception) {
             logger.severe("Error retrieving server by name: ${e.message}")
             null

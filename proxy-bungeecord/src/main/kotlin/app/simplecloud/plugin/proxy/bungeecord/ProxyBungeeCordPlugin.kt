@@ -35,6 +35,7 @@ class ProxyBungeeCordPlugin: Plugin() {
         this.adventure = BungeeAudiences.create(this)
         this.proxy.pluginManager.registerListener(this, ProxyPingListener(this))
         this.proxy.pluginManager.registerListener(this, ConfigureTagResolversListener(this))
+        this.proxy.pluginManager.registerListener(this, PostLoginListener(this))
         this.proxy.pluginManager.registerListener(this, ServerPreConnectListener(this))
         this.proxy.pluginManager.registerListener(this, ServerKickListener(this.proxyPlugin))
         this.proxy.pluginManager.registerListener(this, TabListListener(this))

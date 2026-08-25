@@ -14,6 +14,7 @@ import app.simplecloud.plugin.proxy.shared.handler.JoinStateHandler
 import app.simplecloud.plugin.proxy.shared.handler.JoinStateResolver
 import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
 import app.simplecloud.plugin.proxy.shared.handler.PlayerCountHandler
+import app.simplecloud.plugin.proxy.shared.handler.ProxyJoinGate
 import app.simplecloud.plugin.proxy.shared.handler.TabListResolver
 import java.io.File
 import java.nio.file.Path
@@ -40,6 +41,12 @@ class ProxyPlugin(
     val cloudControllerHandler = CloudControllerHandler(this, joinStateHandler)
     val playerCountHandler = PlayerCountHandler(this).also { it.start() }
     val joinStateResolver = JoinStateResolver(this)
+    val proxyJoinGate = ProxyJoinGate(
+        localState = { joinStateHandler.localState },
+        resolveJoinState = joinStateResolver::resolveJoinState,
+        isServerFull = joinStateResolver::isServerFull,
+        kickMessages = { messagesConfiguration.get().kick }
+    )
     val tabListResolver = TabListResolver { proxyEssentialsConfig.get().tablist }
     val domainMotdHandler = DomainMotdHandler(this).also {
         it.registerListener()

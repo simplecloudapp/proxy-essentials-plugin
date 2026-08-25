@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
+import app.simplecloud.plugin.proxy.shared.handler.ProxyJoinGate
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.Subscribe
@@ -30,29 +31,12 @@ class ServerPreConnectListener(
     }
 
     private fun checkAllowProxyJoin(player: Player, event: ServerPreConnectEvent) {
-        val localState = proxyPlugin.joinStateHandler.localState
-        val joinState = resolver.resolveJoinState(localState)
-
-        if (joinState == null) {
-            logger.severe("Neither join state '$localState' nor default state found. Check configuration!")
-            denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.noJoinState, false, event)
-            return
+        val result = runBlocking {
+            proxyPlugin.proxyJoinGate.evaluate(player.username) { permission -> player.hasPermission(permission) }
         }
 
-        if (joinState.permission.join.isNotBlank() && !player.hasPermission(joinState.permission.join)) {
-            logger.info("Player ${player.username} does not have permission to join the proxy.")
-            denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.noPermission, false, event)
-            return
-        }
-
-        runBlocking {
-            try {
-                if (resolver.isServerFull() && !player.hasPermission(joinState.permission.full)) {
-                    denyAccess(player, proxyPlugin.messagesConfiguration.get().kick.networkFull, false, event)
-                }
-            } catch (e: Exception) {
-                logger.severe("Error checking player limits: ${e.message}")
-            }
+        if (result is ProxyJoinGate.Result.Denied) {
+            denyAccess(player, result.kickMessage, false, event)
         }
     }
 

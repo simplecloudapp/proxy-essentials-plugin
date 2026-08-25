@@ -9,6 +9,7 @@ import app.simplecloud.plugin.proxy.shared.handler.command.ProxyEssentialsComman
 import app.simplecloud.plugin.proxy.velocity.event.ConfigureTagResolversEvent
 import app.simplecloud.plugin.proxy.velocity.handler.TabListHandler
 import app.simplecloud.plugin.proxy.velocity.listener.ConfigureTagResolversListener
+import app.simplecloud.plugin.proxy.velocity.listener.LoginListener
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingListener
 import app.simplecloud.plugin.proxy.velocity.listener.ServerKickListener
 import app.simplecloud.plugin.proxy.velocity.listener.ServerPreConnectListener
@@ -48,6 +49,7 @@ class ProxyVelocityPlugin @Inject constructor(
 
         this.proxyServer.eventManager.register(this, ProxyPingListener(proxyPlugin, this))
         this.proxyServer.eventManager.register(this, ConfigureTagResolversListener(proxyPlugin, this))
+        this.proxyServer.eventManager.register(this, LoginListener(proxyPlugin, this))
         this.proxyServer.eventManager.register(this, ServerPreConnectListener(proxyPlugin, this))
         this.proxyServer.eventManager.register(this, ServerKickListener(proxyPlugin))
 
