@@ -31,8 +31,8 @@ import java.nio.file.Path
 import kotlin.io.path.pathString
 
 @Plugin(
-    id = "proxy-essentials-velocity",
-    name = "proxy-essentials-velocity",
+    id = "simplecloud-proxy-essentials",
+    name = "simplecloud-proxy-essentials",
     version = BuildConstants.VERSION,
     authors = ["D151l"],
     description = "Configure SimpleCloud MOTDs, tablists, join states, player counts, and proxy layouts",

@@ -1,4 +1,4 @@
-name: proxy-essentials-bungeecord
+name: simplecloud-proxy-essentials
 main: app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 version: ${version}
 author: D151l

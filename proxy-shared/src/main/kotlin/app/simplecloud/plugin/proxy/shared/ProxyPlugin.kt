@@ -7,6 +7,7 @@ import app.simplecloud.plugin.proxy.shared.config.DefaultConfigInstaller
 import app.simplecloud.plugin.proxy.shared.config.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
+import app.simplecloud.plugin.proxy.shared.config.migration.LegacyDirectoryMigrator
 import app.simplecloud.plugin.proxy.shared.config.migration.OldConfigMigrator
 import app.simplecloud.plugin.proxy.shared.controller.CloudControllerHandler
 import app.simplecloud.plugin.proxy.shared.joinstate.JoinStateResolver
@@ -31,6 +32,7 @@ class ProxyPlugin(
     val placeholderConfig = ConfigurationFactory(File(dataDirectory, "placeholder.yml"), PlaceHolderConfiguration::class.java)
 
     init {
+        LegacyDirectoryMigrator.migrate(dataDirectory.toPath())
         dataDirectory.mkdirs()
         OldConfigMigrator.migrate(dataDirectory.toPath())
         DefaultConfigInstaller.install(dataDirectory.toPath(), javaClass.classLoader)
