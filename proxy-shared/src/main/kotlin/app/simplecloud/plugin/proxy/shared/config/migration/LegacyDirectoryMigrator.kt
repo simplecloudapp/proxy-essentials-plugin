@@ -1,14 +1,13 @@
 package app.simplecloud.plugin.proxy.shared.config.migration
 
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.util.logging.Level
-import java.util.logging.Logger
 
 object LegacyDirectoryMigrator {
 
-    private val logger = Logger.getLogger(LegacyDirectoryMigrator::class.java.name)
+    private val logger = LoggerFactory.getLogger(LegacyDirectoryMigrator::class.java)
     private val LEGACY_DIRECTORY_NAMES = listOf("proxy-essentials-velocity", "proxy-essentials-bungeecord")
     private const val MARKER_FILE = ".migrated-from-legacy-directory"
 
@@ -47,7 +46,7 @@ object LegacyDirectoryMigrator {
             copyDirectory(legacyDirectory, dataDirectory)
             Files.createFile(dataDirectory.resolve(MARKER_FILE))
         } catch (e: Exception) {
-            logger.log(Level.SEVERE, "Could not take over the configuration of '${legacyDirectory.fileName}'", e)
+            logger.error("Could not take over the configuration of '${legacyDirectory.fileName}'")
             return
         }
 
@@ -58,7 +57,7 @@ object LegacyDirectoryMigrator {
     }
 
     private fun warnAboutUnusedDirectory(legacyDirectory: Path, dataDirectory: Path) {
-        logger.warning(
+        logger.warn(
             "The directory '${legacyDirectory.fileName}' is not used anymore. " +
             "Rename it to '${dataDirectory.fileName}' in your template to get rid of this warning."
         )

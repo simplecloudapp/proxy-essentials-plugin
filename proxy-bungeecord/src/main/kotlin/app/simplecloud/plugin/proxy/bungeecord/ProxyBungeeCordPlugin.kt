@@ -5,8 +5,6 @@ import app.simplecloud.plugin.proxy.bungeecord.listener.PostLoginListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.ServerKickListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.ServerPreConnectListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.ProxyPingListener
-import app.simplecloud.plugin.proxy.bungeecord.placeholder.ConfigureTagResolversEvent
-import app.simplecloud.plugin.proxy.bungeecord.placeholder.ConfigureTagResolversListener
 import app.simplecloud.plugin.proxy.bungeecord.tablist.TabListHandler
 import app.simplecloud.plugin.proxy.bungeecord.tablist.TabListListener
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
@@ -14,9 +12,11 @@ import app.simplecloud.plugin.proxy.shared.command.ProxyCommandSender
 import app.simplecloud.plugin.proxy.shared.command.ProxyEssentialsCommandHandler
 import app.simplecloud.plugin.proxy.shared.command.commands.JoinStateCommandHandler
 import app.simplecloud.plugin.proxy.shared.command.commands.LayoutCommandHandler
+import app.simplecloud.plugin.proxy.shared.placeholder.TagResolverHelper
 import app.simplecloud.plugin.proxy.shared.utilities.format.MotdMiniMessageFormatter
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.plugin.Plugin
@@ -52,20 +52,17 @@ class ProxyBungeeCordPlugin : Plugin() {
     }
 
     fun deserializeToComponent(text: String, player: ProxiedPlayer? = null): Component {
-        val tagResolvers = fireConfigureTagResolvers(player)
-        return miniMessage.deserialize(text, *tagResolvers.toTypedArray())
+        return miniMessage.deserialize(text, *tagResolvers(player).toTypedArray())
     }
 
     fun deserializeMotd(line1: String, line2: String): Component {
-        val tagResolvers = fireConfigureTagResolvers(null)
-        return MotdMiniMessageFormatter.deserialize(miniMessage, line1, line2, tagResolvers)
+        return MotdMiniMessageFormatter.deserialize(miniMessage, line1, line2, tagResolvers(null))
     }
 
     private fun registerListeners() {
         val manager = proxy.pluginManager
 
         manager.registerListener(this, ProxyPingListener(this))
-        manager.registerListener(this, ConfigureTagResolversListener(this))
         manager.registerListener(this, PostLoginListener(this))
         manager.registerListener(this, ServerPreConnectListener(this))
         manager.registerListener(this, ServerKickListener(proxyPlugin))
@@ -96,6 +93,16 @@ class ProxyBungeeCordPlugin : Plugin() {
         tabListHandler.startTabListTask()
     }
 
-    private fun fireConfigureTagResolvers(player: ProxiedPlayer?) =
-        proxy.pluginManager.callEvent(ConfigureTagResolversEvent(player)).tagResolvers
+    private fun tagResolvers(player: ProxiedPlayer?): List<TagResolver> {
+        val playerCountTracker = proxyPlugin.playerCountTracker
+
+        return TagResolverHelper.getDefaultTagResolvers(
+            serverName = player?.server?.info?.name ?: "unknown",
+            ping = (player?.ping ?: -1).toLong(),
+            pingColors = proxyPlugin.placeholderConfig.get().pingColors,
+            onlinePlayers = playerCountTracker.onlinePlayers(proxy.players.size),
+            realMaxPlayers = playerCountTracker.maxPlayers(proxy.config.playerLimit),
+            motdConfiguration = proxyPlugin.layoutRepository.getCurrentMotdLayout()
+        )
+    }
 }

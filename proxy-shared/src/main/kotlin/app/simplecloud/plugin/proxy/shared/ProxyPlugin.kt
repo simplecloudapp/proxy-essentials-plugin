@@ -17,15 +17,17 @@ import app.simplecloud.plugin.proxy.shared.motd.DomainMotdResolver
 import app.simplecloud.plugin.proxy.shared.motd.MotdLayoutRepository
 import app.simplecloud.plugin.proxy.shared.player.PlayerCountTracker
 import app.simplecloud.plugin.proxy.shared.tablist.TabListResolver
+import org.slf4j.LoggerFactory
 import java.io.File
 
 class ProxyPlugin(
     dirPath: String
 ) {
 
-    val api: CloudApi = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
-
+    private val logger = LoggerFactory.getLogger(ProxyPlugin::class.java)
     private val dataDirectory = File(dirPath)
+
+    val api: CloudApi = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
 
     val config = ConfigurationFactory(File(dataDirectory, "config.yml"), ProxyEssentialsConfig::class.java)
     val messageConfig = ConfigurationFactory(File(dataDirectory, "messages.yml"), MessageConfig::class.java)
@@ -65,8 +67,10 @@ class ProxyPlugin(
     }
 
     fun reload() {
+        logger.info("Reloading Proxy Essentials...")
         loadConfigurations()
         layoutRepository.loadMotdLayouts()
+        logger.info("Successfully reloaded Proxy Essentials")
     }
 
     private fun loadConfigurations() {

@@ -3,13 +3,13 @@ package app.simplecloud.plugin.proxy.shared.joinstate
 import app.simplecloud.plugin.api.shared.pattern.ServerPatternIdentifier
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.config.JoinState
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 
 class JoinStateResolver(
     private val plugin: ProxyPlugin
 ) {
 
-    private val logger = Logger.getLogger(JoinStateResolver::class.java.name)
+    private val logger = LoggerFactory.getLogger(JoinStateResolver::class.java)
 
     private val identifier by lazy {
         ServerPatternIdentifier(

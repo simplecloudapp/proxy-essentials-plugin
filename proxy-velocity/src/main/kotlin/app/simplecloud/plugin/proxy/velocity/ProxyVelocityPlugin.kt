@@ -5,13 +5,12 @@ import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.command.ProxyEssentialsCommandHandler
 import app.simplecloud.plugin.proxy.shared.command.commands.JoinStateCommandHandler
 import app.simplecloud.plugin.proxy.shared.command.commands.LayoutCommandHandler
+import app.simplecloud.plugin.proxy.shared.placeholder.TagResolverHelper
 import app.simplecloud.plugin.proxy.shared.utilities.format.MotdMiniMessageFormatter
 import app.simplecloud.plugin.proxy.velocity.listener.LoginListener
 import app.simplecloud.plugin.proxy.velocity.listener.ServerKickListener
 import app.simplecloud.plugin.proxy.velocity.listener.ServerPreConnectListener
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingListener
-import app.simplecloud.plugin.proxy.velocity.placeholder.ConfigureTagResolversEvent
-import app.simplecloud.plugin.proxy.velocity.placeholder.ConfigureTagResolversListener
 import app.simplecloud.plugin.proxy.velocity.tablist.TabListHandler
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
@@ -23,12 +22,14 @@ import com.velocitypowered.api.plugin.annotation.DataDirectory
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.execution.ExecutionCoordinator
 import org.incendo.cloud.velocity.VelocityCommandManager
-import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import kotlin.io.path.pathString
+import kotlin.jvm.optionals.getOrNull
 
 @Plugin(
     id = "simplecloud-proxy-essentials",
@@ -44,9 +45,9 @@ import kotlin.io.path.pathString
 class ProxyVelocityPlugin @Inject constructor(
     val server: ProxyServer,
     @DataDirectory val dataDirectory: Path,
-    val logger: Logger,
 ) {
 
+    private val logger = LoggerFactory.getLogger(ProxyVelocityPlugin::class.java)
     val plugin = ProxyPlugin(dataDirectory.pathString)
     val tabListHandler = TabListHandler(plugin, this, server)
 
@@ -66,20 +67,17 @@ class ProxyVelocityPlugin @Inject constructor(
     }
 
     fun deserializeToComponent(text: String, player: Player? = null): Component {
-        val tagResolvers = fireConfigureTagResolvers(player)
-        return miniMessage.deserialize(text, *tagResolvers.toTypedArray())
+        return miniMessage.deserialize(text, *tagResolvers(player).toTypedArray())
     }
 
     fun deserializeMotd(line1: String, line2: String): Component {
-        val tagResolvers = fireConfigureTagResolvers(null)
-        return MotdMiniMessageFormatter.deserialize(miniMessage, line1, line2, tagResolvers)
+        return MotdMiniMessageFormatter.deserialize(miniMessage, line1, line2, tagResolvers(null))
     }
 
     private fun registerListeners() {
         val manager = server.eventManager
 
         manager.register(this, ProxyPingListener(plugin, this))
-        manager.register(this, ConfigureTagResolversListener(plugin, this))
         manager.register(this, LoginListener(plugin, this))
         manager.register(this, ServerPreConnectListener(plugin, this))
         manager.register(this, ServerKickListener(plugin))
@@ -110,5 +108,16 @@ class ProxyVelocityPlugin @Inject constructor(
         tabListHandler.startTabListTask()
     }
 
-    private fun fireConfigureTagResolvers(player: Player?) = server.eventManager.fire(ConfigureTagResolversEvent(player)).get().tagResolvers
+    private fun tagResolvers(player: Player?): List<TagResolver> {
+        val playerCountTracker = plugin.playerCountTracker
+
+        return TagResolverHelper.getDefaultTagResolvers(
+            serverName = player?.currentServer?.getOrNull()?.serverInfo?.name ?: "unknown",
+            ping = player?.ping ?: -1,
+            pingColors = plugin.placeholderConfig.get().pingColors,
+            onlinePlayers = playerCountTracker.onlinePlayers(server.allPlayers.size),
+            realMaxPlayers = playerCountTracker.maxPlayers(server.configuration.showMaxPlayers),
+            motdConfiguration = plugin.layoutRepository.getCurrentMotdLayout()
+        )
+    }
 }

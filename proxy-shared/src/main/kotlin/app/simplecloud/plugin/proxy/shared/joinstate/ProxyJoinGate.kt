@@ -1,13 +1,13 @@
 package app.simplecloud.plugin.proxy.shared.joinstate
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 
 class ProxyJoinGate(
     private val plugin: ProxyPlugin
 ) {
 
-    private val logger = Logger.getLogger(ProxyJoinGate::class.java.name)
+    private val logger = LoggerFactory.getLogger(ProxyJoinGate::class.java)
 
     sealed interface Result {
         data object Allowed : Result
@@ -20,7 +20,7 @@ class ProxyJoinGate(
         val joinState = plugin.joinStateResolver.resolveJoinState(stateName)
 
         if (joinState == null) {
-            logger.severe("Neither join state '$stateName' nor default state found. Check configuration!")
+            logger.error("Neither join state '$stateName' nor default state found. Check configuration!")
             return Result.Denied(kickMessages.noJoinState)
         }
 
@@ -41,7 +41,7 @@ class ProxyJoinGate(
         return try {
             plugin.joinStateResolver.isServerFull() && !hasPermission(fullPermission)
         } catch (e: Exception) {
-            logger.severe("Error checking player limits: ${e.message}")
+            logger.error("Error checking player limits", e)
             false
         }
     }

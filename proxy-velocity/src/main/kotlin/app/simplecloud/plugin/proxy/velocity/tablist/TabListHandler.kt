@@ -5,8 +5,8 @@ import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.proxy.Player
 import com.velocitypowered.api.proxy.ProxyServer
 import com.velocitypowered.api.scheduler.ScheduledTask
+import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
-import java.util.logging.Logger
 import kotlin.jvm.optionals.getOrNull
 
 class TabListHandler(
@@ -15,7 +15,7 @@ class TabListHandler(
     private val proxyServer: ProxyServer
 ) {
 
-    private val logger = Logger.getLogger(TabListHandler::class.java.name)
+    private val logger = LoggerFactory.getLogger(TabListHandler::class.java)
     private var task: ScheduledTask? = null
 
     fun startTabListTask() {
@@ -30,7 +30,7 @@ class TabListHandler(
     fun stopTabListTask() {
         val runningTask = task
         if (runningTask == null) {
-            logger.warning("Can't stop tablist task because it is not initialized")
+            logger.warn("Can't stop tablist task because it is not initialized")
             return
         }
 

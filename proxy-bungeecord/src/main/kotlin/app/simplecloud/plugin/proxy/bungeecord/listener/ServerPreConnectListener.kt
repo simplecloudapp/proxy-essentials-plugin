@@ -10,13 +10,13 @@ import net.md_5.bungee.api.event.ServerConnectEvent.Reason
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import net.md_5.bungee.event.EventPriority
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 
 class ServerPreConnectListener(
     private val plugin: ProxyBungeeCordPlugin
 ) : Listener {
 
-    private val logger = Logger.getLogger(ServerPreConnectListener::class.java.name)
+    private val logger = LoggerFactory.getLogger(ServerPreConnectListener::class.java)
     private val proxyPlugin = plugin.proxyPlugin
 
     @EventHandler(priority = EventPriority.HIGH)
@@ -57,7 +57,7 @@ class ServerPreConnectListener(
             val kickMessages = proxyPlugin.messageConfig.get().kick
 
             if (joinState == null) {
-                logger.severe("Neither join state '$joinStateName' nor default state found. Check configuration!")
+                logger.error("Neither join state '$joinStateName' nor default state found. Check configuration!")
                 denyServerSwitch(player, kickMessages.noJoinState, event)
                 return@runBlocking
             }

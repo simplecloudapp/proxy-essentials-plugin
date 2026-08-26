@@ -10,15 +10,15 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
 import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.Logger
 import kotlin.time.Duration.Companion.milliseconds
 
 class DomainMotdResolver(
     private val plugin: ProxyPlugin
 ) {
 
-    private val logger = Logger.getLogger(DomainMotdResolver::class.java.name)
+    private val logger = LoggerFactory.getLogger(DomainMotdResolver::class.java)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var syncJob: Job? = null
 
@@ -34,7 +34,7 @@ class DomainMotdResolver(
                 try {
                     syncAllRoutes()
                 } catch (e: Exception) {
-                    logger.severe("Error while syncing domain MOTD routes: ${e.message}")
+                    logger.error("Error while syncing domain MOTD routes", e)
                 }
                 delay(3000.milliseconds)
             }

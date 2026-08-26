@@ -9,6 +9,7 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyPingEvent
 import com.velocitypowered.api.proxy.server.ServerPing
 import com.velocitypowered.api.util.Favicon
+import org.slf4j.LoggerFactory
 import java.nio.file.Path
 import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
@@ -18,6 +19,7 @@ class ProxyPingListener(
     private val plugin: ProxyVelocityPlugin
 ) {
 
+    private val logger = LoggerFactory.getLogger(ProxyPingListener::class.java)
     private val serverIconLoader = ServerIconLoader(Path.of(proxyPlugin.serverIconsPath)) { image ->
         Favicon.create(image)
     }
@@ -57,7 +59,7 @@ class ProxyPingListener(
     private fun applyServerIcon(builder: ServerPing.Builder, layout: MotdLayoutConfiguration) {
         if (!layout.serverIcon.enabled) return
 
-        val favicon = serverIconLoader.get(layout.serverIcon.file) { plugin.logger.warn(it) } ?: return
+        val favicon = serverIconLoader.get(layout.serverIcon.file) { logger.warn(it) } ?: return
         builder.favicon(favicon)
     }
 

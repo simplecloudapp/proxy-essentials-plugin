@@ -34,6 +34,7 @@ subprojects {
         implementation(rootProject.libs.kotlinx.coroutines.core)
         testImplementation(rootProject.libs.kotlin.test)
 
+        compileOnly(rootProject.libs.slf4j.api)
         compileOnly(rootProject.libs.simplecloud.api)
 
         implementation(rootProject.libs.simplecloud.plugin)
@@ -57,6 +58,7 @@ subprojects {
     }
 
     tasks.shadowJar {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
         archiveFileName.set("${project.name}.jar")
     }

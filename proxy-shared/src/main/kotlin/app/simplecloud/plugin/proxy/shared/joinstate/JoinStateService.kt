@@ -3,22 +3,15 @@ package app.simplecloud.plugin.proxy.shared.joinstate
 import app.simplecloud.api.runtime.SimpleCloudRuntime
 import app.simplecloud.api.server.Server
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import java.util.logging.Logger
+import kotlinx.coroutines.*
+import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.milliseconds
 
 class JoinStateService(
     private val plugin: ProxyPlugin
 ) {
 
-    private val logger = Logger.getLogger(JoinStateService::class.java.name)
+    private val logger = LoggerFactory.getLogger(JoinStateService::class.java)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var syncJob: Job? = null
 
@@ -53,7 +46,7 @@ class JoinStateService(
 
         val fallbackState = defaultJoinState()
         if (!setJoinStateAtGroup(groupName, fallbackState)) {
-            logger.warning("Could not persist default join state '$fallbackState' for group '$groupName'")
+            logger.warn("Could not persist default join state '$fallbackState' for group '$groupName'")
         }
         return fallbackState
     }
@@ -80,7 +73,7 @@ class JoinStateService(
 
         val fallbackState = defaultJoinState()
         if (!setJoinStateAtPersistentServer(serverName, fallbackState)) {
-            logger.warning("Could not persist default join state '$fallbackState' for persistent server '$serverName'")
+            logger.warn("Could not persist default join state '$fallbackState' for persistent server '$serverName'")
         }
         return fallbackState
     }
@@ -100,7 +93,7 @@ class JoinStateService(
 
         val successful = groupPropertyUpdated && servicePropertiesUpdated
         if (!successful) {
-            logger.severe("Error setting join state at group and all services in group $groupName.")
+            logger.error("Error setting join state at group and all services in group $groupName.")
         }
         return successful
     }
@@ -115,7 +108,7 @@ class JoinStateService(
                 try {
                     syncLocalStateWithGroupState()
                 } catch (e: Exception) {
-                    logger.severe("Error while syncing local/group join state: ${e.message}")
+                    logger.error("Error while syncing local/group join state", e)
                 }
                 delay(2000.milliseconds)
             }
@@ -131,7 +124,7 @@ class JoinStateService(
 
             when {
                 state.isNullOrBlank() -> {
-                    logger.warning("No join state found for server. Using default join state.")
+                    logger.warn("No join state found for server. Using default join state.")
                     scope.launch { applyDefaultJoinStateForCurrentServer(server) }
                 }
 
@@ -171,7 +164,7 @@ class JoinStateService(
             controller().updateServerProperty(server.serverId, KEY, stateToApply)
             localState = stateToApply
         } catch (e: Exception) {
-            logger.severe("Error setting default join state: ${e.message}")
+            logger.error("Error setting default join state", e)
         }
     }
 
@@ -206,7 +199,7 @@ class JoinStateService(
 
     private suspend fun applyGroupState(serverId: String, serviceName: String, groupState: String, reason: String) {
         if (!controller().updateServerProperty(serverId, KEY, groupState)) {
-            logger.warning("Could not synchronize join state for '$serviceName' with group state '$groupState'")
+            logger.warn("Could not synchronize join state for '$serviceName' with group state '$groupState'")
             return
         }
 

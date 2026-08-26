@@ -5,13 +5,12 @@ import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.config.MotdEntry
 import app.simplecloud.plugin.proxy.shared.config.MotdLayoutConfiguration
 import app.simplecloud.plugin.proxy.shared.config.MotdUpdateType
+import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.logging.Level
-import java.util.logging.Logger
 
 class MotdLayoutRepository(
     private val directory: Path,
@@ -21,7 +20,7 @@ class MotdLayoutRepository(
     MotdLayoutConfiguration::class.java,
 ) {
 
-    private val logger = Logger.getLogger(MotdLayoutRepository::class.java.name)
+    private val logger = LoggerFactory.getLogger(MotdLayoutRepository::class.java)
     private val layoutsByName = ConcurrentHashMap<String, MotdLayoutConfiguration>()
     private val queueIndexes = ConcurrentHashMap<String, AtomicInteger>()
     private val listenerRegistered = AtomicBoolean(false)
@@ -120,7 +119,7 @@ class MotdLayoutRepository(
         return try {
             load(directory.resolve("$name$SUFFIX").toFile())
         } catch (e: Exception) {
-            logger.log(Level.WARNING, "Could not load MOTD layout $name$SUFFIX", e)
+            logger.warn("Could not load MOTD layout $name$SUFFIX", e)
             null
         }
     }

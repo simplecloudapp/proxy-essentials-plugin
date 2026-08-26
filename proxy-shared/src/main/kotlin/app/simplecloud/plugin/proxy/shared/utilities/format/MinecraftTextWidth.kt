@@ -14,6 +14,7 @@ object MinecraftTextWidth {
     const val ZERO_WIDTH_NON_JOINER = 0x200c
 
     private const val RESOURCE_DIRECTORY = "/app/simplecloud/plugin/proxy/shared/format"
+    private const val UNIFONT_ADVANCES_RESOURCE = "unifont-advances.bin"
     private const val MISSING_GLYPH_WIDTH = 6f
     private const val OBJECT_WIDTH = 8f
     private const val SPACE_WIDTH = 4f
@@ -27,14 +28,14 @@ object MinecraftTextWidth {
 
     private val defaultWidths by lazy { loadWidths("default-font-widths.txt") }
     private val altWidths by lazy { loadWidths("alt-font-widths.txt") }
-    private val unifontAdvances by lazy { loadAdvances("unifont-advances.bin") }
+    private val unifontAdvances by lazy { loadAdvances() }
 
     fun width(component: Component, inheritedStyle: Style = Style.empty()): Float {
         val style = component.style().merge(inheritedStyle, Style.Merge.Strategy.IF_ABSENT_ON_TARGET)
         val ownWidth = when (component) {
             is TextComponent -> textWidth(component.content(), style)
             is ObjectComponent -> OBJECT_WIDTH + objectBoldOffset(style)
-            is TranslatableComponent -> textWidth(component.fallback() ?: component.key(), style)
+            is TranslatableComponent -> textWidth(component.fallback(), style)
             is KeybindComponent -> textWidth(component.keybind(), style)
             else -> 0f
         }
@@ -96,11 +97,11 @@ object MinecraftTextWidth {
         }
     }
 
-    private fun loadAdvances(resourceName: String): ByteArray {
-        val advances = openResource(resourceName).use { it.readBytes() }
+    private fun loadAdvances(): ByteArray {
+        val advances = openResource(UNIFONT_ADVANCES_RESOURCE).use { it.readBytes() }
 
         check(advances.size == UNICODE_CODE_POINT_COUNT) {
-            "Invalid font metrics resource $resourceName: expected $UNICODE_CODE_POINT_COUNT bytes, got ${advances.size}"
+            "Invalid font metrics resource $UNIFONT_ADVANCES_RESOURCE: expected $UNICODE_CODE_POINT_COUNT bytes, got ${advances.size}"
         }
         return advances
     }

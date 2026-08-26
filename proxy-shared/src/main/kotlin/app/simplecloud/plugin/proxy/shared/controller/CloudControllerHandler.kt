@@ -10,14 +10,14 @@ import app.simplecloud.plugin.proxy.shared.joinstate.JoinStateService
 import app.simplecloud.plugin.proxy.shared.motd.MotdLayoutRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 
 class CloudControllerHandler(
     private val plugin: ProxyPlugin,
     private val service: JoinStateService
 ) {
 
-    private val logger = Logger.getLogger(CloudControllerHandler::class.java.name)
+    private val logger = LoggerFactory.getLogger(CloudControllerHandler::class.java)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     @Volatile
@@ -26,7 +26,7 @@ class CloudControllerHandler(
 
     fun start() {
         if (SimpleCloudRuntime.serverId().isNullOrBlank()) {
-            logger.warning("Environment variable SIMPLECLOUD_UNIQUE_ID is not set.")
+            logger.warn("Environment variable SIMPLECLOUD_UNIQUE_ID is not set.")
             registerListeners()
             return
         }
@@ -39,7 +39,7 @@ class CloudControllerHandler(
                 registerListeners()
                 initializeJoinState()
             } catch (e: Exception) {
-                logger.severe("Error retrieving server by ID: ${e.message}")
+                logger.error("Error retrieving server by ID", e)
                 registerListeners()
             }
         }
@@ -94,7 +94,7 @@ class CloudControllerHandler(
             plugin.api.server().updateServerProperties(serverId, mapOf(key to value)).await()
             true
         } catch (e: Exception) {
-            logger.severe("Error updating server property: ${e.message}")
+            logger.error("Error updating server property", e)
             false
         }
     }
@@ -105,7 +105,7 @@ class CloudControllerHandler(
         return try {
             getGroupByName(groupName)?.properties?.get(key)?.toString().orNullIfBlank()
         } catch (e: Exception) {
-            logger.severe("Error retrieving group property: ${e.message}")
+            logger.error("Error retrieving group property", e)
             null
         }
     }
@@ -117,7 +117,7 @@ class CloudControllerHandler(
             logger.info("Group property '$key' updated to '$value' for group '$groupName'")
             true
         } catch (e: Exception) {
-            logger.severe("Error updating group properties: ${e.message}")
+            logger.error("Error updating group properties", e)
             false
         }
     }
@@ -126,7 +126,7 @@ class CloudControllerHandler(
         return try {
             plugin.api.group().allGroups.await().map { it.name }
         } catch (e: Exception) {
-            logger.severe("Error retrieving groups: ${e.message}")
+            logger.error("Error retrieving groups", e)
             emptyList()
         }
     }
@@ -137,7 +137,7 @@ class CloudControllerHandler(
         return try {
             getServersByGroup(groupName).sumOf { it.playerCount ?: 0 }
         } catch (e: Exception) {
-            logger.severe("Error retrieving online players in group: ${e.message}")
+            logger.error("Error retrieving online players in group", e)
             0
         }
     }
@@ -160,7 +160,7 @@ class CloudControllerHandler(
             plugin.api.persistentServer().allPersistentServers.await()
                 .firstOrNull { it.name.equals(name, ignoreCase = true) }
         } catch (e: Exception) {
-            logger.severe("Error retrieving persistent server '$name': ${e.message}")
+            logger.error("Error retrieving persistent server '$name'", e)
             null
         }
     }
@@ -169,7 +169,7 @@ class CloudControllerHandler(
         return try {
             getPersistentServerByName(name)?.properties?.get(key)?.toString().orNullIfBlank()
         } catch (e: Exception) {
-            logger.severe("Error retrieving persistent server property: ${e.message}")
+            logger.error("Error retrieving persistent server property", e)
             null
         }
     }
@@ -183,7 +183,7 @@ class CloudControllerHandler(
             logger.info("Persistent server property '$key' updated to '$value' for persistent server '$name'")
             true
         } catch (e: Exception) {
-            logger.severe("Error updating persistent server property: ${e.message}")
+            logger.error("Error updating persistent server property", e)
             false
         }
     }
@@ -192,7 +192,7 @@ class CloudControllerHandler(
         return try {
             plugin.api.persistentServer().allPersistentServers.await().map { it.name }
         } catch (e: Exception) {
-            logger.severe("Error retrieving persistent servers: ${e.message}")
+            logger.error("Error retrieving persistent servers", e)
             emptyList()
         }
     }
@@ -203,7 +203,7 @@ class CloudControllerHandler(
                 ServerQuery.create().filterByServerGroupName(resolveGroupNameCasing(groupName))
             ).await() ?: emptyList()
         } catch (e: Exception) {
-            logger.severe("Error retrieving servers for group '$groupName': ${e.message}")
+            logger.error("Error retrieving servers for group '$groupName'", e)
             emptyList()
         }
     }
@@ -216,7 +216,7 @@ class CloudControllerHandler(
                     .filterByNumericalId(numericalId)
             ).await()?.firstOrNull()
         } catch (e: Exception) {
-            logger.severe("Error retrieving server '$groupName-$numericalId': ${e.message}")
+            logger.error("Error retrieving server '$groupName-$numericalId'", e)
             null
         }
     }
@@ -230,7 +230,7 @@ class CloudControllerHandler(
                         || it.persistentServer?.name.equals(name, ignoreCase = true)
                 }
         } catch (e: Exception) {
-            logger.severe("Error retrieving server by name: ${e.message}")
+            logger.error("Error retrieving server by name", e)
             null
         }
     }
@@ -247,7 +247,7 @@ class CloudControllerHandler(
                 persistentServerName in names
             }
         } catch (e: Exception) {
-            logger.severe("Error retrieving persistent servers by name: ${e.message}")
+            logger.error("Error retrieving persistent servers by name", e)
             emptyList()
         }
     }
@@ -260,7 +260,7 @@ class CloudControllerHandler(
     suspend fun updateServiceProperty(groupName: String, numericalId: Int, key: String, value: String): Boolean {
         val server = getServerByNumericalId(groupName, numericalId)
         if (server == null) {
-            logger.severe("Server not found for group '$groupName' and numerical ID '$numericalId'")
+            logger.error("Server not found for group '$groupName' and numerical ID '$numericalId'")
             return false
         }
         return updateServerProperty(server.serverId, key, value)
@@ -289,7 +289,7 @@ class CloudControllerHandler(
         return try {
             plugin.api.group().allGroups.await().firstOrNull { it.name.equals(groupName, ignoreCase = true) }
         } catch (e: Exception) {
-            logger.severe("Error retrieving group '$groupName': ${e.message}")
+            logger.error("Error retrieving group '$groupName'", e)
             null
         }
     }

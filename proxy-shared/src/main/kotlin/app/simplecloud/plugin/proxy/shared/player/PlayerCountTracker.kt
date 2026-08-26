@@ -3,14 +3,14 @@ package app.simplecloud.plugin.proxy.shared.player
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import app.simplecloud.plugin.proxy.shared.config.PlayerCountConfig
 import kotlinx.coroutines.*
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.milliseconds
 
 class PlayerCountTracker(
     private val plugin: ProxyPlugin
 ) {
 
-    private val logger = Logger.getLogger(PlayerCountTracker::class.java.name)
+    private val logger = LoggerFactory.getLogger(PlayerCountTracker::class.java)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var syncJob: Job? = null
 
@@ -56,7 +56,7 @@ class PlayerCountTracker(
         try {
             snapshot = resolveSnapshot()
         } catch (e: Exception) {
-            logger.severe("Error while syncing player count: ${e.message}")
+            logger.error("Error while syncing player count", e)
         }
     }
 

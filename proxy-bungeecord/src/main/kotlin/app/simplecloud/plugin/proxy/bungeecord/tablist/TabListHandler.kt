@@ -3,14 +3,14 @@ package app.simplecloud.plugin.proxy.bungeecord.tablist
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.scheduler.ScheduledTask
+import org.slf4j.LoggerFactory
 import java.util.concurrent.TimeUnit
-import java.util.logging.Logger
 
 class TabListHandler(
     private val plugin: ProxyBungeeCordPlugin
 ) {
 
-    private val logger = Logger.getLogger(TabListHandler::class.java.name)
+    private val logger = LoggerFactory.getLogger(TabListHandler::class.java)
     private var task: ScheduledTask? = null
 
     fun startTabListTask() {
@@ -28,7 +28,7 @@ class TabListHandler(
     fun stopTabListTask() {
         val runningTask = task
         if (runningTask == null) {
-            logger.warning("Can't stop tablist task because it is not initialized")
+            logger.warn("Can't stop tablist task because it is not initialized")
             return
         }
 

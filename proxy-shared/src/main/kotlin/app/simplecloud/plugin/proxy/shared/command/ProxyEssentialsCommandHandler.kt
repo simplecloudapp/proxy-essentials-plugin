@@ -1,20 +1,18 @@
 package app.simplecloud.plugin.proxy.shared.command
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.incendo.cloud.CommandManager
 import org.incendo.cloud.context.CommandContext
-import java.util.logging.Level
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 
 class ProxyEssentialsCommandHandler<C : ProxyCommandSender>(
     private val manager: CommandManager<C>,
     private val plugin: ProxyPlugin
 ) {
 
-    private val logger = Logger.getLogger(ProxyEssentialsCommandHandler::class.java.name)
+    private val logger = LoggerFactory.getLogger(ProxyEssentialsCommandHandler::class.java)
+
     private val commands = listOf(
         "/scproxy help",
         "/scproxy reload",
@@ -64,7 +62,9 @@ class ProxyEssentialsCommandHandler<C : ProxyCommandSender>(
             manager.commandBuilder("scproxy")
                 .literal("reload")
                 .permission("simplecloud.proxy-essentials.command.reload")
-                .handler { context: CommandContext<C> -> reload(context.sender()) }
+                .handler { context: CommandContext<C> ->
+                    reload(context.sender())
+                }
                 .build()
         )
     }
@@ -79,9 +79,10 @@ class ProxyEssentialsCommandHandler<C : ProxyCommandSender>(
                 val messages = plugin.messageConfig.get()
                 sender.sendMessage(messages.resolve(messages.command.reload.success))
             } catch (e: Exception) {
+                logger.error("Failed to reload Proxy Essentials", e)
+
                 val messages = plugin.messageConfig.get()
                 sender.sendMessage(messages.resolve(messages.command.reload.failure).replace("<error>", e.message ?: "Unknown error"))
-                logger.log(Level.SEVERE, "Error reloading configuration", e)
             }
         }
     }

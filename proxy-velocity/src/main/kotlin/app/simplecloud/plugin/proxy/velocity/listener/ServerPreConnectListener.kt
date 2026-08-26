@@ -8,14 +8,14 @@ import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.ServerPreConnectEvent
 import com.velocitypowered.api.proxy.Player
 import kotlinx.coroutines.runBlocking
-import java.util.logging.Logger
+import org.slf4j.LoggerFactory
 
 class ServerPreConnectListener(
     private val proxyPlugin: ProxyPlugin,
     private val plugin: ProxyVelocityPlugin
 ) {
 
-    private val logger = Logger.getLogger(ServerPreConnectListener::class.java.name)
+    private val logger = LoggerFactory.getLogger(ServerPreConnectListener::class.java)
 
     @Subscribe(order = PostOrder.EARLY)
     fun handle(event: ServerPreConnectEvent) {
@@ -51,7 +51,7 @@ class ServerPreConnectListener(
             val kickMessages = proxyPlugin.messageConfig.get().kick
 
             if (joinState == null) {
-                logger.severe("Neither join state '$joinStateName' nor default state found. Check configuration!")
+                logger.error("Neither join state '$joinStateName' nor default state found. Check configuration!")
                 denyServerSwitch(player, kickMessages.noJoinState, event)
                 return@runBlocking
             }
