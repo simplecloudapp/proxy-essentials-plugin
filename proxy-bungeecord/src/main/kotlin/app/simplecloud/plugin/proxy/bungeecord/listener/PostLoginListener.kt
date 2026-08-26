@@ -2,7 +2,7 @@ package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
 import app.simplecloud.plugin.proxy.bungeecord.toBaseComponent
-import app.simplecloud.plugin.proxy.shared.handler.ProxyJoinGate
+import app.simplecloud.plugin.proxy.shared.joinstate.ProxyJoinGate
 import kotlinx.coroutines.runBlocking
 import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.api.plugin.Listener
@@ -10,7 +10,7 @@ import net.md_5.bungee.event.EventHandler
 import net.md_5.bungee.event.EventPriority
 
 class PostLoginListener(
-    private val plugin: ProxyBungeeCordPlugin,
+    private val plugin: ProxyBungeeCordPlugin
 ) : Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)

@@ -1,94 +1,101 @@
 package app.simplecloud.plugin.proxy.bungeecord
 
-import app.simplecloud.plugin.proxy.bungeecord.event.ConfigureTagResolversEvent
-import app.simplecloud.plugin.proxy.bungeecord.handler.TabListHandler
-import app.simplecloud.plugin.proxy.bungeecord.listener.*
+import app.simplecloud.plugin.api.shared.extension.miniMessage
+import app.simplecloud.plugin.proxy.bungeecord.listener.PostLoginListener
+import app.simplecloud.plugin.proxy.bungeecord.listener.ServerKickListener
+import app.simplecloud.plugin.proxy.bungeecord.listener.ServerPreConnectListener
+import app.simplecloud.plugin.proxy.bungeecord.listener.ProxyPingListener
+import app.simplecloud.plugin.proxy.bungeecord.placeholder.ConfigureTagResolversEvent
+import app.simplecloud.plugin.proxy.bungeecord.placeholder.ConfigureTagResolversListener
+import app.simplecloud.plugin.proxy.bungeecord.tablist.TabListHandler
+import app.simplecloud.plugin.proxy.bungeecord.tablist.TabListListener
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.format.MotdMiniMessageFormatter
-import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
-import app.simplecloud.plugin.proxy.shared.handler.command.JoinStateCommandHandler
-import app.simplecloud.plugin.proxy.shared.handler.command.LayoutCommandHandler
-import app.simplecloud.plugin.proxy.shared.handler.command.ProxyEssentialsCommandHandler
+import app.simplecloud.plugin.proxy.shared.command.ProxyCommandSender
+import app.simplecloud.plugin.proxy.shared.command.ProxyEssentialsCommandHandler
+import app.simplecloud.plugin.proxy.shared.command.commands.JoinStateCommandHandler
+import app.simplecloud.plugin.proxy.shared.command.commands.LayoutCommandHandler
+import app.simplecloud.plugin.proxy.shared.utilities.format.MotdMiniMessageFormatter
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.MiniMessage
+import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.plugin.Plugin
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.bungee.BungeeCommandManager
 import org.incendo.cloud.execution.ExecutionCoordinator
 
+class ProxyBungeeCordPlugin : Plugin() {
 
-class ProxyBungeeCordPlugin: Plugin() {
-
-    val proxyPlugin = ProxyPlugin(this.dataFolder.path)
-
+    val proxyPlugin = ProxyPlugin(dataFolder.path)
     val tabListHandler = TabListHandler(this)
 
     private var adventure: BungeeAudiences? = null
 
-    private val miniMessage = MiniMessage.miniMessage()
-
     override fun onEnable() {
-        this.proxyPlugin.motdLayoutHandler.loadMotdLayouts()
+        adventure = BungeeAudiences.create(this)
+        proxyPlugin.start()
 
-        this.adventure = BungeeAudiences.create(this)
-        this.proxy.pluginManager.registerListener(this, ProxyPingListener(this))
-        this.proxy.pluginManager.registerListener(this, ConfigureTagResolversListener(this))
-        this.proxy.pluginManager.registerListener(this, PostLoginListener(this))
-        this.proxy.pluginManager.registerListener(this, ServerPreConnectListener(this))
-        this.proxy.pluginManager.registerListener(this, ServerKickListener(this.proxyPlugin))
-        this.proxy.pluginManager.registerListener(this, TabListListener(this))
-
-        if (this.proxyPlugin.proxyEssentialsConfig.get().tabListUpdateTimeMillis() > 0)
-            this.tabListHandler.startTabListTask()
-        else
-            this.logger.info("Tablist update time is set to 0, tablist will not be updated automatically")
-
-        val executionCoordinator = ExecutionCoordinator.simpleCoordinator<CommandSender>()
-
-        val senderMapper = SenderMapper.create<net.md_5.bungee.api.CommandSender, CommandSender>(
-            { commandSender -> BungeeCordCommandSender(commandSender, adventure) },
-            { cloudSender -> (cloudSender as BungeeCordCommandSender).getCommandSender() }
-        )
-
-        val commandManager = BungeeCommandManager(
-            this,
-            executionCoordinator,
-            senderMapper
-        )
-
-        ProxyEssentialsCommandHandler(commandManager, this.proxyPlugin).loadCommands()
-        JoinStateCommandHandler(commandManager, this.proxyPlugin).loadCommands()
-        LayoutCommandHandler(commandManager, this.proxyPlugin).loadCommands()
+        registerListeners()
+        registerCommands()
+        startTabListTask()
     }
 
     override fun onDisable() {
-        this.adventure?.close()
-        this.adventure = null
-        this.tabListHandler.stopTabListTask()
-        this.proxyPlugin.shutdown()
+        adventure?.close()
+        adventure = null
+        tabListHandler.stopTabListTask()
+        proxyPlugin.shutdown()
     }
 
     fun adventure(): BungeeAudiences {
-        return adventure ?: throw IllegalStateException("Cannot retrieve audience provider while plugin is not enabled")
+        return adventure ?: error("Cannot retrieve audience provider while plugin is not enabled")
     }
 
     fun deserializeToComponent(text: String, player: ProxiedPlayer? = null): Component {
-        val configureTagResolversEvent = this.proxy.pluginManager.callEvent(ConfigureTagResolversEvent(player))
-        return this.miniMessage.deserialize(
-            text,
-            *configureTagResolversEvent.tagResolvers.toTypedArray()
-        )
+        val tagResolvers = fireConfigureTagResolvers(player)
+        return miniMessage.deserialize(text, *tagResolvers.toTypedArray())
     }
 
     fun deserializeMotd(line1: String, line2: String): Component {
-        val configureTagResolversEvent = this.proxy.pluginManager.callEvent(ConfigureTagResolversEvent(null))
-        return MotdMiniMessageFormatter.deserialize(
-            miniMessage,
-            line1,
-            line2,
-            configureTagResolversEvent.tagResolvers
-        )
+        val tagResolvers = fireConfigureTagResolvers(null)
+        return MotdMiniMessageFormatter.deserialize(miniMessage, line1, line2, tagResolvers)
     }
+
+    private fun registerListeners() {
+        val manager = proxy.pluginManager
+
+        manager.registerListener(this, ProxyPingListener(this))
+        manager.registerListener(this, ConfigureTagResolversListener(this))
+        manager.registerListener(this, PostLoginListener(this))
+        manager.registerListener(this, ServerPreConnectListener(this))
+        manager.registerListener(this, ServerKickListener(proxyPlugin))
+        manager.registerListener(this, TabListListener(this))
+    }
+
+    private fun registerCommands() {
+        val commandManager = BungeeCommandManager(
+            this,
+            ExecutionCoordinator.asyncCoordinator(),
+            SenderMapper.create<CommandSender, ProxyCommandSender>(
+                { commandSender -> BungeeCordCommandSender(commandSender, adventure) },
+                { cloudSender -> (cloudSender as BungeeCordCommandSender).commandSender }
+            )
+        )
+
+        ProxyEssentialsCommandHandler(commandManager, proxyPlugin).loadCommands()
+        JoinStateCommandHandler(commandManager, proxyPlugin).loadCommands()
+        LayoutCommandHandler(commandManager, proxyPlugin).loadCommands()
+    }
+
+    private fun startTabListTask() {
+        if (proxyPlugin.config.get().tabListUpdateTimeMillis() <= 0) {
+            logger.info("Tablist update time is set to 0, tablist will not be updated automatically")
+            return
+        }
+
+        tabListHandler.startTabListTask()
+    }
+
+    private fun fireConfigureTagResolvers(player: ProxiedPlayer?) =
+        proxy.pluginManager.callEvent(ConfigureTagResolversEvent(player)).tagResolvers
 }

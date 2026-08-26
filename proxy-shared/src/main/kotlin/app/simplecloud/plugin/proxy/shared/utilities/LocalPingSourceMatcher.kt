@@ -3,11 +3,8 @@ package app.simplecloud.plugin.proxy.shared.utilities
 import java.net.InetAddress
 import java.net.NetworkInterface
 
-class LocalPingSourceMatcher(
-    private val isLocalInterfaceAddress: (InetAddress) -> Boolean = {
-        NetworkInterface.getByInetAddress(it) != null
-    }
-) {
+object LocalPingSourceMatcher {
+
     fun isLocal(address: InetAddress?): Boolean {
         if (address == null) {
             return false
@@ -17,6 +14,10 @@ class LocalPingSourceMatcher(
             return true
         }
 
-        return runCatching { isLocalInterfaceAddress(address) }.getOrDefault(false)
+        return try {
+            NetworkInterface.getByInetAddress(address) != null
+        } catch (_: Exception) {
+            false
+        }
     }
 }

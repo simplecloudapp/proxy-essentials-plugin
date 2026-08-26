@@ -61,7 +61,18 @@ data class SlotsConfig(
     val type: MaxPlayerDisplayType = MaxPlayerDisplayType.REAL,
     val fakeSlots: Int = 100,
     val dynamicPlayerRange: Int = 5
-)
+) {
+    /** The player limit to show in the server list, which may differ from the real one. */
+    fun resolveMaxPlayers(onlinePlayers: Int, realMaxPlayers: Int): Int {
+        if (!enabled) return realMaxPlayers
+
+        return when (type) {
+            MaxPlayerDisplayType.REAL -> realMaxPlayers
+            MaxPlayerDisplayType.FAKE -> fakeSlots
+            MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + dynamicPlayerRange
+        }
+    }
+}
 
 enum class MaxPlayerDisplayType {
     REAL,

@@ -1,25 +1,16 @@
 package app.simplecloud.plugin.proxy.bungeecord
 
-import app.simplecloud.plugin.proxy.shared.handler.command.CommandSender
+import app.simplecloud.plugin.proxy.shared.command.ProxyCommandSender
 import net.kyori.adventure.platform.bungeecord.BungeeAudiences
-import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
-import net.md_5.bungee.api.chat.BaseComponent
+import net.md_5.bungee.api.CommandSender
 
-class BungeeCordCommandSender(private val commandSender: net.md_5.bungee.api.CommandSender,
-                              private val adventure: BungeeAudiences?
-) : CommandSender {
-
-    fun getCommandSender(): net.md_5.bungee.api.CommandSender {
-        return commandSender
-    }
+class BungeeCordCommandSender(
+    val commandSender: CommandSender,
+    private val adventure: BungeeAudiences?
+) : ProxyCommandSender {
 
     override fun sendMessage(message: String) {
         adventure?.sender(commandSender)?.sendMessage(MiniMessage.miniMessage().deserialize(message))
     }
-}
-
-fun Component.toBaseComponent(): BaseComponent {
-    return BungeeComponentSerializer.get().serialize(this)[0]
 }

@@ -5,17 +5,14 @@ import net.md_5.bungee.api.event.ServerKickEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 
-class ServerKickListener internal constructor(
-    private val showKickReason: () -> Boolean
+class ServerKickListener(
+    private val proxyPlugin: ProxyPlugin
 ) : Listener {
 
-    constructor(proxyPlugin: ProxyPlugin) : this({
-        proxyPlugin.proxyEssentialsConfig.get().showKickReason
-    })
-
-      @EventHandler(priority = Byte.MAX_VALUE)
+    @EventHandler(priority = Byte.MAX_VALUE)
     fun handle(event: ServerKickEvent) {
-        if (!showKickReason() || event.cancelServer != null) return
+        if (!proxyPlugin.config.get().showKickReason) return
+        if (event.cancelServer != null) return
 
         val serverReason = event.reason ?: return
         event.player.disconnect(serverReason)

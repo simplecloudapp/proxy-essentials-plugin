@@ -17,17 +17,25 @@ data class ProxyEssentialsConfig(
     val playerCount: PlayerCountConfig = PlayerCountConfig(),
     val tablist: List<TabListGroup> = DefaultConfigs.TABLIST_GROUPS
 ) : VersionedConfig {
+
+    /** The tab list is updated as often as the most frequently updating group demands. */
     fun tabListUpdateTimeMillis(): Long {
-        val ticks = tablist.minOfOrNull { it.updateTime } ?: 20L
-        return ticks * 50L
+        val ticks = tablist.minOfOrNull { it.updateTime } ?: DEFAULT_UPDATE_TIME_TICKS
+        return ticks * MILLIS_PER_TICK
     }
 
+    /** Returns null while the network wide player count is disabled. */
     fun playerCountUpdateTimeMillis(): Long? {
         if (!playerCount.enabled || playerCount.updateTime <= 0L) {
             return null
         }
 
-        return playerCount.updateTime * 50L
+        return playerCount.updateTime * MILLIS_PER_TICK
+    }
+
+    companion object {
+        private const val MILLIS_PER_TICK = 50L
+        private const val DEFAULT_UPDATE_TIME_TICKS = 20L
     }
 }
 

@@ -1,7 +1,7 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
 import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.handler.ProxyJoinGate
+import app.simplecloud.plugin.proxy.shared.joinstate.ProxyJoinGate
 import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.ResultedEvent

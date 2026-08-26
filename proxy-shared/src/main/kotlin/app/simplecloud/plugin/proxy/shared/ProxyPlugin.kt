@@ -5,73 +5,71 @@ import app.simplecloud.api.CloudApiOptions
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.proxy.shared.config.DefaultConfigInstaller
 import app.simplecloud.plugin.proxy.shared.config.MessageConfig
-import app.simplecloud.plugin.proxy.shared.config.OldConfigMigrator
 import app.simplecloud.plugin.proxy.shared.config.PlaceHolderConfiguration
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
-import app.simplecloud.plugin.proxy.shared.handler.CloudControllerHandler
-import app.simplecloud.plugin.proxy.shared.handler.DomainMotdHandler
-import app.simplecloud.plugin.proxy.shared.handler.JoinStateHandler
-import app.simplecloud.plugin.proxy.shared.handler.JoinStateResolver
-import app.simplecloud.plugin.proxy.shared.handler.MotdLayoutHandler
-import app.simplecloud.plugin.proxy.shared.handler.PlayerCountHandler
-import app.simplecloud.plugin.proxy.shared.handler.ProxyJoinGate
-import app.simplecloud.plugin.proxy.shared.handler.TabListResolver
+import app.simplecloud.plugin.proxy.shared.config.migration.OldConfigMigrator
+import app.simplecloud.plugin.proxy.shared.controller.CloudControllerHandler
+import app.simplecloud.plugin.proxy.shared.joinstate.JoinStateResolver
+import app.simplecloud.plugin.proxy.shared.joinstate.JoinStateService
+import app.simplecloud.plugin.proxy.shared.joinstate.ProxyJoinGate
+import app.simplecloud.plugin.proxy.shared.motd.DomainMotdResolver
+import app.simplecloud.plugin.proxy.shared.motd.MotdLayoutRepository
+import app.simplecloud.plugin.proxy.shared.player.PlayerCountTracker
+import app.simplecloud.plugin.proxy.shared.tablist.TabListResolver
 import java.io.File
 
 class ProxyPlugin(
     dirPath: String
 ) {
-    val api = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
+
+    val api: CloudApi = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
 
     private val dataDirectory = File(dirPath)
+
+    val config = ConfigurationFactory(File(dataDirectory, "config.yml"), ProxyEssentialsConfig::class.java)
+    val messageConfig = ConfigurationFactory(File(dataDirectory, "messages.yml"), MessageConfig::class.java)
+    val placeholderConfig = ConfigurationFactory(File(dataDirectory, "placeholder.yml"), PlaceHolderConfiguration::class.java)
 
     init {
         dataDirectory.mkdirs()
         OldConfigMigrator.migrate(dataDirectory.toPath())
         DefaultConfigInstaller.install(dataDirectory.toPath(), javaClass.classLoader)
-    }
-
-    val proxyEssentialsConfig = ConfigurationFactory(File(dataDirectory, "config.yml"), ProxyEssentialsConfig::class.java)
-    val messagesConfiguration = ConfigurationFactory(File(dataDirectory, "messages.yml"), MessageConfig::class.java)
-    val placeHolderConfiguration = ConfigurationFactory(File(dataDirectory, "placeholder.yml"), PlaceHolderConfiguration::class.java)
-
-    init {
         loadConfigurations()
     }
 
     val serverIconsPath = "$dirPath/layout/server-icons"
-    val motdLayoutHandler = MotdLayoutHandler(File("$dirPath/layout").toPath(), this)
-    val joinStateHandler = JoinStateHandler(this)
-    val cloudControllerHandler = CloudControllerHandler(this, joinStateHandler)
-    val playerCountHandler = PlayerCountHandler(this).also { it.start() }
+    val layoutRepository = MotdLayoutRepository(File("$dirPath/layout").toPath(), this)
+    val joinStateService = JoinStateService(this)
+    val cloudControllerHandler = CloudControllerHandler(this, joinStateService)
+    val playerCountTracker = PlayerCountTracker(this)
     val joinStateResolver = JoinStateResolver(this)
-    val proxyJoinGate = ProxyJoinGate(
-        localState = { joinStateHandler.localState },
-        resolveJoinState = joinStateResolver::resolveJoinState,
-        isServerFull = joinStateResolver::isServerFull,
-        kickMessages = { messagesConfiguration.get().kick }
-    )
-    val tabListResolver = TabListResolver { proxyEssentialsConfig.get().tablist }
-    val domainMotdHandler = DomainMotdHandler(this).also {
-        it.registerListener()
-        it.startSyncTask()
-    }
+    val proxyJoinGate = ProxyJoinGate(this)
+    val tabListResolver = TabListResolver(this)
+    val domainMotdHandler = DomainMotdResolver(this)
 
-    fun reload() {
-        loadConfigurations()
-        motdLayoutHandler.loadMotdLayouts()
+    fun start() {
+        layoutRepository.loadMotdLayouts()
+        cloudControllerHandler.start()
+        playerCountTracker.start()
+        domainMotdHandler.registerListener()
+        domainMotdHandler.startSyncTask()
     }
 
     fun shutdown() {
-        playerCountHandler.stop()
-        joinStateHandler.stop()
+        playerCountTracker.stop()
+        joinStateService.stop()
         cloudControllerHandler.close()
         domainMotdHandler.stop()
     }
 
+    fun reload() {
+        loadConfigurations()
+        layoutRepository.loadMotdLayouts()
+    }
+
     private fun loadConfigurations() {
-        proxyEssentialsConfig.loadOrCreate(ProxyEssentialsConfig())
-        messagesConfiguration.loadOrCreate(MessageConfig())
-        placeHolderConfiguration.loadOrCreate(PlaceHolderConfiguration())
+        config.loadOrCreate(ProxyEssentialsConfig())
+        messageConfig.loadOrCreate(MessageConfig())
+        placeholderConfig.loadOrCreate(PlaceHolderConfiguration())
     }
 }

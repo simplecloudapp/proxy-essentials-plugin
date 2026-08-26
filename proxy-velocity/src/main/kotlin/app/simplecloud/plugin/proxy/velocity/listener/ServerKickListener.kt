@@ -4,17 +4,13 @@ import app.simplecloud.plugin.proxy.shared.ProxyPlugin
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.player.KickedFromServerEvent
 
-class ServerKickListener internal constructor(
-    private val showKickReason: () -> Boolean
+class ServerKickListener(
+    private val proxyPlugin: ProxyPlugin
 ) {
-
-    constructor(proxyPlugin: ProxyPlugin) : this({
-        proxyPlugin.proxyEssentialsConfig.get().showKickReason
-    })
 
     @Subscribe(priority = Short.MIN_VALUE)
     fun handle(event: KickedFromServerEvent) {
-        if (!showKickReason()) return
+        if (!proxyPlugin.config.get().showKickReason) return
         if (event.result !is KickedFromServerEvent.DisconnectPlayer) return
 
         event.serverKickReason.ifPresent { serverReason ->

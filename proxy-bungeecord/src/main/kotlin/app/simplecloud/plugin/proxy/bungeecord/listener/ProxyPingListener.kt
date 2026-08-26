@@ -1,81 +1,87 @@
 package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
-import app.simplecloud.plugin.proxy.shared.config.MaxPlayerDisplayType
+import app.simplecloud.plugin.proxy.bungeecord.toBaseComponent
+import app.simplecloud.plugin.proxy.shared.config.MotdLayoutConfiguration
+import app.simplecloud.plugin.proxy.shared.motd.ServerIconLoader
 import app.simplecloud.plugin.proxy.shared.utilities.LocalPingSourceMatcher
-import app.simplecloud.plugin.proxy.shared.utilities.ServerIconLoader
 import net.md_5.bungee.api.Favicon
-import net.md_5.bungee.api.ServerPing.*
+import net.md_5.bungee.api.ServerPing
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import java.net.InetSocketAddress
 import java.nio.file.Path
-import java.util.*
+import java.util.UUID
 
 class ProxyPingListener(
     private val plugin: ProxyBungeeCordPlugin
 ) : Listener {
 
-    private val serverIconLoader = ServerIconLoader(
-        Path.of(plugin.proxyPlugin.serverIconsPath)
-    ) { image -> Favicon.create(image) }
-    private val localPingSourceMatcher = LocalPingSourceMatcher()
+    private val proxyPlugin = plugin.proxyPlugin
+
+    private val serverIconLoader = ServerIconLoader(Path.of(proxyPlugin.serverIconsPath)) { image ->
+        Favicon.create(image)
+    }
 
     @EventHandler
     fun onPing(event: ProxyPingEvent) {
-        val virtualHost = event.connection.virtualHost?.hostName
-        val layout = virtualHost
-            ?.let { plugin.proxyPlugin.domainMotdHandler.getLayoutNameForDomain(it) }
-            ?.let { plugin.proxyPlugin.motdLayoutHandler.getLayoutByName(it) }
-            ?: plugin.proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
-
+        val layout = resolveLayout(event.connection.virtualHost?.hostName)
         if (!layout.motd.enabled) return
 
-        val entry = plugin.proxyPlugin.motdLayoutHandler.selectEntry(layout, layout.configVersion)
-            ?: return
-
+        val entry = proxyPlugin.layoutRepository.selectEntry(layout, layout.configVersion) ?: return
         val response = event.response
-        val motd = plugin.deserializeMotd(entry.line1, entry.line2)
-        response.descriptionComponent = net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer.get().serialize(motd)[0]
+        response.descriptionComponent = plugin.deserializeMotd(entry.line1, entry.line2).toBaseComponent()
 
+        applyServerIcon(response, layout)
+
+        // The cloud pings the proxy itself to check its health, which must not affect the counts.
         val socketAddress = event.connection.socketAddress as? InetSocketAddress
-        val isLocalPing = localPingSourceMatcher.isLocal(socketAddress?.address)
+        if (!LocalPingSourceMatcher.isLocal(socketAddress?.address)) {
+            applyPlayerList(response, layout)
+        }
+    }
 
-        // server icon
-        if (layout.serverIcon.enabled) {
-            serverIconLoader.get(layout.serverIcon.file) { plugin.logger.warning(it) }
-                ?.let { response.setFavicon(it) }
+    private fun resolveLayout(virtualHost: String?): MotdLayoutConfiguration {
+        val layoutName = when (virtualHost) {
+            null -> null
+            else -> proxyPlugin.domainMotdHandler.getLayoutNameForDomain(virtualHost)
+        }
+        val domainLayout = when (layoutName) {
+            null -> null
+            else -> proxyPlugin.layoutRepository.getLayoutByName(layoutName)
         }
 
-        if (!isLocalPing) {
-            // player list (hover text)
-            val samplePlayers = if (layout.playerList.enabled && layout.playerList.playerList.isNotEmpty()) {
-                layout.playerList.playerList.map { PlayerInfo(it, UUID.randomUUID()) }.toTypedArray()
-            } else {
-                response.players.sample
-            }
+        return domainLayout ?: proxyPlugin.layoutRepository.getCurrentMotdLayout()
+    }
 
-            // slots
-            val playerCountHandler = plugin.proxyPlugin.playerCountHandler
-            val onlinePlayers = playerCountHandler.onlinePlayers(plugin.proxy.players.size)
-            val realMax = playerCountHandler.maxPlayers(plugin.proxy.config.playerLimit)
-            val maxPlayers = if (layout.version.slots.enabled) {
-                when (layout.version.slots.type) {
-                    MaxPlayerDisplayType.REAL -> realMax
-                    MaxPlayerDisplayType.FAKE -> layout.version.slots.fakeSlots
-                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.version.slots.dynamicPlayerRange
-                }
-            } else {
-                realMax
-            }
+    private fun applyServerIcon(response: ServerPing, layout: MotdLayoutConfiguration) {
+        if (!layout.serverIcon.enabled) return
 
-            response.players = Players(maxPlayers, onlinePlayers, samplePlayers)
+        val favicon = serverIconLoader.get(layout.serverIcon.file) { plugin.logger.warning(it) } ?: return
+        response.setFavicon(favicon)
+    }
 
-            // version name
-            if (layout.version.name.enabled) {
-                response.version = Protocol(layout.version.name.text, response.version.protocol)
-            }
+    private fun applyPlayerList(response: ServerPing, layout: MotdLayoutConfiguration) {
+        val playerCountHandler = proxyPlugin.playerCountTracker
+        val onlinePlayers = playerCountHandler.onlinePlayers(plugin.proxy.players.size)
+        val realMaxPlayers = playerCountHandler.maxPlayers(plugin.proxy.config.playerLimit)
+        val maxPlayers = layout.version.slots.resolveMaxPlayers(onlinePlayers, realMaxPlayers)
+
+        response.players = ServerPing.Players(maxPlayers, onlinePlayers, samplePlayers(layout, response))
+
+        if (layout.version.name.enabled) {
+            response.version = ServerPing.Protocol(layout.version.name.text, response.version.protocol)
         }
+    }
+
+    private fun samplePlayers(layout: MotdLayoutConfiguration, response: ServerPing): Array<ServerPing.PlayerInfo> {
+        if (!layout.playerList.enabled || layout.playerList.playerList.isEmpty()) {
+            return response.players.sample
+        }
+
+        return layout.playerList.playerList
+            .map { ServerPing.PlayerInfo(it, UUID.randomUUID()) }
+            .toTypedArray()
     }
 }
