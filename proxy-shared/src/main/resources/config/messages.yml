@@ -45,6 +45,7 @@ command:
         entry: "   <color:#a3a3a3><command>"
 
     failure: "<prefix><color:#ff0000>The command failed, check the console for details."
+    invalid-target-type: "<prefix><color:#ff0000>The target type has to be group or ps."
 
     reload:
         start: "<prefix>Reloading ProxyEssentials configurations..."

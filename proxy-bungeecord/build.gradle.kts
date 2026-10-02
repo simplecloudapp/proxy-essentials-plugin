@@ -3,18 +3,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":proxy-shared"))
-    compileOnly(libs.bungeecord)
-    implementation(libs.adventure.legacy.serializer)
-    implementation(libs.adventure.minimessage)
-    implementation(libs.adventure.bungeecord.platform)
-    implementation(libs.command.cloud.core)
-    implementation(libs.command.cloud.bungeecord)
-}
-
-
-tasks.shadowJar {
-    relocate("net.kyori.adventure", "app.simplecloud.relocate.kyori")
+    implementation(project(":proxy-shared"))
+    implementation(libs.adventure.platform.bungeecord)
+    implementation(libs.cloud.command.bungee)
+    compileOnly(libs.bungeecord.api)
 }
 
 modrinth {
@@ -47,6 +39,7 @@ modrinth {
         "26.1.1",
         "26.1.2",
         "26.2",
+        "26.3",
     )
     loaders.addAll("bungeecord", "waterfall")
     changelog.set("https://docs.simplecloud.app/changelog")

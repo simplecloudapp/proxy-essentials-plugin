@@ -12,4 +12,6 @@ class BungeeCordCommandSender(
     override fun sendMessage(message: Component) {
         commandSender.sendMessage(*BungeeComponentSerializer.get().serialize(message))
     }
+
+    override fun hasPermission(permission: String) = commandSender.hasPermission(permission)
 }

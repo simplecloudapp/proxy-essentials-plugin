@@ -11,4 +11,6 @@ class VelocityCommandSender(
     override fun sendMessage(message: Component) {
         source.sendMessage(message)
     }
+
+    override fun hasPermission(permission: String) = source.hasPermission(permission)
 }

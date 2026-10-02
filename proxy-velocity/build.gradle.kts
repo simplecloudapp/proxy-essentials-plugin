@@ -5,13 +5,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":proxy-shared"))
-
-    compileOnly(libs.velocity)
-    kapt(libs.velocity)
-
-    implementation(libs.command.cloud.core)
-    implementation(libs.command.cloud.velocity)
+    implementation(project(":proxy-shared"))
+    implementation(libs.cloud.command.velocity)
+    compileOnly(libs.velocity.api)
+    kapt(libs.velocity.api)
 }
 
 modrinth {
@@ -44,6 +41,7 @@ modrinth {
         "26.1.1",
         "26.1.2",
         "26.2",
+        "26.3",
     )
     loaders.add("velocity")
     changelog.set("https://docs.simplecloud.app/changelog")

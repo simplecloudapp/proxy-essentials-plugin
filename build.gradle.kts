@@ -30,7 +30,6 @@ subprojects {
     }
 
     dependencies {
-        implementation(rootProject.libs.kotlin.reflect)
         implementation(rootProject.libs.kotlinx.coroutines.core)
         testImplementation(rootProject.libs.kotlin.test)
 

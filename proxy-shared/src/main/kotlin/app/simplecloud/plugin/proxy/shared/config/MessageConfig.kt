@@ -47,6 +47,7 @@ data class CommandMessages(
         entry = "   <color:#a3a3a3><command>"
     ),
     val failure: String = "<prefix><color:#ff0000>The command failed, check the console for details.",
+    val invalidTargetType: String = "<prefix><color:#ff0000>The target type has to be group or ps.",
     val reload: ReloadMessages = ReloadMessages(),
     val joinState: JoinStateMessages = JoinStateMessages(),
     val layout: LayoutMessages = LayoutMessages()

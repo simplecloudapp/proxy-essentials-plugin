@@ -5,4 +5,6 @@ import net.kyori.adventure.text.Component
 interface ProxySender {
 
     fun sendMessage(message: Component)
+
+    fun hasPermission(permission: String): Boolean
 }

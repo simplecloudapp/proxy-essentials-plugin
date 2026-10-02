@@ -1,6 +1,7 @@
 package app.simplecloud.plugin.proxy.velocity
 
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
+import app.simplecloud.plugin.proxy.shared.command.ProxyCommandHandler
 import app.simplecloud.plugin.proxy.velocity.command.VelocityCommandSender
 import app.simplecloud.plugin.proxy.velocity.listener.LoginListener
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingListener
@@ -50,19 +51,21 @@ class ProxyVelocityPlugin @Inject constructor(
         server.eventManager.register(this, ServerKickListener(essentials))
         server.eventManager.register(this, TabListListener(tabListHandler))
 
-        essentials.registerCommands(
-            VelocityCommandManager(
-                server.pluginManager.ensurePluginContainer(this),
-                server,
-                ExecutionCoordinator.asyncCoordinator(),
-                SenderMapper.create({ VelocityCommandSender(it) }, { it.source })
-            )
-        )
+        ProxyCommandHandler(createCommandManager(), essentials).register()
         tabListHandler.start()
     }
 
     @Subscribe
     fun onProxyShutdown(event: ProxyShutdownEvent) {
         essentials.stop()
+    }
+
+    private fun createCommandManager(): VelocityCommandManager<VelocityCommandSender> {
+        return VelocityCommandManager(
+            server.pluginManager.ensurePluginContainer(this),
+            server,
+            ExecutionCoordinator.asyncCoordinator(),
+            SenderMapper.create(::VelocityCommandSender, VelocityCommandSender::source)
+        )
     }
 }

@@ -4,10 +4,6 @@ import app.simplecloud.api.CloudApi
 import app.simplecloud.api.CloudApiOptions
 import app.simplecloud.api.runtime.SimpleCloudRuntime
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
-import app.simplecloud.plugin.proxy.shared.command.JoinStateCommand
-import app.simplecloud.plugin.proxy.shared.command.LayoutCommand
-import app.simplecloud.plugin.proxy.shared.command.ProxySender
-import app.simplecloud.plugin.proxy.shared.command.ProxyCommand
 import app.simplecloud.plugin.proxy.shared.config.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
 import app.simplecloud.plugin.proxy.shared.config.DefaultConfigInstaller
@@ -21,7 +17,6 @@ import app.simplecloud.plugin.proxy.shared.player.PlayerCountService
 import app.simplecloud.plugin.proxy.shared.tablist.TabListService
 import app.simplecloud.plugin.proxy.shared.utilities.text.MessageFormatter
 import kotlinx.coroutines.*
-import org.incendo.cloud.CommandManager
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
@@ -32,7 +27,7 @@ class ProxyEssentials(
     private val logger = LoggerFactory.getLogger(ProxyEssentials::class.java)
     private val dir = platform.getDataDirectory()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val api = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
+    val api: CloudApi = CloudApi.create(CloudApiOptions.builder().component("proxy-essentials").build())
 
     val config = ConfigurationFactory(dir.resolve("config.yml").toFile(), ProxyEssentialsConfig::class.java)
     val messages = ConfigurationFactory(dir.resolve("messages.yml").toFile(), MessageConfig::class.java)
@@ -70,12 +65,6 @@ class ProxyEssentials(
 
     fun reload() {
         loadConfigs()
-    }
-
-    fun <C : ProxySender> registerCommands(manager: CommandManager<C>) {
-        ProxyCommand(manager, this, scope).register()
-        JoinStateCommand(manager, api, joinStateService, config, messages, messageFormatter, scope).register()
-        LayoutCommand(manager, api, layoutService, layoutRepository, joinStateService, config, messages, messageFormatter, scope).register()
     }
 
     private fun loadConfigs() {

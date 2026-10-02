@@ -8,6 +8,7 @@ import app.simplecloud.plugin.proxy.bungeecord.listener.ServerPreConnectListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.TabListListener
 import app.simplecloud.plugin.proxy.bungeecord.platform.BungeeCordPlatformImpl
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
+import app.simplecloud.plugin.proxy.shared.command.ProxyCommandHandler
 import net.md_5.bungee.api.plugin.Plugin
 import org.incendo.cloud.SenderMapper
 import org.incendo.cloud.bungee.BungeeCommandManager
@@ -27,18 +28,20 @@ class ProxyBungeeCordPlugin : Plugin() {
         proxy.pluginManager.registerListener(this, ServerKickListener(essentials))
         proxy.pluginManager.registerListener(this, TabListListener(tabListHandler))
 
-        essentials.registerCommands(
-            BungeeCommandManager(
-                this,
-                ExecutionCoordinator.asyncCoordinator(),
-                SenderMapper.create({ BungeeCordCommandSender(it) }, { it.commandSender })
-            )
-        )
+        ProxyCommandHandler(createCommandManager(), essentials).register()
         tabListHandler.start()
     }
 
     override fun onDisable() {
         proxy.scheduler.cancel(this)
         essentials.stop()
+    }
+
+    private fun createCommandManager(): BungeeCommandManager<BungeeCordCommandSender> {
+        return BungeeCommandManager(
+            this,
+            ExecutionCoordinator.asyncCoordinator(),
+            SenderMapper.create(::BungeeCordCommandSender, BungeeCordCommandSender::commandSender)
+        )
     }
 }
