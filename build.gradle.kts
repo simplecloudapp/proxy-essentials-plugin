@@ -8,7 +8,7 @@ plugins {
 
 allprojects {
     group = "app.simplecloud.plugin"
-    version = "0.0.13"
+    version = "1.0.0"
 
     repositories {
         mavenCentral()
