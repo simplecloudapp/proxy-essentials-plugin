@@ -34,17 +34,6 @@ The Proxy Plugin enhances your server network with customizable MOTD (Server Inf
 - [x] **Custom Tablist**: Send your Players custom Tablist Header and Footer!
 - [x] **Joinstates**: Create different joinstates so your players can only join with certain permissions (you can call it advanced maintenance feature)
 
-### Centering MOTD lines
-
-The `<center>` tag is available in the two MOTD line fields:
-
-```yaml
-line1: '<center><color:#0ea5e9>A simplecloud.app network</color></center>'
-line2: '<center><bold>Welcome!</bold></center>'
-```
-
-Centering uses vanilla bitmap and Unihex font metrics, with invisible one-pixel padding for precise placement. Custom resource-pack fonts and client-localized components can differ because their final glyph widths are only known by the client.
-
 ## Contributing
 Contributions to SimpleCloud are welcome and highly appreciated. However, before you jump right into it, we would like you to read our [Contribution Guide][docs-contribute].
 

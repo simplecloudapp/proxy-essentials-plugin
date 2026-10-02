@@ -6,9 +6,7 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.io.path.extension
-import kotlin.io.path.isRegularFile
-import kotlin.io.path.nameWithoutExtension
+import kotlin.io.path.*
 
 class LayoutRepository(
     private val directory: Path
@@ -41,7 +39,7 @@ class LayoutRepository(
             val layout = load(file.toFile()) ?: error("the file is empty")
             file.nameWithoutExtension to layout
         } catch (e: Exception) {
-            logger.error("Could not load the layout '${file.fileName}', it is skipped until the next reload", e)
+            logger.error("Could not load the layout '${file.fileName}'", e)
             null
         }
     }

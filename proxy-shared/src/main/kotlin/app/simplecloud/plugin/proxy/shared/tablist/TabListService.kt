@@ -18,16 +18,13 @@ class TabListService(
         if (group.layout.isEmpty()) return null
         if (group.updateTime <= 0) return group.layout.first()
 
-        val timeSlot = System.currentTimeMillis() / (group.updateTime * MILLIS_PER_TICK)
+        val timeSlot = System.currentTimeMillis() / (group.updateTime * 50L)
         return group.layout[timeSlot.mod(group.layout.size)]
     }
 
     fun getUpdateIntervalMillis(): Long? {
         val updateTime = config.get().tablist.map { it.updateTime }.filter { it > 0 }.minOrNull() ?: return null
-        return updateTime * MILLIS_PER_TICK
+        return updateTime * 50L
     }
 
-    private companion object {
-        const val MILLIS_PER_TICK = 50L
-    }
 }

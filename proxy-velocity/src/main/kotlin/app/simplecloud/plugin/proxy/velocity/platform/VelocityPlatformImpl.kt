@@ -1,6 +1,6 @@
 package app.simplecloud.plugin.proxy.velocity.platform
 
-import app.simplecloud.plugin.proxy.shared.ProxyPlatform
+import app.simplecloud.plugin.proxy.shared.platform.ProxyPlatform
 import com.velocitypowered.api.proxy.ProxyServer
 import java.nio.file.Path
 

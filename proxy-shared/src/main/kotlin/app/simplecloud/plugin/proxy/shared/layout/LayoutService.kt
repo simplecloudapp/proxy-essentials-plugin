@@ -24,7 +24,7 @@ import kotlin.time.Duration.Companion.seconds
 class LayoutService(
     private val api: CloudApi,
     private val repository: LayoutRepository,
-    private val joinStateService: JoinStateService,
+    private val service: JoinStateService,
     private val config: ConfigurationFactory<ProxyEssentialsConfig>,
     private val scope: CoroutineScope
 ) {
@@ -68,7 +68,7 @@ class LayoutService(
     fun getLayoutName(domain: String?): String {
         val config = config.get()
         val domainLayout = if (domain == null) null else domainLayouts.get()[domain.lowercase()]
-        val forcedLayout = config.joinstates.find { it.name == joinStateService.getLocalState() }?.forcedMotdLayout
+        val forcedLayout = config.joinstates.find { it.name == service.getLocalState() }?.forcedMotdLayout
         val candidates = listOf(domainLayout, forcedLayout, localLayout.get(), config.initialLayout)
 
         return candidates.filterNotNull().firstOrNull { repository.find(it) != null } ?: config.initialLayout
@@ -110,7 +110,7 @@ class LayoutService(
 
     private suspend fun getDomainLayout(route: DomainRoute): String? {
         val config = config.get()
-        val state = joinStateService.getTargetState(route.target)
+        val state = service.getTargetState(route.target)
         val candidates = listOf(
             route.rules.find { it.state == state }?.layout,
             config.joinstates.find { it.name == state }?.forcedMotdLayout,

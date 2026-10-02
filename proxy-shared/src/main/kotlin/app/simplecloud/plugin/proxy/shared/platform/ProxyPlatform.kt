@@ -1,4 +1,4 @@
-package app.simplecloud.plugin.proxy.shared
+package app.simplecloud.plugin.proxy.shared.platform
 
 import java.nio.file.Path
 

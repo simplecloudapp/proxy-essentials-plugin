@@ -62,8 +62,6 @@ data class SlotsConfig(
     val fakeSlots: Int = 100,
     val dynamicPlayerRange: Int = 5
 ) {
-
-    /** The player limit to show in the server list, which may differ from the real one. */
     fun resolveMaxPlayers(onlinePlayers: Int, realMaxPlayers: Int): Int {
         if (!enabled) return realMaxPlayers
 

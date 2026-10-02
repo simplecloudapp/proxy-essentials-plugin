@@ -10,13 +10,13 @@ import app.simplecloud.plugin.proxy.shared.command.ProxySender
 import app.simplecloud.plugin.proxy.shared.command.ProxyCommand
 import app.simplecloud.plugin.proxy.shared.config.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
-import app.simplecloud.plugin.proxy.shared.config.migration.DefaultConfigInstaller
+import app.simplecloud.plugin.proxy.shared.config.DefaultConfigInstaller
 import app.simplecloud.plugin.proxy.shared.config.migration.LegacyDirectoryMigrator
-import app.simplecloud.plugin.proxy.shared.config.migration.OldConfigMigrator
 import app.simplecloud.plugin.proxy.shared.joinstate.JoinGate
 import app.simplecloud.plugin.proxy.shared.joinstate.JoinStateService
 import app.simplecloud.plugin.proxy.shared.layout.LayoutRepository
 import app.simplecloud.plugin.proxy.shared.layout.LayoutService
+import app.simplecloud.plugin.proxy.shared.platform.ProxyPlatform
 import app.simplecloud.plugin.proxy.shared.player.PlayerCountService
 import app.simplecloud.plugin.proxy.shared.tablist.TabListService
 import app.simplecloud.plugin.proxy.shared.utilities.text.MessageFormatter
@@ -48,7 +48,6 @@ class ProxyEssentials(
 
     fun start() {
         LegacyDirectoryMigrator.migrate(dir)
-        OldConfigMigrator.migrate(dir)
         DefaultConfigInstaller.install(dir, javaClass.classLoader)
         loadConfigs()
         layoutService.startDomainSync()

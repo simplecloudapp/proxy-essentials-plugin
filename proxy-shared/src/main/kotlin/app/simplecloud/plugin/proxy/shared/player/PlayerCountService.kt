@@ -3,7 +3,7 @@ package app.simplecloud.plugin.proxy.shared.player
 import app.simplecloud.api.CloudApi
 import app.simplecloud.api.runtime.SimpleCloudRuntime
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
-import app.simplecloud.plugin.proxy.shared.ProxyPlatform
+import app.simplecloud.plugin.proxy.shared.platform.ProxyPlatform
 import app.simplecloud.plugin.proxy.shared.config.PlayerCountConfig
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
 import kotlinx.coroutines.CoroutineScope
@@ -54,13 +54,13 @@ class PlayerCountService(
         }
 
         try {
-            count(config)
+            updateCounts(config)
         } catch (e: Exception) {
             logger.error("Could not count the players of the network, showing the last known count", e)
         }
     }
 
-    private suspend fun count(config: PlayerCountConfig) {
+    private suspend fun updateCounts(config: PlayerCountConfig) {
         val server = api.server().getServerById(SimpleCloudRuntime.serverId()).await()
         val groupNames = (listOfNotNull(server.group?.name) + config.additionalGroups).distinct()
         val groups = groupNames.map { api.group().getGroupByName(it).await() }
