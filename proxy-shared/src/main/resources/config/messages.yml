@@ -1,0 +1,90 @@
+version: '2'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Variables
+# Reusable variables that can be used throughout the messages.
+# Usage: <variable_name> will be replaced with the defined value.
+# ───────────────────────────────────────────────────────────────────────────────
+variables:
+    prefix: "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>"
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Format
+# Default formats of <date> and <time>. Use <date:'pattern'> for a different format in a single text.
+# The color of <ping> is the one of the highest entry the ping reaches.
+# ───────────────────────────────────────────────────────────────────────────────
+format:
+    date: "dd.MM.yyyy"
+    time: "HH:mm:ss"
+    ping-colors:
+        - ping: 0
+          color: "<green>"
+        - ping: 50
+          color: "<yellow>"
+        - ping: 100
+          color: "<gold>"
+        - ping: 150
+          color: "<red>"
+        - ping: 200
+          color: "<dark_red>"
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Kick Messages
+# ───────────────────────────────────────────────────────────────────────────────
+kick:
+    no-permission: "<red>The network is currently in maintenance mode. Please try again later."
+    network-full: "<red>The network is currently full. Please try again later."
+    no-join-state: "<red>No join state found for server. Please try again later."
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Command Messages
+# ───────────────────────────────────────────────────────────────────────────────
+command:
+    help:
+        header: "<prefix>Available /scproxy commands:"
+        entry: "   <color:#a3a3a3><command>"
+
+    failure: "<prefix><color:#ff0000>The command failed, check the console for details."
+
+    reload:
+        start: "<prefix>Reloading ProxyEssentials configurations..."
+        success: "<prefix>Successfully reloaded all ProxyEssentials configurations."
+        failure: "<prefix>Failed to reload configurations: <color:#ff0000><error>"
+
+    join-state:
+        server:
+            update-success: "<prefix>Join state of server updated successfully."
+            update-failure: "<prefix>Failed to update join state of server."
+            update-no-change: "<prefix>Join state of server did not change."
+        
+        group:
+            update-success: "<prefix>Join state of group updated successfully."
+            update-failure: "<prefix>Failed to update join state of group."
+            update-no-change: "<prefix>Join state of group did not change."
+        
+        help:
+            header: "<prefix>Commands of join state:"
+            entry: "   <color:#a3a3a3><command>"
+        
+        list:
+            groups:
+                header: "<prefix>Groups with their join states:"
+                entry: "   <color:#a3a3a3><group> <color:#ffffff>- <color:#a3a3a3><state>"
+            
+            states:
+                header: "<prefix>Available join states:"
+                entry: "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><joinPermission>"
+
+    layout:
+        help:
+            header: "<prefix>Commands of layout:"
+            entry: "   <color:#a3a3a3><command>"
+
+        info:
+            header: "<prefix>Layout for <color:#a3a3a3><group><color:#ffffff>:"
+            entry: "   <color:#a3a3a3><layout>"
+
+        set:
+            update-success: "<prefix>Layout for group updated successfully."
+            update-failure: "<prefix>Failed to update layout for group."
+            update-no-change: "<prefix>Layout for group did not change."

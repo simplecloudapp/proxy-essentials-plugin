@@ -1,214 +1,154 @@
 package app.simplecloud.plugin.proxy.shared.joinstate
 
+import app.simplecloud.api.CloudApi
 import app.simplecloud.api.runtime.SimpleCloudRuntime
 import app.simplecloud.api.server.Server
-import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import kotlinx.coroutines.*
+import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
+import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.await
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
-import kotlin.time.Duration.Companion.milliseconds
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.time.Duration.Companion.seconds
 
 class JoinStateService(
-    private val plugin: ProxyPlugin
+    private val api: CloudApi,
+    private val config: ConfigurationFactory<ProxyEssentialsConfig>,
+    private val scope: CoroutineScope
 ) {
 
     private val logger = LoggerFactory.getLogger(JoinStateService::class.java)
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private var syncJob: Job? = null
+    private val localState = AtomicReference<String?>()
+    private val lastGroupState = AtomicReference<String?>()
 
-    @Volatile
-    private var lastObservedGroupState: String? = null
+    fun getLocalState(): String = localState.get() ?: config.get().initialState
 
-    @Volatile
-    var localState: String = plugin.config.get().initialState
+    suspend fun start() {
+        val server = api.server().getServerById(SimpleCloudRuntime.serverId()).await()
+        localState.set(readState(server.properties) ?: applyDefaultState(server))
 
-    fun stop() {
-        syncJob?.cancel()
-        scope.cancel()
-    }
-
-    suspend fun getJoinStateAtGroup(groupName: String): String {
-        return controller().getGroupProperty(groupName, KEY) ?: defaultJoinState()
-    }
-
-    suspend fun setJoinStateAtGroup(groupName: String, joinStateName: String): Boolean {
-        val updated = controller().updateGroupProperty(groupName, KEY, joinStateName)
-        if (updated) {
-            lastObservedGroupState = joinStateName
+        api.event().server().onUpdated { event ->
+            if (event.serverId != server.serverId) return@onUpdated
+            scope.launch { updateLocalState(event.server) }
         }
-        return updated
-    }
-
-    suspend fun ensureJoinStateAtGroup(groupName: String): String {
-        val existingJoinState = controller().getGroupProperty(groupName, KEY)
-        if (!existingJoinState.isNullOrBlank()) {
-            return existingJoinState
-        }
-
-        val fallbackState = defaultJoinState()
-        if (!setJoinStateAtGroup(groupName, fallbackState)) {
-            logger.warn("Could not persist default join state '$fallbackState' for group '$groupName'")
-        }
-        return fallbackState
-    }
-
-    suspend fun getJoinStateAtService(groupName: String, numericalId: Int): String {
-        return controller().getServiceProperty(groupName, numericalId, KEY)
-            ?: controller().getGroupProperty(groupName, KEY)
-            ?: defaultJoinState()
-    }
-
-    suspend fun setJoinStateAtService(groupName: String, numericalId: Int, joinStateName: String): Boolean {
-        return controller().updateServiceProperty(groupName, numericalId, KEY, joinStateName)
-    }
-
-    suspend fun getJoinStateAtPersistentServer(serverName: String): String {
-        return controller().getPersistentServerProperty(serverName, KEY) ?: defaultJoinState()
-    }
-
-    suspend fun ensureJoinStateAtPersistentServer(serverName: String): String {
-        val existingJoinState = controller().getPersistentServerProperty(serverName, KEY)
-        if (!existingJoinState.isNullOrBlank()) {
-            return existingJoinState
-        }
-
-        val fallbackState = defaultJoinState()
-        if (!setJoinStateAtPersistentServer(serverName, fallbackState)) {
-            logger.warn("Could not persist default join state '$fallbackState' for persistent server '$serverName'")
-        }
-        return fallbackState
-    }
-
-    suspend fun setJoinStateAtPersistentServer(serverName: String, joinStateName: String): Boolean {
-        val updated = controller().updatePersistentServerProperty(serverName, KEY, joinStateName)
-        if (updated) {
-            syncLocalStateWithPersistentServer(serverName, joinStateName)
-        }
-        return updated
-    }
-
-    suspend fun setJoinStateAtGroupAndAllServicesInGroup(groupName: String, joinStateName: String): Boolean {
-        val groupPropertyUpdated = setJoinStateAtGroup(groupName, joinStateName)
-        val servicePropertiesUpdated =
-            controller().updateServicePropertyOnAllGroupServers(groupName, KEY, joinStateName)
-
-        val successful = groupPropertyUpdated && servicePropertiesUpdated
-        if (!successful) {
-            logger.error("Error setting join state at group and all services in group $groupName.")
-        }
-        return successful
-    }
-
-    fun startGroupStateSyncTask() {
-        if (syncJob?.isActive == true) {
-            return
-        }
-
-        syncJob = scope.launch {
-            while (isActive) {
-                try {
-                    syncLocalStateWithGroupState()
-                } catch (e: Exception) {
-                    logger.error("Error while syncing local/group join state", e)
-                }
-                delay(2000.milliseconds)
-            }
-        }
-    }
-
-    fun registerListener() {
-        plugin.api.event().server().onUpdated { event ->
-            if (event.serverId != SimpleCloudRuntime.serverId()) return@onUpdated
-
-            val server = event.server
-            val state = server.properties?.get(KEY)?.toString()
-
-            when {
-                state.isNullOrBlank() -> {
-                    logger.warn("No join state found for server. Using default join state.")
-                    scope.launch { applyDefaultJoinStateForCurrentServer(server) }
-                }
-
-                state != localState -> {
-                    localState = state
-                    logger.info("Join state changed to $state")
-                }
-            }
-        }
-    }
-
-    private fun controller() = plugin.cloudControllerHandler
-
-    private fun defaultJoinState(): String = plugin.config.get().initialState
-
-    private suspend fun syncLocalStateWithPersistentServer(serverName: String, joinStateName: String) {
-        val currentServer = controller().currentServer ?: return
-        if (currentServer.isFromGroup || currentServer.persistentServer?.name != serverName) {
-            return
-        }
-
-        val synchronized = controller().updateServerProperty(currentServer.serverId, KEY, joinStateName)
-        if (synchronized) {
-            localState = joinStateName
-        }
-    }
-
-    private suspend fun applyDefaultJoinStateForCurrentServer(server: Server) {
-        try {
-            val persistentServerName = server.persistentServer?.name
-            val stateToApply = when {
-                server.isFromGroup -> ensureJoinStateAtGroup(server.group?.name ?: return)
-                persistentServerName != null -> ensureJoinStateAtPersistentServer(persistentServerName)
-                else -> defaultJoinState()
-            }
-
-            controller().updateServerProperty(server.serverId, KEY, stateToApply)
-            localState = stateToApply
-        } catch (e: Exception) {
-            logger.error("Error setting default join state", e)
-        }
-    }
-
-    private suspend fun syncLocalStateWithGroupState() {
-        val server = controller().currentServer ?: return
-        if (!server.isFromGroup) return
 
         val groupName = server.group?.name ?: return
-        val numericalId = server.numericalId
-
-        val groupState = controller().getGroupProperty(groupName, KEY)
-        if (groupState.isNullOrBlank()) return
-
-        val previousGroupState = lastObservedGroupState
-        if (previousGroupState == null) {
-            lastObservedGroupState = groupState
-            return
+        scope.launch {
+            while (isActive) {
+                try {
+                    followGroupState(server.serverId, groupName)
+                } catch (e: Exception) {
+                    logger.error("Could not synchronize the join state with group '$groupName'", e)
+                }
+                delay(2.seconds)
+            }
         }
-
-        val serviceState = controller().getServiceProperty(groupName, numericalId, KEY)
-        if (serviceState.isNullOrBlank()) {
-            applyGroupState(server.serverId, "$groupName-$numericalId", groupState, "service state was missing")
-            return
-        }
-
-        if (groupState == previousGroupState) return
-        lastObservedGroupState = groupState
-
-        if (serviceState != previousGroupState) return
-        applyGroupState(server.serverId, "$groupName-$numericalId", groupState, "of group state change")
     }
 
-    private suspend fun applyGroupState(serverId: String, serviceName: String, groupState: String, reason: String) {
-        if (!controller().updateServerProperty(serverId, KEY, groupState)) {
-            logger.warn("Could not synchronize join state for '$serviceName' with group state '$groupState'")
+    suspend fun getGroupState(groupName: String): String =
+        readState(api.group().getGroupByName(groupName).await().properties) ?: config.get().initialState
+
+    suspend fun getServiceState(groupName: String, numericalId: Int): String {
+        val service = api.server().getServerByNumericalId(groupName, numericalId).await()
+        return readState(service.properties) ?: getGroupState(groupName)
+    }
+
+    suspend fun getPersistentServerState(name: String): String =
+        readState(api.persistentServer().getPersistentServerByName(name).await().properties) ?: config.get().initialState
+
+    suspend fun getTargetState(name: String): String {
+        if (isGroup(name)) return getGroupState(name)
+        return getPersistentServerState(name)
+    }
+
+    suspend fun getServerState(serverName: String): String {
+        val server = api.server().allServers.await().find { getServerName(it) == serverName } ?: return config.get().initialState
+        val state = readState(server.properties)
+        if (state != null) return state
+
+        val groupName = server.group?.name
+        if (groupName != null) return getGroupState(groupName)
+
+        val persistentServerName = server.persistentServer?.name ?: return config.get().initialState
+        return getPersistentServerState(persistentServerName)
+    }
+
+    suspend fun setGroupState(groupName: String, state: String) {
+        val group = api.group().getGroupByName(groupName).await()
+        api.group().updateGroupProperty(group.serverGroupId, KEY, state).await()
+        api.server().getServersByGroup(groupName).await().forEach { setServerState(it.serverId, state) }
+    }
+
+    suspend fun setServiceState(groupName: String, numericalId: Int, state: String) {
+        val service = api.server().getServerByNumericalId(groupName, numericalId).await()
+        setServerState(service.serverId, state)
+    }
+
+    suspend fun setPersistentServerState(name: String, state: String) {
+        val persistentServer = api.persistentServer().getPersistentServerByName(name).await()
+        api.persistentServer().updatePersistentServerProperty(persistentServer.persistentServerId, KEY, state).await()
+        api.server().allServers.await()
+            .filter { it.persistentServerId == persistentServer.persistentServerId }
+            .forEach { setServerState(it.serverId, state) }
+    }
+
+    suspend fun isGroup(name: String): Boolean = api.group().allGroups.await().any { it.name == name }
+
+    private suspend fun setServerState(serverId: String, state: String) {
+        api.server().updateServerProperty(serverId, KEY, state).await()
+    }
+
+    private suspend fun updateLocalState(server: Server) {
+        val state = try {
+            readState(server.properties) ?: applyDefaultState(server)
+        } catch (e: Exception) {
+            logger.error("Could not apply the default join state to this server", e)
             return
         }
 
-        localState = groupState
-        logger.info("Join state changed to $groupState because $reason.")
+        if (localState.getAndSet(state) != state) {
+            logger.info("Join state changed to '$state'")
+        }
+    }
+
+    private suspend fun applyDefaultState(server: Server): String {
+        val groupName = server.group?.name
+        val persistentServerName = server.persistentServer?.name
+        val state = when {
+            groupName != null -> getGroupState(groupName)
+            persistentServerName != null -> getPersistentServerState(persistentServerName)
+            else -> config.get().initialState
+        }
+
+        setServerState(server.serverId, state)
+        return state
+    }
+
+    private suspend fun followGroupState(serverId: String, groupName: String) {
+        val groupState = readState(api.group().getGroupByName(groupName).await().properties) ?: return
+        val previousGroupState = lastGroupState.getAndSet(groupState)
+        if (previousGroupState == null || previousGroupState == groupState) return
+        if (getLocalState() != previousGroupState) return
+
+        setServerState(serverId, groupState)
+    }
+
+    private fun readState(properties: Map<String, Any>?): String? {
+        val state = properties?.get(KEY)?.toString()
+        if (state.isNullOrBlank()) return null
+        return state
+    }
+
+    private fun getServerName(server: Server): String {
+        val groupName = server.group?.name
+        if (groupName != null) return "$groupName-${server.numericalId}"
+        return server.persistentServer?.name ?: server.serverId
     }
 
     companion object {
         const val KEY = "joinstate"
     }
-
 }

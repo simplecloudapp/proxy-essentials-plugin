@@ -1,18 +1,18 @@
 package app.simplecloud.plugin.proxy.shared.config.migration
 
 import app.simplecloud.plugin.proxy.shared.config.MessageConfig
-import app.simplecloud.plugin.proxy.shared.config.PlaceHolderConfiguration
+import app.simplecloud.plugin.proxy.shared.config.FormatConfig
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
 import app.simplecloud.plugin.proxy.shared.config.WhitelistConfig
-import org.spongepowered.configurate.CommentedConfigurationNode
-import org.spongepowered.configurate.kotlin.objectMapperFactory
-import org.spongepowered.configurate.yaml.NodeStyle
-import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.extension
 import kotlin.io.path.isRegularFile
 import kotlin.io.path.name
+import org.spongepowered.configurate.CommentedConfigurationNode
+import org.spongepowered.configurate.kotlin.objectMapperFactory
+import org.spongepowered.configurate.yaml.NodeStyle
+import org.spongepowered.configurate.yaml.YamlConfigurationLoader
 
 object OldConfigMigrator {
 
@@ -338,7 +338,7 @@ object OldConfigMigrator {
             !source.node("pingColors").empty()
         if (!legacyCamelCase && !legacyKebabCase) return
 
-        val defaults = PlaceHolderConfiguration()
+        val defaults = FormatConfig()
         val pingColors = source.node("ping-colors")
             .childrenList()
             .ifEmpty { source.node("pingColors").childrenList() }
@@ -348,12 +348,12 @@ object OldConfigMigrator {
         target.node("current-date-format").set(
             source.node("current-date-format").string
                 ?: source.node("currentDateFormat").string
-                ?: defaults.currentDateFormat
+                ?: defaults.date
         )
         target.node("current-time-format").set(
             source.node("current-time-format").string
                 ?: source.node("currentTimeFormat").string
-                ?: defaults.currentTimeFormat
+                ?: defaults.time
         )
         target.node("ping-colors").set(
             pingColors
@@ -707,7 +707,7 @@ object OldConfigMigrator {
             "Initial settings used when a group is created for the first time."
 
     private const val WHITELIST_COMMENT =
-        "Global whitelist for direct player access.\n" +
+        "Players on this list can always join, even during maintenance or when the network is full.\n" +
             "Prefer permission-based access for regular users.\n" +
             "Use this list only for administrators or emergency access."
 
@@ -765,7 +765,7 @@ object OldConfigMigrator {
             "# Initial settings used when a group is created for the first time.\n"
 
     private const val WHITELIST_YAML_COMMENT =
-        "\n# Global whitelist for direct player access.\n" +
+        "\n# Players on this list can always join, even during maintenance or when the network is full.\n" +
             "# Prefer permission-based access for regular users.\n" +
             "# Use this list only for administrators or emergency access.\n"
 

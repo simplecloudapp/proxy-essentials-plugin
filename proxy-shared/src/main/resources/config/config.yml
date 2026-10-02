@@ -1,0 +1,79 @@
+version: '2'
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Join States
+# Configures who can join the proxy and how full or restricted states behave.
+#
+# Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
+# ───────────────────────────────────────────────────────────────────────────────
+
+# Initial settings used when a group is created for the first time.
+initial-state: public
+initial-layout: public
+
+# Disconnects players with the backend server's kick reason instead of sending them to a fallback server.
+# Disable to keep the proxy's standard fallback handling.
+show-kick-reason: false
+
+joinstates:
+-   name: public
+    permission:
+        join: ''
+        full: 'simplecloud.proxy-essentials.join.full.public'
+    forced-motd-layout: null
+-   name: maintenance
+    permission:
+        join: 'simplecloud.proxy-essentials.join.maintenance'
+        full: 'simplecloud.proxy-essentials.join.maintenance'
+    forced-motd-layout: maintenance
+
+# Players on this list can always join, even during maintenance or when the network is full.
+# Prefer permission-based access for regular users.
+# Use this list only for administrators or emergency access.
+whitelist:
+  enabled: false
+  # Supports player names and UUIDs.
+  players: []
+
+# Shows a different layout depending on the domain players use to ping the network.
+# The layout follows the join state of the target group or persistent server:
+# a matching rule wins, then the forced-motd-layout of the join state, then initial-layout.
+domains: []
+#domains:
+#-   domain: 'play.example.com'
+#    target: 'lobby'
+#    rules:
+#    -   state: maintenance
+#        layout: maintenance
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Player Count
+# Displays the summed player count for this proxy group and optional extra targets.
+#
+# Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
+# ───────────────────────────────────────────────────────────────────────────────
+
+player-count:
+  # Enables summed player counts for the server list and placeholders.
+  enabled: true
+  # Additional SimpleCloud groups included in the displayed player count.
+  additional-groups: []
+  # Persistent servers included in the displayed player count.
+  additional-persistent-servers: []
+  # Player count update interval in ticks. Set to 0 to count only once on startup.
+  update-time: 20
+
+# ───────────────────────────────────────────────────────────────────────────────
+# Tablist
+# Configures tablist layouts and update intervals for connected players.
+#
+# Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
+# ───────────────────────────────────────────────────────────────────────────────
+
+tablist:
+-   name: global
+    layout:
+    -   header: '<br><color:#0ea5e9>SimpleCloud v3<br>'
+        footer: '<br> <color:#ffffff><online_players> players <color:#cbd5e1>are playing on your network <br> <color:#64748b>  sɪᴍᴘʟᴇᴄʟᴏᴜᴅ.ᴀᴘᴘ<br>'
+    # Interval in ticks after which the next layout entry is shown. Set to 0 to always show the first entry.
+    update-time: 20

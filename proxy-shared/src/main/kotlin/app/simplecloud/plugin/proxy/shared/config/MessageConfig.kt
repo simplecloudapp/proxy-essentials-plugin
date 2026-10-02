@@ -2,27 +2,38 @@ package app.simplecloud.plugin.proxy.shared.config
 
 import app.simplecloud.plugin.api.shared.config.AbstractMessageConfig
 import app.simplecloud.plugin.api.shared.config.VersionedConfig
-import app.simplecloud.plugin.proxy.shared.utilities.config.ConfigVersion
-import app.simplecloud.plugin.proxy.shared.utilities.config.DefaultConfigs
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
 
 @ConfigSerializable
 data class MessageConfig(
     override val version: Int = ConfigVersion.VERSION,
-    override val variables: Map<String, String> = DefaultConfigs.VARIABLES,
-    val kick: KickMessageConfig = KickMessageConfig(),
+    override val variables: Map<String, String> = mapOf("prefix" to "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>"),
+    val format: FormatConfig = FormatConfig(),
+    val kick: KickMessages = KickMessages(),
     val command: CommandMessages = CommandMessages()
-) : VersionedConfig, AbstractMessageConfig() {
-
-    fun resolve(message: String): String {
-        return variables.entries.fold(message) { resolved, (key, value) ->
-            resolved.replace("<$key>", value)
-        }
-    }
-}
+) : VersionedConfig, AbstractMessageConfig()
 
 @ConfigSerializable
-data class KickMessageConfig(
+data class FormatConfig(
+    val date: String = "dd.MM.yyyy",
+    val time: String = "HH:mm:ss",
+    val pingColors: List<PingColor> = listOf(
+        PingColor(0, "<green>"),
+        PingColor(50, "<yellow>"),
+        PingColor(100, "<gold>"),
+        PingColor(150, "<red>"),
+        PingColor(200, "<dark_red>")
+    )
+)
+
+@ConfigSerializable
+data class PingColor(
+    val ping: Int = 0,
+    val color: String = ""
+)
+
+@ConfigSerializable
+data class KickMessages(
     val noPermission: String = "<red>The network is currently in maintenance mode. Please try again later.",
     val networkFull: String = "<red>The network is currently full. Please try again later.",
     val noJoinState: String = "<red>No join state found for server. Please try again later."
@@ -30,86 +41,80 @@ data class KickMessageConfig(
 
 @ConfigSerializable
 data class CommandMessages(
-    val reload: ReloadCommandMessages = ReloadCommandMessages(),
-    val joinState: JoinStateCommandMessages = JoinStateCommandMessages(),
-    val layout: LayoutCommandMessages = LayoutCommandMessages()
+    val help: ListMessages = ListMessages(
+        header = "<prefix>Available /scproxy commands:",
+        entry = "   <color:#a3a3a3><command>"
+    ),
+    val failure: String = "<prefix><color:#ff0000>The command failed, check the console for details.",
+    val reload: ReloadMessages = ReloadMessages(),
+    val joinState: JoinStateMessages = JoinStateMessages(),
+    val layout: LayoutMessages = LayoutMessages()
 )
 
 @ConfigSerializable
-data class ReloadCommandMessages(
-    val start: String = "${PREFIX}Reloading ProxyEssentials configurations...",
-    val success: String = "${PREFIX}Successfully reloaded all ProxyEssentials configurations.",
-    val failure: String = "${PREFIX}Failed to reload configurations: <color:#ff0000><error>"
+data class ReloadMessages(
+    val start: String = "<prefix>Reloading ProxyEssentials configurations...",
+    val success: String = "<prefix>Successfully reloaded all ProxyEssentials configurations.",
+    val failure: String = "<prefix>Failed to reload configurations: <color:#ff0000><error>"
 )
 
 @ConfigSerializable
-data class JoinStateCommandMessages(
+data class JoinStateMessages(
     val server: UpdateMessages = UpdateMessages(
-        "${PREFIX}Join state of server updated successfully.",
-        "${PREFIX}Failed to update join state of server.",
-        "${PREFIX}Join state of server did not change."
+        updateSuccess = "<prefix>Join state of server updated successfully.",
+        updateFailure = "<prefix>Failed to update join state of server.",
+        updateNoChange = "<prefix>Join state of server did not change."
     ),
     val group: UpdateMessages = UpdateMessages(
-        "${PREFIX}Join state of group updated successfully.",
-        "${PREFIX}Failed to update join state of group.",
-        "${PREFIX}Join state of group did not change."
+        updateSuccess = "<prefix>Join state of group updated successfully.",
+        updateFailure = "<prefix>Failed to update join state of group.",
+        updateNoChange = "<prefix>Join state of group did not change."
     ),
-    val help: JoinStateHelpMessages = JoinStateHelpMessages(),
+    val help: ListMessages = ListMessages(
+        header = "<prefix>Commands of join state:",
+        entry = "   <color:#a3a3a3><command>"
+    ),
     val list: JoinStateListMessages = JoinStateListMessages()
 )
 
 @ConfigSerializable
-data class JoinStateHelpMessages(
-    val header: String = "${PREFIX}Commands of join state:",
-    val entry: String = "   <color:#a3a3a3><command>"
-)
-
-@ConfigSerializable
 data class JoinStateListMessages(
-    val groups: JoinStateGroupListMessages = JoinStateGroupListMessages(),
-    val states: JoinStateStateListMessages = JoinStateStateListMessages()
-)
-
-@ConfigSerializable
-data class JoinStateGroupListMessages(
-    val header: String = "${PREFIX}Groups with their join states:",
-    val entry: String = "   <color:#a3a3a3><group> <color:#ffffff>- <color:#a3a3a3><state>"
-)
-
-@ConfigSerializable
-data class JoinStateStateListMessages(
-    val header: String = "${PREFIX}Available join states:",
-    val entry: String = "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><joinPermission>"
-)
-
-@ConfigSerializable
-data class LayoutCommandMessages(
-    val help: LayoutHelpMessages = LayoutHelpMessages(),
-    val info: LayoutInfoMessages = LayoutInfoMessages(),
-    val set: UpdateMessages = UpdateMessages(
-        "${PREFIX}Layout for group updated successfully.",
-        "${PREFIX}Failed to update layout for group.",
-        "${PREFIX}Layout for group did not change."
+    val groups: ListMessages = ListMessages(
+        header = "<prefix>Groups with their join states:",
+        entry = "   <color:#a3a3a3><group> <color:#ffffff>- <color:#a3a3a3><state>"
+    ),
+    val states: ListMessages = ListMessages(
+        header = "<prefix>Available join states:",
+        entry = "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><joinPermission>"
     )
 )
 
 @ConfigSerializable
-data class LayoutHelpMessages(
-    val header: String = "${PREFIX}Commands of layout:",
-    val entry: String = "   <color:#a3a3a3><command>"
+data class LayoutMessages(
+    val help: ListMessages = ListMessages(
+        header = "<prefix>Commands of layout:",
+        entry = "   <color:#a3a3a3><command>"
+    ),
+    val info: ListMessages = ListMessages(
+        header = "<prefix>Layout for <color:#a3a3a3><group><color:#ffffff>:",
+        entry = "   <color:#a3a3a3><layout>"
+    ),
+    val set: UpdateMessages = UpdateMessages(
+        updateSuccess = "<prefix>Layout for group updated successfully.",
+        updateFailure = "<prefix>Failed to update layout for group.",
+        updateNoChange = "<prefix>Layout for group did not change."
+    )
 )
 
 @ConfigSerializable
-data class LayoutInfoMessages(
-    val header: String = "${PREFIX}Layout for <color:#a3a3a3><group><color:#ffffff>:",
-    val entry: String = "   <color:#a3a3a3><layout>"
+data class ListMessages(
+    val header: String = "",
+    val entry: String = ""
 )
 
 @ConfigSerializable
 data class UpdateMessages(
-    val updateSuccess: String = "${PREFIX}Updated successfully.",
-    val updateFailure: String = "${PREFIX}Failed to update.",
-    val updateNoChange: String = "${PREFIX}Nothing changed."
+    val updateSuccess: String = "<prefix>Updated successfully.",
+    val updateFailure: String = "<prefix>Failed to update.",
+    val updateNoChange: String = "<prefix>Nothing changed."
 )
-
-const val PREFIX = "<color:#38bdf8><bold>⚡</bold></color> <color:#ffffff>"

@@ -1,8 +1,7 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
-import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.joinstate.ProxyJoinGate
-import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
+import app.simplecloud.plugin.proxy.shared.ProxyEssentials
+import app.simplecloud.plugin.proxy.shared.joinstate.JoinResult
 import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.ResultedEvent
 import com.velocitypowered.api.event.Subscribe
@@ -10,21 +9,18 @@ import com.velocitypowered.api.event.connection.LoginEvent
 import kotlinx.coroutines.runBlocking
 
 class LoginListener(
-    private val proxyPlugin: ProxyPlugin,
-    private val plugin: ProxyVelocityPlugin
+    private val essentials: ProxyEssentials
 ) {
 
     @Subscribe(order = PostOrder.EARLY)
-    fun handle(event: LoginEvent) {
+    fun onLogin(event: LoginEvent) {
         val player = event.player
         val result = runBlocking {
-            proxyPlugin.proxyJoinGate.evaluate(player.username) { permission -> player.hasPermission(permission) }
+            essentials.joinGate.checkProxyJoin(player.username, player.uniqueId, player::hasPermission)
         }
+        if (result !is JoinResult.Denied) return
 
-        if (result is ProxyJoinGate.Result.Denied) {
-            event.result = ResultedEvent.ComponentResult.denied(
-                plugin.deserializeToComponent(result.kickMessage, player)
-            )
-        }
+        val message = essentials.messageFormatter.formatForPlayer(result.message, "unknown", player.ping)
+        event.result = ResultedEvent.ComponentResult.denied(message)
     }
 }
