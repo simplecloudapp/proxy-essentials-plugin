@@ -27,13 +27,12 @@ import java.nio.file.Path
     name = "simplecloud-proxy-essentials",
     version = BuildConstants.VERSION,
     authors = ["D151l"],
-    description = "Configure SimpleCloud MOTDs, tablists, join states, player counts, and proxy layouts",
     url = "https://github.com/simplecloudapp/proxy-essentials-plugin",
     dependencies = [
         Dependency("simplecloud-api")
     ]
 )
-class ProxyVelocityPlugin @Inject constructor(
+class VelocityProxyPlugin @Inject constructor(
     private val server: ProxyServer,
     @DataDirectory dataDirectory: Path
 ) {

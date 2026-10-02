@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.jvm.optionals.getOrNull
 
 class TabListHandler(
-    private val plugin: ProxyVelocityPlugin,
+    private val plugin: VelocityProxyPlugin,
     private val server: ProxyServer,
     private val essentials: ProxyEssentials
 ) {

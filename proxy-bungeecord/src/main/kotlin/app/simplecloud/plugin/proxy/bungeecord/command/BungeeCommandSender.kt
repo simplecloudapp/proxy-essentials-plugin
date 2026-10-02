@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.CommandSender
 
-class BungeeCordCommandSender(
+class BungeeCommandSender(
     val commandSender: CommandSender
 ) : ProxySender {
 

@@ -6,7 +6,7 @@ import net.md_5.bungee.api.connection.ProxiedPlayer
 import java.util.concurrent.TimeUnit
 
 class TabListHandler(
-    private val plugin: ProxyBungeeCordPlugin,
+    private val plugin: BungeeProxyPlugin,
     private val essentials: ProxyEssentials
 ) {
 

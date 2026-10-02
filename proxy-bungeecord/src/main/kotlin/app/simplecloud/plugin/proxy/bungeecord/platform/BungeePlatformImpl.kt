@@ -4,7 +4,7 @@ import app.simplecloud.plugin.proxy.shared.platform.ProxyPlatform
 import net.md_5.bungee.api.ProxyServer
 import java.nio.file.Path
 
-class BungeeCordPlatformImpl(
+class BungeePlatformImpl(
     private val proxy: ProxyServer,
     private val dataDirectory: Path
 ) : ProxyPlatform {
