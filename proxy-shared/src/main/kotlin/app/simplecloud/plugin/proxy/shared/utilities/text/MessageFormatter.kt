@@ -27,7 +27,7 @@ class MessageFormatter(
         messages.get().msg(text, getPlaceholders(serverName, ping))
 
     fun formatMotd(line1: String, line2: String): Component =
-        MotdMiniMessageFormatter.deserialize(miniMessage, line1, line2, listOf(getPlaceholders("unknown", -1)))
+        MotdFormatter.deserialize(miniMessage, line1, line2, listOf(getPlaceholders("unknown", -1)))
 
     private fun getPlaceholders(serverName: String, ping: Long): TagResolver {
         val format = messages.get().format

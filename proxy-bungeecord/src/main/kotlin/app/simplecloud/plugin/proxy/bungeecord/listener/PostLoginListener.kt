@@ -2,7 +2,6 @@ package app.simplecloud.plugin.proxy.bungeecord.listener
 
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
 import app.simplecloud.plugin.proxy.shared.joinstate.JoinResult
-import kotlinx.coroutines.runBlocking
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.api.plugin.Listener
@@ -16,9 +15,7 @@ class PostLoginListener(
     @EventHandler(priority = EventPriority.LOWEST)
     fun onPostLogin(event: PostLoginEvent) {
         val player = event.player
-        val result = runBlocking {
-            essentials.joinGate.checkProxyJoin(player.name, player.uniqueId, player::hasPermission)
-        }
+        val result = essentials.joinGate.checkProxyJoin(player.name, player.uniqueId, player::hasPermission)
         if (result !is JoinResult.Denied) return
 
         val message = essentials.messageFormatter.formatForPlayer(result.message, "unknown", player.ping.toLong())

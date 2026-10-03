@@ -6,7 +6,6 @@ import com.velocitypowered.api.event.PostOrder
 import com.velocitypowered.api.event.ResultedEvent
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.connection.LoginEvent
-import kotlinx.coroutines.runBlocking
 
 class LoginListener(
     private val essentials: ProxyEssentials
@@ -15,9 +14,7 @@ class LoginListener(
     @Subscribe(order = PostOrder.EARLY)
     fun onLogin(event: LoginEvent) {
         val player = event.player
-        val result = runBlocking {
-            essentials.joinGate.checkProxyJoin(player.username, player.uniqueId, player::hasPermission)
-        }
+        val result = essentials.joinGate.checkProxyJoin(player.username, player.uniqueId, player::hasPermission)
         if (result !is JoinResult.Denied) return
 
         val message = essentials.messageFormatter.formatForPlayer(result.message, "unknown", player.ping)

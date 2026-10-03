@@ -9,4 +9,6 @@ interface ProxyPlatform {
     fun getOnlinePlayers(): Int
 
     fun getMaxPlayers(): Int
+
+    fun getPlayers(): List<ProxyPlayer>
 }

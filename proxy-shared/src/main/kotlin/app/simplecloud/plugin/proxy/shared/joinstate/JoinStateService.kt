@@ -23,6 +23,7 @@ class JoinStateService(
     private val logger = LoggerFactory.getLogger(JoinStateService::class.java)
     private val localState = AtomicReference<String?>()
     private val lastGroupState = AtomicReference<String?>()
+    private val serverStates = AtomicReference<Map<String, String>?>()
 
     fun getLocalState(): String = localState.get() ?: config.get().initialState
 
@@ -64,16 +65,22 @@ class JoinStateService(
         return getPersistentServerState(name)
     }
 
-    suspend fun getServerState(serverName: String): String {
-        val server = api.server().allServers.await().find { getServerName(it) == serverName } ?: return config.get().initialState
-        val state = readState(server.properties)
-        if (state != null) return state
+    fun startServerStateSync() {
+        scope.launch {
+            while (isActive) {
+                try {
+                    refreshServerStates()
+                } catch (e: Exception) {
+                    logger.error("Could not load the join states of the servers, keeping the last known states", e)
+                }
+                delay(2.seconds)
+            }
+        }
+    }
 
-        val groupName = server.group?.name
-        if (groupName != null) return getGroupState(groupName)
-
-        val persistentServerName = server.persistentServer?.name ?: return config.get().initialState
-        return getPersistentServerState(persistentServerName)
+    fun getServerState(serverName: String): String? {
+        val states = serverStates.get() ?: return null
+        return states[serverName] ?: config.get().initialState
     }
 
     suspend fun setGroupState(groupName: String, state: String) {
@@ -134,6 +141,24 @@ class JoinStateService(
         if (getLocalState() != previousGroupState) return
 
         setServerState(serverId, groupState)
+    }
+
+    private suspend fun refreshServerStates() {
+        val groupStates = api.group().allGroups.await().associate { it.name to readState(it.properties) }
+        val persistentServerStates = api.persistentServer().allPersistentServers.await().associate { it.name to readState(it.properties) }
+        val states = api.server().allServers.await().associate { getServerName(it) to resolveState(it, groupStates, persistentServerStates) }
+        serverStates.set(states)
+    }
+
+    private fun resolveState(server: Server, groupStates: Map<String, String?>, persistentServerStates: Map<String, String?>): String {
+        val state = readState(server.properties)
+        if (state != null) return state
+
+        val groupName = server.group?.name
+        if (groupName != null) return groupStates[groupName] ?: config.get().initialState
+
+        val persistentServerName = server.persistentServer?.name ?: return config.get().initialState
+        return persistentServerStates[persistentServerName] ?: config.get().initialState
     }
 
     private fun readState(properties: Map<String, Any>?): String? {

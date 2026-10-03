@@ -17,7 +17,6 @@ import org.incendo.cloud.execution.ExecutionCoordinator
 class BungeeProxyPlugin : Plugin() {
 
     private val essentials = ProxyEssentials(BungeePlatformImpl(proxy, dataFolder.toPath()))
-    private val tabListHandler = TabListHandler(this, essentials)
 
     override fun onEnable() {
         essentials.start()
@@ -26,14 +25,12 @@ class BungeeProxyPlugin : Plugin() {
         proxy.pluginManager.registerListener(this, ServerPreConnectListener(essentials))
         proxy.pluginManager.registerListener(this, ProxyPingListener(essentials))
         proxy.pluginManager.registerListener(this, ServerKickListener(essentials))
-        proxy.pluginManager.registerListener(this, TabListListener(tabListHandler))
+        proxy.pluginManager.registerListener(this, TabListListener(essentials))
 
         ProxyCommandHandler(createCommandManager(), essentials).register()
-        tabListHandler.start()
     }
 
     override fun onDisable() {
-        proxy.scheduler.cancel(this)
         essentials.stop()
     }
 

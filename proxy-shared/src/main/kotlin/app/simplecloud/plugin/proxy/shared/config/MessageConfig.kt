@@ -87,7 +87,7 @@ data class JoinStateListMessages(
     ),
     val states: ListMessages = ListMessages(
         header = "<prefix>Available join states:",
-        entry = "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><joinPermission>"
+        entry = "   <color:#a3a3a3><state> <color:#ffffff>- <color:#a3a3a3><join_permission>"
     )
 )
 

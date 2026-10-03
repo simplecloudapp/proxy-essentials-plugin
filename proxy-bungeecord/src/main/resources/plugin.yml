@@ -1,5 +1,6 @@
 name: simplecloud-proxy-essentials
-main: app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
+main: app.simplecloud.plugin.proxy.bungeecord.BungeeProxyPlugin
+description: Essential proxy features for your SimpleCloud network.
 version: ${version}
 author: D151l
 depends: [simplecloud-api]

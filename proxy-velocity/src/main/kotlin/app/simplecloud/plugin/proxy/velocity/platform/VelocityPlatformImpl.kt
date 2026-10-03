@@ -14,4 +14,6 @@ class VelocityPlatformImpl(
     override fun getOnlinePlayers() = server.playerCount
 
     override fun getMaxPlayers() = server.configuration.showMaxPlayers
+
+    override fun getPlayers() = server.allPlayers.map { VelocityProxyPlayer(it) }
 }

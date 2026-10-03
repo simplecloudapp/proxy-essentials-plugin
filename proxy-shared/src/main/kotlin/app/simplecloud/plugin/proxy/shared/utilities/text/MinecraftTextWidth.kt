@@ -35,7 +35,7 @@ object MinecraftTextWidth {
         val ownWidth = when (component) {
             is TextComponent -> textWidth(component.content(), style)
             is ObjectComponent -> OBJECT_WIDTH + objectBoldOffset(style)
-            is TranslatableComponent -> textWidth(component.fallback(), style)
+            is TranslatableComponent -> textWidth(component.fallback() ?: component.key(), style)
             is KeybindComponent -> textWidth(component.keybind(), style)
             else -> 0f
         }

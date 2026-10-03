@@ -10,7 +10,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import kotlin.collections.minus
 import kotlin.math.roundToInt
 
-object MotdMiniMessageFormatter {
+object MotdFormatter {
 
     private const val CENTER_TAG = "center"
     private const val CENTER_MARKER = "simplecloud:motd_center"

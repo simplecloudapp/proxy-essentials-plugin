@@ -14,4 +14,6 @@ class BungeePlatformImpl(
     override fun getOnlinePlayers() = proxy.onlineCount
 
     override fun getMaxPlayers() = proxy.config.playerLimit
+
+    override fun getPlayers() = proxy.players.map { BungeeProxyPlayer(it) }
 }

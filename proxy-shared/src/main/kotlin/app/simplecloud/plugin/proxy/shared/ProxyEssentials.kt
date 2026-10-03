@@ -36,9 +36,9 @@ class ProxyEssentials(
     val layoutRepository = LayoutRepository(dir.resolve("layout"))
     val layoutService = LayoutService(api, layoutRepository, joinStateService, config, scope)
     val playerCountService = PlayerCountService(api, platform, config, scope)
-    val tabListService = TabListService(config)
-    val joinGate = JoinGate(api, joinStateService, config, messages)
+    val joinGate = JoinGate(api, joinStateService, config, messages, scope)
     val messageFormatter = MessageFormatter(messages, playerCountService, layoutService)
+    val tabListService = TabListService(platform, config, messageFormatter, scope)
     val serverIconDirectory: Path = dir.resolve("layout").resolve("server-icons")
 
     fun start() {
@@ -46,21 +46,25 @@ class ProxyEssentials(
         DefaultConfigInstaller.install(dir, javaClass.classLoader)
         loadConfigs()
         layoutService.startDomainSync()
+        tabListService.start()
 
         if (SimpleCloudRuntime.serverId().isBlank()) return
+        joinStateService.startServerStateSync()
+        joinGate.start()
         playerCountService.start()
         scope.launch {
             try {
                 joinStateService.start()
                 layoutService.start()
             } catch (e: Exception) {
-                logger.error("Could not load this proxy from the cloud, so it uses the initial join state and layout", e)
+                logger.error("Failed to load this server from the controller, so it uses the initial join state and layout", e)
             }
         }
     }
 
     fun stop() {
         scope.cancel()
+        api.close()
     }
 
     fun reload() {

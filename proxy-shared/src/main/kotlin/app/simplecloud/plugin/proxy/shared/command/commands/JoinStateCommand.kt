@@ -59,7 +59,7 @@ class JoinStateCommand<C : ProxySender>(
                     sender.sendMessage(plugin.messageFormatter.format(states.header))
                     plugin.config.get().joinstates.forEach {
                         val state = Placeholder.unparsed("state", it.name)
-                        val permission = Placeholder.unparsed("joinPermission", it.permission.join.ifBlank { "-" })
+                        val permission = Placeholder.unparsed("join_permission", it.permission.join.ifBlank { "-" })
                         sender.sendMessage(plugin.messageFormatter.format(states.entry, state, permission))
                     }
                 }
