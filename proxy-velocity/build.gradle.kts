@@ -1,20 +1,14 @@
 plugins {
     alias(libs.plugins.minotaur)
+    alias(libs.plugins.blossom)
+    kotlin("kapt")
 }
 
 dependencies {
-    api(project(":proxy-shared"))
-
-    compileOnly(rootProject.libs.adventure.minimessage)
-
-    compileOnly(rootProject.libs.velocity)
-    annotationProcessor(rootProject.libs.velocity)
-
-    testImplementation(kotlin("test"))
-    testImplementation(rootProject.libs.velocity)
-
-    implementation(rootProject.libs.command.cloud.core)
-    implementation(rootProject.libs.command.cloud.velocity)
+    implementation(project(":proxy-shared"))
+    implementation(libs.cloud.command.velocity)
+    compileOnly(libs.velocity.api)
+    kapt(libs.velocity.api)
 }
 
 modrinth {
@@ -52,4 +46,14 @@ modrinth {
     loaders.add("velocity")
     changelog.set("https://docs.simplecloud.app/changelog")
     syncBodyFrom.set(rootProject.file("README.md").readText())
+}
+
+sourceSets {
+    main {
+        blossom {
+            kotlinSources {
+                property("version", project.version.toString())
+            }
+        }
+    }
 }

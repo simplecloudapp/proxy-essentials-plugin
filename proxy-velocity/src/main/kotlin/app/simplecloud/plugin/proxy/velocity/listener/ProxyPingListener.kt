@@ -1,84 +1,50 @@
 package app.simplecloud.plugin.proxy.velocity.listener
 
-import app.simplecloud.plugin.proxy.shared.ProxyPlugin
-import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
-import app.simplecloud.plugin.proxy.shared.handler.LocalPingSourceMatcher
-import app.simplecloud.plugin.proxy.shared.handler.ServerIconLoader
-import app.simplecloud.plugin.proxy.velocity.ProxyVelocityPlugin
+import app.simplecloud.plugin.proxy.shared.ProxyEssentials
+import app.simplecloud.plugin.proxy.shared.layout.ServerIconCache
+import app.simplecloud.plugin.proxy.shared.utilities.LocalPingSourceMatcher
 import com.velocitypowered.api.event.Subscribe
 import com.velocitypowered.api.event.proxy.ProxyPingEvent
 import com.velocitypowered.api.proxy.server.ServerPing
-import com.velocitypowered.api.proxy.server.ServerPing.SamplePlayer
 import com.velocitypowered.api.util.Favicon
-import java.nio.file.Path
-import java.util.*
+import java.util.UUID
 import kotlin.jvm.optionals.getOrNull
 
 class ProxyPingListener(
-    private val proxyPlugin: ProxyPlugin,
-    private val plugin: ProxyVelocityPlugin
+    private val essentials: ProxyEssentials
 ) {
 
-    private val serverIconLoader = ServerIconLoader(
-        Path.of(proxyPlugin.serverIconsPath)
-    ) { image -> Favicon.create(image) }
-    private val localPingSourceMatcher = LocalPingSourceMatcher()
+    private val serverIconCache = ServerIconCache(essentials.serverIconDirectory)
 
     @Subscribe
     fun onProxyPing(event: ProxyPingEvent) {
-        val virtualHost = event.connection.virtualHost.getOrNull()?.hostName
-        val layout = virtualHost
-            ?.let { proxyPlugin.domainMotdHandler.getLayoutNameForDomain(it) }
-            ?.let { proxyPlugin.motdLayoutHandler.getLayoutByName(it) }
-            ?: proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
+        val layoutService = essentials.layoutService
+        val layoutName = layoutService.getLayoutName(event.connection.virtualHost.getOrNull()?.hostString)
+        val layout = layoutService.getLayout(layoutName)
+        val builder = event.ping.asBuilder()
 
-        if (!layout.motd.enabled) return
-
-        val entry = proxyPlugin.motdLayoutHandler.selectEntry(layout, layout.configVersion)
-            ?: return
-        val motd = plugin.deserializeMotd(entry.line1, entry.line2)
-        val isLocalPing = localPingSourceMatcher.isLocal(event.connection.remoteAddress.address)
-        val builder = event.ping.asBuilder().description(motd)
-
-        // server icon
-        if (layout.serverIcon.enabled) {
-            serverIconLoader.get(layout.serverIcon.file) { plugin.logger.warn(it) }
-                ?.let { builder.favicon(it) }
+        val motdEntry = if (layout.motd.enabled) layoutService.getMotdEntry(layoutName, layout) else null
+        if (motdEntry != null) {
+            builder.description(essentials.messageFormatter.formatMotd(motdEntry.line1, motdEntry.line2))
         }
 
-        // player list (hover text)
-        if (!isLocalPing) {
-            val players = event.ping.players.getOrNull()
-            val playerCountHandler = proxyPlugin.playerCountHandler
-            val onlinePlayers = playerCountHandler.onlinePlayers(plugin.proxyServer.allPlayers.size)
-            val realMax = playerCountHandler.maxPlayers(plugin.proxyServer.configuration.showMaxPlayers)
+        val icon = if (layout.serverIcon.enabled) serverIconCache.get(layout.serverIcon.file) else null
+        if (icon != null) {
+            builder.favicon(Favicon(icon))
+        }
 
-            val samplePlayers: List<SamplePlayer> =
-                if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
-                    layout.playerList.entries.map { SamplePlayer(it, UUID.randomUUID()) }
-                } else {
-                    players?.sample ?: emptyList()
-                }
+        if (layout.version.name.enabled) {
+            builder.version(ServerPing.Version(event.ping.version.protocol, layout.version.name.text))
+        }
 
-            // slots
-            val maxPlayers = if (layout.versionSettings.slots.enabled) {
-                when (layout.versionSettings.slots.type) {
-                    MaxPlayerDisplayType.REAL -> realMax
-                    MaxPlayerDisplayType.FAKE -> layout.versionSettings.slots.fakeSlots
-                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.versionSettings.slots.dynamicPlayerRange
-                }
-            } else {
-                realMax
-            }
+        if (!LocalPingSourceMatcher.isLocal(event.connection.remoteAddress.address)) {
+            val onlinePlayers = essentials.playerCountService.getOnlinePlayers()
+            val maxPlayers = layout.version.slots.resolveMaxPlayers(onlinePlayers, essentials.playerCountService.getMaxPlayers())
+            builder.onlinePlayers(onlinePlayers).maximumPlayers(maxPlayers)
 
-            builder
-                .onlinePlayers(onlinePlayers)
-                .maximumPlayers(maxPlayers)
-                .samplePlayers(*samplePlayers.toTypedArray())
-
-            // version name
-            if (layout.versionSettings.name.enabled) {
-                builder.version(ServerPing.Version(event.ping.version.protocol, layout.versionSettings.name.text))
+            if (layout.playerList.enabled && layout.playerList.playerList.isNotEmpty()) {
+                builder.clearSamplePlayers()
+                builder.samplePlayers(*layout.playerList.playerList.map { ServerPing.SamplePlayer(it, UUID.randomUUID()) }.toTypedArray())
             }
         }
 

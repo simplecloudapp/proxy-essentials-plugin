@@ -1,0 +1,60 @@
+name: Create Release and Publish to Modrinth
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Modules and Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          submodules: recursive
+
+      - name: Set up JDK
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build ShadowJars
+        run: ./gradlew build shadowJar
+
+      - name: Get Gradle Version
+        run: echo "GRADLE_VERSION=$(./gradlew properties -q | grep "version:" | awk '{print $2}')" >> $GITHUB_ENV
+
+      - name: Publish to Modrinth
+        run: ./gradlew modrinth modrinthSyncBody
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+
+      - name: Create Release
+        run: |
+          jars=()
+          for jar in $(find . -type f -name "*.jar" -path "*/build/libs/*.jar" -not -path "./build/libs/*"); do
+            if [[ $(basename "$jar") =~ -[0-9]+\.[0-9]+ ]]; then
+              echo "Skipping $jar due to version number"
+            else
+              echo "Uploading $jar"
+              jars+=("$jar")
+            fi
+          done
+          gh release create "v${GRADLE_VERSION}" \
+            --target main \
+            --title "v${GRADLE_VERSION}" \
+            --notes "This release contains release builds for all Gradle modules." \
+            "${jars[@]}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,81 +1,60 @@
 package app.simplecloud.plugin.proxy.bungeecord.listener
 
-import app.simplecloud.plugin.proxy.bungeecord.ProxyBungeeCordPlugin
-import app.simplecloud.plugin.proxy.shared.config.motd.MaxPlayerDisplayType
-import app.simplecloud.plugin.proxy.shared.handler.LocalPingSourceMatcher
-import app.simplecloud.plugin.proxy.shared.handler.ServerIconLoader
+import app.simplecloud.plugin.proxy.shared.ProxyEssentials
+import app.simplecloud.plugin.proxy.shared.layout.ServerIconCache
+import app.simplecloud.plugin.proxy.shared.utilities.LocalPingSourceMatcher
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.Favicon
-import net.md_5.bungee.api.ServerPing.*
+import net.md_5.bungee.api.ServerPing
+import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
+import java.io.ByteArrayInputStream
 import java.net.InetSocketAddress
-import java.nio.file.Path
-import java.util.*
+import java.util.Base64
+import java.util.UUID
+import javax.imageio.ImageIO
 
 class ProxyPingListener(
-    private val plugin: ProxyBungeeCordPlugin
+    private val essentials: ProxyEssentials
 ) : Listener {
 
-    private val serverIconLoader = ServerIconLoader(
-        Path.of(plugin.proxyPlugin.serverIconsPath)
-    ) { image -> Favicon.create(image) }
-    private val localPingSourceMatcher = LocalPingSourceMatcher()
+    private val serverIconCache = ServerIconCache(essentials.serverIconDirectory)
 
     @EventHandler
-    fun onPing(event: ProxyPingEvent) {
-        val virtualHost = event.connection.virtualHost?.hostName
-        val layout = virtualHost
-            ?.let { plugin.proxyPlugin.domainMotdHandler.getLayoutNameForDomain(it) }
-            ?.let { plugin.proxyPlugin.motdLayoutHandler.getLayoutByName(it) }
-            ?: plugin.proxyPlugin.motdLayoutHandler.getCurrentMotdLayout()
-
-        if (!layout.motd.enabled) return
-
-        val entry = plugin.proxyPlugin.motdLayoutHandler.selectEntry(layout, layout.configVersion)
-            ?: return
-
+    fun onProxyPing(event: ProxyPingEvent) {
+        val layoutService = essentials.layoutService
+        val layoutName = layoutService.getLayoutName(event.connection.virtualHost?.hostString)
+        val layout = layoutService.getLayout(layoutName)
         val response = event.response
-        val motd = plugin.deserializeMotd(entry.line1, entry.line2)
-        response.descriptionComponent = net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer.get().serialize(motd)[0]
 
-        val socketAddress = event.connection.socketAddress as? InetSocketAddress
-        val isLocalPing = localPingSourceMatcher.isLocal(socketAddress?.address)
-
-        // server icon
-        if (layout.serverIcon.enabled) {
-            serverIconLoader.get(layout.serverIcon.file) { plugin.logger.warning(it) }
-                ?.let { response.setFavicon(it) }
+        val motdEntry = if (layout.motd.enabled) layoutService.getMotdEntry(layoutName, layout) else null
+        if (motdEntry != null) {
+            val motd = essentials.messageFormatter.formatMotd(motdEntry.line1, motdEntry.line2)
+            response.descriptionComponent = TextComponent(*BungeeComponentSerializer.get().serialize(motd))
         }
 
-        if (!isLocalPing) {
-            // player list (hover text)
-            val samplePlayers = if (layout.playerList.enabled && layout.playerList.entries.isNotEmpty()) {
-                layout.playerList.entries.map { PlayerInfo(it, UUID.randomUUID()) }.toTypedArray()
+        val icon = if (layout.serverIcon.enabled) serverIconCache.get(layout.serverIcon.file) else null
+        if (icon != null) {
+            val bytes = Base64.getDecoder().decode(icon.substringAfter(","))
+            response.setFavicon(Favicon.create(ImageIO.read(ByteArrayInputStream(bytes))))
+        }
+
+        if (layout.version.name.enabled) {
+            response.version = ServerPing.Protocol(layout.version.name.text, response.version.protocol)
+        }
+
+        val address = event.connection.socketAddress as? InetSocketAddress
+        if (!LocalPingSourceMatcher.isLocal(address?.address)) {
+            val onlinePlayers = essentials.playerCountService.getOnlinePlayers()
+            val maxPlayers = layout.version.slots.resolveMaxPlayers(onlinePlayers, essentials.playerCountService.getMaxPlayers())
+            val samplePlayers = if (layout.playerList.enabled && layout.playerList.playerList.isNotEmpty()) {
+                layout.playerList.playerList.map { ServerPing.PlayerInfo(it, UUID.randomUUID()) }.toTypedArray()
             } else {
                 response.players.sample
             }
-
-            // slots
-            val playerCountHandler = plugin.proxyPlugin.playerCountHandler
-            val onlinePlayers = playerCountHandler.onlinePlayers(plugin.proxy.players.size)
-            val realMax = playerCountHandler.maxPlayers(plugin.proxy.config.playerLimit)
-            val maxPlayers = if (layout.versionSettings.slots.enabled) {
-                when (layout.versionSettings.slots.type) {
-                    MaxPlayerDisplayType.REAL -> realMax
-                    MaxPlayerDisplayType.FAKE -> layout.versionSettings.slots.fakeSlots
-                    MaxPlayerDisplayType.DYNAMIC -> onlinePlayers + layout.versionSettings.slots.dynamicPlayerRange
-                }
-            } else {
-                realMax
-            }
-
-            response.players = Players(maxPlayers, onlinePlayers, samplePlayers)
-
-            // version name
-            if (layout.versionSettings.name.enabled) {
-                response.version = Protocol(layout.versionSettings.name.text, response.version.protocol)
-            }
+            response.players = ServerPing.Players(maxPlayers, onlinePlayers, samplePlayers)
         }
     }
 }
