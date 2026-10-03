@@ -18,7 +18,7 @@ class LayoutRepository(
     override fun find(identifier: String): LayoutConfig? = layouts.get()[identifier]
 
     override fun save(entity: LayoutConfig) {
-        throw UnsupportedOperationException("Layouts are only edited in their files")
+        throw UnsupportedOperationException()
     }
 
     fun getNames(): List<String> = layouts.get().keys.sorted()

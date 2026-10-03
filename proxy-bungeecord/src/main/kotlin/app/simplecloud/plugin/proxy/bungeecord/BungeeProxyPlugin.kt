@@ -1,11 +1,8 @@
 package app.simplecloud.plugin.proxy.bungeecord
 
 import app.simplecloud.plugin.proxy.bungeecord.command.BungeeCommandSender
-import app.simplecloud.plugin.proxy.bungeecord.listener.PostLoginListener
+import app.simplecloud.plugin.proxy.bungeecord.listener.ConnectionListener
 import app.simplecloud.plugin.proxy.bungeecord.listener.ProxyPingListener
-import app.simplecloud.plugin.proxy.bungeecord.listener.ServerKickListener
-import app.simplecloud.plugin.proxy.bungeecord.listener.ServerPreConnectListener
-import app.simplecloud.plugin.proxy.bungeecord.listener.TabListListener
 import app.simplecloud.plugin.proxy.bungeecord.platform.BungeePlatformImpl
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
 import app.simplecloud.plugin.proxy.shared.command.ProxyCommandHandler
@@ -21,11 +18,8 @@ class BungeeProxyPlugin : Plugin() {
     override fun onEnable() {
         essentials.start()
 
-        proxy.pluginManager.registerListener(this, PostLoginListener(essentials))
-        proxy.pluginManager.registerListener(this, ServerPreConnectListener(essentials))
+        proxy.pluginManager.registerListener(this, ConnectionListener(essentials))
         proxy.pluginManager.registerListener(this, ProxyPingListener(essentials))
-        proxy.pluginManager.registerListener(this, ServerKickListener(essentials))
-        proxy.pluginManager.registerListener(this, TabListListener(essentials))
 
         ProxyCommandHandler(createCommandManager(), essentials).register()
     }

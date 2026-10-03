@@ -10,8 +10,11 @@ import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
+import java.io.ByteArrayInputStream
 import java.net.InetSocketAddress
+import java.util.Base64
 import java.util.UUID
+import javax.imageio.ImageIO
 
 class ProxyPingListener(
     private val essentials: ProxyEssentials
@@ -34,7 +37,8 @@ class ProxyPingListener(
 
         val icon = if (layout.serverIcon.enabled) serverIconCache.get(layout.serverIcon.file) else null
         if (icon != null) {
-            response.setFavicon(Favicon.create(icon))
+            val bytes = Base64.getDecoder().decode(icon.substringAfter(","))
+            response.setFavicon(Favicon.create(ImageIO.read(ByteArrayInputStream(bytes))))
         }
 
         if (layout.version.name.enabled) {

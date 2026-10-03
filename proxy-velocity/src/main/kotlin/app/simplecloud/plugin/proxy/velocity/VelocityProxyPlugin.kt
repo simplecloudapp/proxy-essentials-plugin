@@ -3,11 +3,8 @@ package app.simplecloud.plugin.proxy.velocity
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
 import app.simplecloud.plugin.proxy.shared.command.ProxyCommandHandler
 import app.simplecloud.plugin.proxy.velocity.command.VelocityCommandSender
-import app.simplecloud.plugin.proxy.velocity.listener.LoginListener
+import app.simplecloud.plugin.proxy.velocity.listener.ConnectionListener
 import app.simplecloud.plugin.proxy.velocity.listener.ProxyPingListener
-import app.simplecloud.plugin.proxy.velocity.listener.ServerKickListener
-import app.simplecloud.plugin.proxy.velocity.listener.ServerPreConnectListener
-import app.simplecloud.plugin.proxy.velocity.listener.TabListListener
 import app.simplecloud.plugin.proxy.velocity.platform.VelocityPlatformImpl
 import com.google.inject.Inject
 import com.velocitypowered.api.event.Subscribe
@@ -44,11 +41,8 @@ class VelocityProxyPlugin @Inject constructor(
     fun onProxyInitialize(event: ProxyInitializeEvent) {
         essentials.start()
 
-        server.eventManager.register(this, LoginListener(essentials))
-        server.eventManager.register(this, ServerPreConnectListener(essentials))
+        server.eventManager.register(this, ConnectionListener(essentials))
         server.eventManager.register(this, ProxyPingListener(essentials))
-        server.eventManager.register(this, ServerKickListener(essentials))
-        server.eventManager.register(this, TabListListener(essentials))
 
         ProxyCommandHandler(createCommandManager(), essentials).register()
     }
