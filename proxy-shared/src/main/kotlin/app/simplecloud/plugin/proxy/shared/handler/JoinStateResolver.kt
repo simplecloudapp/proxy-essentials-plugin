@@ -30,19 +30,23 @@ class JoinStateResolver(
     }
 
     suspend fun getJoinStateForServer(serverName: String): String {
-        proxyPlugin.proxyEssentialsConfig.get().serverJoinstates[serverName]?.let { return it }
-
-        try {
+        val server = try {
             val (groupName, numericalId) = identifier.parse(serverName)
-            return proxyPlugin.joinStateHandler.getJoinStateAtService(groupName, numericalId)
+            proxyPlugin.cloudControllerHandler.getServerByNumericalId(groupName, numericalId)
         } catch (_: IllegalArgumentException) {
-        }
-
-        val server = proxyPlugin.cloudControllerHandler.getServerByName(serverName)
+            null
+        } ?: proxyPlugin.cloudControllerHandler.getServerByName(serverName)
         if (server != null) {
             val joinState = server.properties?.get(JoinStateHandler.JOINSTATE_KEY)?.toString()
-            if (!joinState.isNullOrEmpty()) {
+            if (!joinState.isNullOrBlank()) {
                 return joinState
+            }
+
+            if (server.isFromGroup) {
+                val groupName = server.group?.name
+                if (groupName != null) {
+                    return proxyPlugin.joinStateHandler.getJoinStateAtGroup(groupName)
+                }
             }
 
             val persistentName = server.persistentServer?.name
@@ -51,7 +55,18 @@ class JoinStateResolver(
             }
         }
 
-        return proxyPlugin.proxyEssentialsConfig.get().initialState
+        val config = proxyPlugin.proxyEssentialsConfig.get()
+        if (server == null) {
+            val externalJoinState = config.externalServerJoinStates.entries
+                .firstOrNull { it.key.equals(serverName, ignoreCase = true) }
+                ?.value
+
+            if (externalJoinState != null) {
+                return externalJoinState
+            }
+        }
+
+        return config.initialState
     }
 
     suspend fun isServerFull(): Boolean {

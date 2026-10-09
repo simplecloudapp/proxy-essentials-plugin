@@ -73,6 +73,11 @@ object OldConfigMigrator {
             changed = true
         }
 
+        if (node.node("external-server-joinstates").virtual()) {
+            node.node("external-server-joinstates").set(ProxyEssentialsConfig().externalServerJoinStates)
+            changed = true
+        }
+
         if (playerCountNode.virtual()) {
             playerCountNode.set(defaultPlayerCount())
             changed = true
@@ -182,6 +187,7 @@ object OldConfigMigrator {
         }
 
         target.node("joinstates").set(states)
+        target.node("external-server-joinstates").set(ProxyEssentialsConfig().externalServerJoinStates)
         val whitelist = WhitelistConfig()
         target.node("whitelist").set(
             mapOf<String, Any>(
@@ -502,6 +508,7 @@ object OldConfigMigrator {
     private fun CommentedConfigurationNode.applyMainConfigComments() {
         node("initial-state").comment(JOIN_STATES_COMMENT)
         node("show-kick-reason").comment(SHOW_KICK_REASON_COMMENT)
+        node("external-server-joinstates").comment(EXTERNAL_SERVER_JOINSTATES_COMMENT)
         node("whitelist").comment(WHITELIST_COMMENT)
         node("whitelist", "players").comment("Supports player names and UUIDs.")
         node("player-count").comment(PLAYER_COUNT_COMMENT)
@@ -588,6 +595,7 @@ object OldConfigMigrator {
         return content
             .insertBefore("initial-state:", JOIN_STATES_YAML_COMMENT)
             .insertBefore("show-kick-reason:", SHOW_KICK_REASON_YAML_COMMENT)
+            .insertBefore("external-server-joinstates:", EXTERNAL_SERVER_JOINSTATES_YAML_COMMENT)
             .insertBefore("whitelist:", WHITELIST_YAML_COMMENT)
             .insertBefore("    players:", "    # Supports player names and UUIDs.\n")
             .insertBefore("player-count:", PLAYER_COUNT_YAML_COMMENT)
@@ -668,6 +676,10 @@ object OldConfigMigrator {
             "Prefer permission-based access for regular users.\n" +
             "Use this list only for administrators or emergency access."
 
+    private const val EXTERNAL_SERVER_JOINSTATES_COMMENT =
+        "Join states for servers not managed by SimpleCloud, keyed by server name (case-insensitive).\n" +
+            "Example: queue-limbo: public"
+
     private const val SHOW_KICK_REASON_COMMENT =
         "Disconnects players with the backend server's kick reason instead of sending them to a fallback server.\n" +
             "Disable to keep the proxy's standard fallback handling."
@@ -725,6 +737,10 @@ object OldConfigMigrator {
         "\n# Global whitelist for direct player access.\n" +
             "# Prefer permission-based access for regular users.\n" +
             "# Use this list only for administrators or emergency access.\n"
+
+    private const val EXTERNAL_SERVER_JOINSTATES_YAML_COMMENT =
+        "\n# Join states for servers not managed by SimpleCloud, keyed by server name (case-insensitive).\n" +
+            "# Example: queue-limbo: public\n"
 
     private const val SHOW_KICK_REASON_YAML_COMMENT =
         "\n# Disconnects players with the backend server's kick reason instead of sending them to a fallback server.\n" +

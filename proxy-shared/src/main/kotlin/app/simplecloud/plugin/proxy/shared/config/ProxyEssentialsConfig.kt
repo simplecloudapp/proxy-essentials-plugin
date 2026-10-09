@@ -26,6 +26,7 @@ data class ProxyEssentialsConfig(
             "maintenance"
         )
     ),
+    @Setting("external-server-joinstates") val externalServerJoinStates: Map<String, String> = emptyMap(),
     val domains: List<DomainMotdRoute> = listOf(),
     val whitelist: WhitelistConfig = WhitelistConfig(),
     @Setting("player-count") val playerCount: PlayerCountConfig = PlayerCountConfig(),
@@ -35,8 +36,7 @@ data class ProxyEssentialsConfig(
             layout = listOf(TabList()),
             updateTime = 20L
         )
-    ),
-    @Setting("server-joinstates") val serverJoinstates: Map<String, String> = emptyMap()
+    )
 ) {
     fun tabListUpdateTimeMillis(): Long {
         val ticks = tablist.minOfOrNull { it.updateTime } ?: 20L

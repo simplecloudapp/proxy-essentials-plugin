@@ -40,6 +40,18 @@ open class YamlConfig(val dirPath: String) {
             val node = buildNode(path, createIfMissing = false).first
             val config = node.get(clazz)
 
+            if (config is ProxyEssentialsConfig) {
+                val stateNames = config.joinstates.map { it.name }.toSet()
+                config.externalServerJoinStates.forEach { (serverName, stateName) ->
+                    if (stateName !in stateNames) {
+                        logger.warning(
+                            "Unknown join state '$stateName' for external server '$serverName' in " +
+                                "external-server-joinstates. Using initial-state '${config.initialState}' instead."
+                        )
+                    }
+                }
+            }
+
             if (config != null) {
                 configCache[cacheKey] = config
             }
