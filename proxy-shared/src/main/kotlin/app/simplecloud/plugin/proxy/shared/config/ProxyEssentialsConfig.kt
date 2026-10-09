@@ -26,6 +26,7 @@ data class ProxyEssentialsConfig(
             "maintenance"
         )
     ),
+    @Setting("external-server-joinstates") val externalServerJoinStates: Map<String, String> = emptyMap(),
     val domains: List<DomainMotdRoute> = listOf(),
     val whitelist: WhitelistConfig = WhitelistConfig(),
     @Setting("player-count") val playerCount: PlayerCountConfig = PlayerCountConfig(),
