@@ -30,6 +30,8 @@ class JoinStateResolver(
     }
 
     suspend fun getJoinStateForServer(serverName: String): String {
+        proxyPlugin.proxyEssentialsConfig.get().serverJoinstates[serverName]?.let { return it }
+
         try {
             val (groupName, numericalId) = identifier.parse(serverName)
             return proxyPlugin.joinStateHandler.getJoinStateAtService(groupName, numericalId)

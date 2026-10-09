@@ -27,6 +27,16 @@ joinstates:
         full: 'simplecloud.proxy-essentials.join.maintenance'
     forced-motd-layout: maintenance
 
+# Optional join state overrides keyed by exact, case-sensitive proxy server names.
+# Applies to external and SimpleCloud-managed servers before cloud state resolution.
+# The proxy's own join state and network-wide admission checks still apply.
+# Values must name a join state defined above; unknown values fall back to initial-state.
+server-joinstates: {}
+# Example: allow an external limbo when the proxy's current join state is public,
+# even if initial-state (the fallback for unknown servers) is maintenance.
+# server-joinstates:
+#   queue-limbo: public
+
 # Global whitelist for direct player access.
 # Prefer permission-based access for regular users.
 # Use this list only for administrators or emergency access.
