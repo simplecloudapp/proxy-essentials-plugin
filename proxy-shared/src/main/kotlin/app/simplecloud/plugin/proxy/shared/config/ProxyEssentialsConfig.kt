@@ -7,7 +7,9 @@ import app.simplecloud.plugin.proxy.shared.config.tablis.TabList
 import app.simplecloud.plugin.proxy.shared.config.tablis.TabListGroup
 import app.simplecloud.plugin.proxy.shared.config.state.WhitelistConfig
 import org.spongepowered.configurate.objectmapping.ConfigSerializable
+import org.spongepowered.configurate.objectmapping.meta.PostProcess
 import org.spongepowered.configurate.objectmapping.meta.Setting
+import java.util.logging.Logger
 
 @ConfigSerializable
 data class ProxyEssentialsConfig(
@@ -26,6 +28,7 @@ data class ProxyEssentialsConfig(
             "maintenance"
         )
     ),
+    @Setting("external-server-joinstates") val externalServerJoinStates: Map<String, String> = emptyMap(),
     val domains: List<DomainMotdRoute> = listOf(),
     val whitelist: WhitelistConfig = WhitelistConfig(),
     @Setting("player-count") val playerCount: PlayerCountConfig = PlayerCountConfig(),
@@ -48,5 +51,18 @@ data class ProxyEssentialsConfig(
         }
 
         return playerCount.updateTime * 50L
+    }
+
+    @PostProcess
+    private fun warnUnknownExternalJoinStates() {
+        externalServerJoinStates.forEach { (serverName, stateName) ->
+            if (joinstates.none { it.name == stateName }) {
+                logger.warning("Unknown join state '$stateName' for external server '$serverName'. Using initial-state '$initialState' instead.")
+            }
+        }
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(ProxyEssentialsConfig::class.java.name)
     }
 }

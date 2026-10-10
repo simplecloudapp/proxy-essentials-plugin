@@ -27,6 +27,10 @@ joinstates:
         full: 'simplecloud.proxy-essentials.join.maintenance'
     forced-motd-layout: maintenance
 
+# Join states for servers not managed by SimpleCloud, keyed by server name (case-insensitive).
+# Example: queue-limbo: public
+external-server-joinstates: {}
+
 # Global whitelist for direct player access.
 # Prefer permission-based access for regular users.
 # Use this list only for administrators or emergency access.
