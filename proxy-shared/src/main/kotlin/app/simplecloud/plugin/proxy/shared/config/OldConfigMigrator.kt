@@ -676,13 +676,13 @@ object OldConfigMigrator {
             "Prefer permission-based access for regular users.\n" +
             "Use this list only for administrators or emergency access."
 
-    private const val EXTERNAL_SERVER_JOINSTATES_COMMENT =
-        "Join states for servers not managed by SimpleCloud, keyed by server name (case-insensitive).\n" +
-            "Example: queue-limbo: public"
-
     private const val SHOW_KICK_REASON_COMMENT =
         "Disconnects players with the backend server's kick reason instead of sending them to a fallback server.\n" +
             "Disable to keep the proxy's standard fallback handling."
+
+    private const val EXTERNAL_SERVER_JOINSTATES_COMMENT =
+        "Join states for servers not managed by SimpleCloud, keyed by server name (case-insensitive).\n" +
+            "Example: queue-limbo: public"
 
     private const val PLAYER_COUNT_COMMENT =
         "───────────────────────────────────────────────────────────────────────────────\n" +
@@ -738,13 +738,13 @@ object OldConfigMigrator {
             "# Prefer permission-based access for regular users.\n" +
             "# Use this list only for administrators or emergency access.\n"
 
-    private const val EXTERNAL_SERVER_JOINSTATES_YAML_COMMENT =
-        "\n# Join states for servers not managed by SimpleCloud, keyed by server name (case-insensitive).\n" +
-            "# Example: queue-limbo: public\n"
-
     private const val SHOW_KICK_REASON_YAML_COMMENT =
         "\n# Disconnects players with the backend server's kick reason instead of sending them to a fallback server.\n" +
             "# Disable to keep the proxy's standard fallback handling.\n"
+
+    private const val EXTERNAL_SERVER_JOINSTATES_YAML_COMMENT =
+        "\n# Join states for servers not managed by SimpleCloud, keyed by server name (case-insensitive).\n" +
+            "# Example: queue-limbo: public\n"
 
     private const val PLAYER_COUNT_YAML_COMMENT =
         "\n# ───────────────────────────────────────────────────────────────────────────────\n" +
