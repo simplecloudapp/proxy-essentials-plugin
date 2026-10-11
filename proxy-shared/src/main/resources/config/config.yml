@@ -16,15 +16,15 @@ initial-layout: public
 show-kick-reason: false
 
 joinstates:
--   name: public
+  - name: public
     permission:
-        join: ''
-        full: 'simplecloud.proxy-essentials.join.full.public'
+      join: ''
+      full: 'simplecloud.proxy-essentials.join.full.public'
     forced-motd-layout: null
--   name: maintenance
+  - name: maintenance
     permission:
-        join: 'simplecloud.proxy-essentials.join.maintenance'
-        full: 'simplecloud.proxy-essentials.join.maintenance'
+      join: 'simplecloud.proxy-essentials.join.maintenance'
+      full: 'simplecloud.proxy-essentials.join.maintenance'
     forced-motd-layout: maintenance
 
 # Join states for servers not managed by SimpleCloud, keyed by server name (case-insensitive).
@@ -46,10 +46,10 @@ whitelist:
 # a matching rule wins, then the forced-motd-layout of the join state, then initial-layout.
 domains: []
 #domains:
-#-   domain: 'play.example.com'
-#    target: 'lobby'
+#  - domain: 'play.example.com'
+#    target: lobby
 #    rules:
-#    -   state: maintenance
+#      - state: maintenance
 #        layout: maintenance
 
 # ───────────────────────────────────────────────────────────────────────────────
@@ -58,7 +58,6 @@ domains: []
 #
 # Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
 # ───────────────────────────────────────────────────────────────────────────────
-
 player-count:
   # Enables summed player counts for the server list and placeholders.
   enabled: true
@@ -75,11 +74,10 @@ player-count:
 #
 # Read more @ https://docs.simplecloud.app/manual/plugins/proxy-essentials
 # ───────────────────────────────────────────────────────────────────────────────
-
 tablist:
--   name: global
+  - name: global
     layout:
-    -   header: '<br><color:#0ea5e9>SimpleCloud v3<br>'
+      - header: '<br><color:#0ea5e9>SimpleCloud v3<br>'
         footer: '<br> <color:#ffffff><online_players> players <color:#cbd5e1>are playing on your network <br> <color:#64748b>  sɪᴍᴘʟᴇᴄʟᴏᴜᴅ.ᴀᴘᴘ<br>'
     # Interval in ticks after which the next layout entry is shown. Set to 0 to always show the first entry.
     update-time: 20
