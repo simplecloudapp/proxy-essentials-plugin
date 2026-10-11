@@ -80,7 +80,7 @@ class JoinStateService(
 
     fun getServerState(serverName: String): String? {
         val states = serverStates.get() ?: return null
-        return states[serverName] ?: config.get().initialState
+        return states[serverName] ?: findExternalServerState(serverName) ?: config.get().initialState
     }
 
     suspend fun setGroupState(groupName: String, state: String) {
@@ -160,6 +160,9 @@ class JoinStateService(
         val persistentServerName = server.persistentServer?.name ?: return config.get().initialState
         return persistentServerStates[persistentServerName] ?: config.get().initialState
     }
+
+    private fun findExternalServerState(serverName: String): String? =
+        config.get().externalServerJoinstates.entries.find { it.key.equals(serverName, ignoreCase = true) }?.value
 
     private fun readState(properties: Map<String, Any>?): String? {
         val state = properties?.get(KEY)?.toString()

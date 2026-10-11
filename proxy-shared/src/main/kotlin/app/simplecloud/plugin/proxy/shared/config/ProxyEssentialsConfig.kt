@@ -25,6 +25,7 @@ data class ProxyEssentialsConfig(
             forcedMotdLayout = "maintenance"
         )
     ),
+    val externalServerJoinstates: Map<String, String> = emptyMap(),
     val domains: List<DomainRoute> = emptyList(),
     val whitelist: WhitelistConfig = WhitelistConfig(),
     val playerCount: PlayerCountConfig = PlayerCountConfig(),
