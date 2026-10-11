@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class PlayerCountService(
     private val api: CloudApi,
@@ -36,12 +37,16 @@ class PlayerCountService(
 
     fun start() {
         scope.launch {
+            update(config.get().playerCount)
             while (isActive) {
-                val playerCount = config.get().playerCount
-                update(playerCount)
-                if (playerCount.updateTime <= 0) return@launch
+                val updateTime = config.get().playerCount.updateTime
+                if (updateTime <= 0) {
+                    delay(1.seconds)
+                    continue
+                }
 
-                delay((playerCount.updateTime * 50L).milliseconds)
+                delay((updateTime * 50L).milliseconds)
+                update(config.get().playerCount)
             }
         }
     }

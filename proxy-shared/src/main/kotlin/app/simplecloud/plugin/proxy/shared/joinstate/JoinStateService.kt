@@ -52,6 +52,11 @@ class JoinStateService(
     suspend fun getGroupState(groupName: String): String =
         readState(api.group().getGroupByName(groupName).await().properties) ?: config.get().initialState
 
+    suspend fun hasGroupState(groupName: String, state: String): Boolean {
+        if (getGroupState(groupName) != state) return false
+        return api.server().getServersByGroup(groupName).await().all { readState(it.properties) == state }
+    }
+
     suspend fun getServiceState(groupName: String, numericalId: Int): String {
         val service = api.server().getServerByNumericalId(groupName, numericalId).await()
         return readState(service.properties) ?: getGroupState(groupName)
@@ -135,7 +140,7 @@ class JoinStateService(
     }
 
     private suspend fun followGroupState(serverId: String, groupName: String) {
-        val groupState = readState(api.group().getGroupByName(groupName).await().properties) ?: return
+        val groupState = getGroupState(groupName)
         val previousGroupState = lastGroupState.getAndSet(groupState)
         if (previousGroupState == null || previousGroupState == groupState) return
         if (getLocalState() != previousGroupState) return

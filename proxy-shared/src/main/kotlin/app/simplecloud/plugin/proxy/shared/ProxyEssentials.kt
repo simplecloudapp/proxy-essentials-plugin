@@ -19,6 +19,7 @@ import app.simplecloud.plugin.proxy.shared.utilities.text.MessageFormatter
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
+import kotlin.time.Duration.Companion.seconds
 
 class ProxyEssentials(
     platform: ProxyPlatform
@@ -52,14 +53,8 @@ class ProxyEssentials(
         joinStateService.startServerStateSync()
         joinGate.start()
         playerCountService.start()
-        scope.launch {
-            try {
-                joinStateService.start()
-                layoutService.start()
-            } catch (e: Exception) {
-                logger.error("Failed to load this server from the controller, so it uses the initial join state and layout", e)
-            }
-        }
+        startJoinStateService()
+        startLayoutService()
     }
 
     fun stop() {
@@ -69,6 +64,34 @@ class ProxyEssentials(
 
     fun reload() {
         loadConfigs()
+    }
+
+    private fun startJoinStateService() {
+        scope.launch {
+            while (isActive) {
+                try {
+                    joinStateService.start()
+                    return@launch
+                } catch (e: Exception) {
+                    logger.error("Failed to load the join state of this server from the controller, using the initial join state and retrying in 5 seconds", e)
+                }
+                delay(5.seconds)
+            }
+        }
+    }
+
+    private fun startLayoutService() {
+        scope.launch {
+            while (isActive) {
+                try {
+                    layoutService.start()
+                    return@launch
+                } catch (e: Exception) {
+                    logger.error("Failed to load the layout of this server from the controller, using the initial layout and retrying in 5 seconds", e)
+                }
+                delay(5.seconds)
+            }
+        }
     }
 
     private fun loadConfigs() {

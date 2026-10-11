@@ -102,7 +102,12 @@ class LayoutService(
 
     private suspend fun updateDomainLayouts() {
         val resolved = config.get().domains.mapNotNull { route ->
-            val layout = getDomainLayout(route) ?: return@mapNotNull null
+            val layout = try {
+                getDomainLayout(route)
+            } catch (e: Exception) {
+                logger.error("Could not update the layout of the domain '${route.domain}'", e)
+                null
+            } ?: return@mapNotNull null
             route.domain.lowercase() to layout
         }
         domainLayouts.set(resolved.toMap())

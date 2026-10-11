@@ -155,12 +155,12 @@ class JoinStateCommand<C : ProxySender>(
                     }
 
                     try {
-                        val currentState = when {
-                            targetType.equals("ps", true) -> plugin.joinStateService.getPersistentServerState(target)
-                            id != null -> plugin.joinStateService.getServiceState(target, id)
-                            else -> plugin.joinStateService.getGroupState(target)
+                        val unchanged = when {
+                            targetType.equals("ps", true) -> plugin.joinStateService.getPersistentServerState(target) == state
+                            id != null -> plugin.joinStateService.getServiceState(target, id) == state
+                            else -> plugin.joinStateService.hasGroupState(target, state)
                         }
-                        if (currentState == state) {
+                        if (unchanged) {
                             sender.sendMessage(plugin.messageFormatter.format(updateMessages.updateNoChange))
                             return@suspendingHandler
                         }

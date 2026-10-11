@@ -6,8 +6,8 @@ import app.simplecloud.plugin.proxy.shared.joinstate.JoinResult
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.api.event.ServerConnectEvent
-import net.md_5.bungee.api.event.ServerConnectedEvent
 import net.md_5.bungee.api.event.ServerKickEvent
+import net.md_5.bungee.api.event.ServerSwitchEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
 import net.md_5.bungee.event.EventPriority
@@ -47,7 +47,7 @@ class ConnectionListener(
     }
 
     @EventHandler
-    fun onServerConnected(event: ServerConnectedEvent) {
+    fun onServerSwitch(event: ServerSwitchEvent) {
         essentials.tabListService.update(BungeeProxyPlayer(event.player))
     }
 
@@ -55,6 +55,7 @@ class ConnectionListener(
     fun onServerKick(event: ServerKickEvent) {
         if (!essentials.config.get().showKickReason) return
         if (event.cancelServer != null) return
+        if (event.state == ServerKickEvent.State.CONNECTING && event.player.server != null) return
 
         val reason = event.reason ?: return
         event.player.disconnect(reason)
