@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":proxy-shared"))
-    implementation(libs.adventure.platform.bungeecord)
+    implementation(libs.adventure.text.serializer.gson)
     implementation(libs.simplecloud.plugin.bungeecord)
     implementation(libs.cloud.command.bungee)
     compileOnly(libs.bungeecord.api)

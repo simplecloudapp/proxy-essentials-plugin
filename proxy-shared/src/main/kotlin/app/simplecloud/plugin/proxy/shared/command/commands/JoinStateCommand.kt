@@ -27,8 +27,8 @@ class JoinStateCommand<C : CloudSender>(
     private val logger = LoggerFactory.getLogger(JoinStateCommand::class.java)
     private val groupServerIdSuggestions = CloudSuggestions.serverIds<C>(api, "target")
     private val serverIdSuggestions = SuggestionProvider<C> { context, input ->
-        if (isPersistentServer(context.get<String>("targetType"))) {
-            CompletableFuture.completedFuture(emptyList<Suggestion>())
+        if (isPersistentServer(context.get("targetType"))) {
+            CompletableFuture.completedFuture(emptyList())
         } else {
             groupServerIdSuggestions.suggestionsFuture(context, input)
         }

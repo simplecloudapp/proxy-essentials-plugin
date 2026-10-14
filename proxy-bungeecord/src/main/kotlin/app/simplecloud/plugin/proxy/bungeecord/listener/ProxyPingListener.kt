@@ -1,12 +1,11 @@
 package app.simplecloud.plugin.proxy.bungeecord.listener
 
+import app.simplecloud.plugin.api.bungeecord.text.BungeeComponentConverter
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
 import app.simplecloud.plugin.proxy.shared.layout.ServerIconCache
 import app.simplecloud.plugin.proxy.shared.utilities.LocalPingSourceMatcher
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.Favicon
 import net.md_5.bungee.api.ServerPing
-import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.ProxyPingEvent
 import net.md_5.bungee.api.plugin.Listener
 import net.md_5.bungee.event.EventHandler
@@ -32,7 +31,7 @@ class ProxyPingListener(
         val motdEntry = if (layout.motd.enabled) layoutService.getMotdEntry(layoutName, layout) else null
         if (motdEntry != null) {
             val motd = essentials.messageFormatter.formatMotd(motdEntry.line1, motdEntry.line2)
-            response.descriptionComponent = TextComponent(*BungeeComponentSerializer.get().serialize(motd))
+            response.descriptionComponent = BungeeComponentConverter.toBungee(motd)
         }
 
         val icon = if (layout.serverIcon.enabled) serverIconCache.get(layout.serverIcon.file) else null

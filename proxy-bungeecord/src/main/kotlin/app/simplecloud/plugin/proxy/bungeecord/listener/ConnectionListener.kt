@@ -1,9 +1,9 @@
 package app.simplecloud.plugin.proxy.bungeecord.listener
 
+import app.simplecloud.plugin.api.bungeecord.text.BungeeComponentConverter
 import app.simplecloud.plugin.proxy.bungeecord.platform.BungeeProxyPlayer
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
 import app.simplecloud.plugin.proxy.shared.joinstate.JoinResult
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer
 import net.md_5.bungee.api.event.PostLoginEvent
 import net.md_5.bungee.api.event.ServerConnectEvent
 import net.md_5.bungee.api.event.ServerKickEvent
@@ -23,7 +23,7 @@ class ConnectionListener(
         if (result !is JoinResult.Denied) return
 
         val message = essentials.messageFormatter.formatForPlayer(result.message, "unknown", player.ping.toLong())
-        player.disconnect(*BungeeComponentSerializer.get().serialize(message))
+        player.disconnect(BungeeComponentConverter.toBungee(message))
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -36,13 +36,13 @@ class ConnectionListener(
         if (result !is JoinResult.Denied) return
 
         val message = essentials.messageFormatter.formatForPlayer(result.message, serverName, player.ping.toLong())
-        val components = BungeeComponentSerializer.get().serialize(message)
+        val component = BungeeComponentConverter.toBungee(message)
         event.isCancelled = true
 
         if (player.server == null) {
-            player.disconnect(*components)
+            player.disconnect(component)
         } else {
-            player.sendMessage(*components)
+            player.sendMessage(component)
         }
     }
 
