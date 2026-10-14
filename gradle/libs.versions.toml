@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 kotlinx-coroutines = "1.11.0"
 
 shadow = "9.6.1"
@@ -18,7 +18,7 @@ configurate-yaml = "4.2.0"
 configurate-kotlin = "4.2.0"
 
 simplecloud-api = "0.1.0-platform.54-dev.1.1-770dcc6"
-simplecloud-plugin = "0.0.1-platform.1778966459069-b1e45e2"
+simplecloud-plugin = "1.0.0-dev.1dbc206"
 
 cloud-command-core = "2.1.0"
 cloud-command-velocity = "2.0.1"
@@ -47,6 +47,8 @@ configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", ve
 
 simplecloud-api = { module = "app.simplecloud.api:api", version.ref = "simplecloud-api" }
 simplecloud-plugin = { module = "app.simplecloud.plugin:plugin-shared", version.ref = "simplecloud-plugin" }
+simplecloud-plugin-velocity = { module = "app.simplecloud.plugin:plugin-velocity", version.ref = "simplecloud-plugin" }
+simplecloud-plugin-bungeecord = { module = "app.simplecloud.plugin:plugin-bungeecord", version.ref = "simplecloud-plugin" }
 
 [bundles]
 configurate = ["configurate-yaml", "configurate-kotlin"]

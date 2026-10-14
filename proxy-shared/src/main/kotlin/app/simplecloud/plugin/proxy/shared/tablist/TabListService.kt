@@ -6,10 +6,7 @@ import app.simplecloud.plugin.proxy.shared.config.TabListEntry
 import app.simplecloud.plugin.proxy.shared.platform.ProxyPlatform
 import app.simplecloud.plugin.proxy.shared.platform.ProxyPlayer
 import app.simplecloud.plugin.proxy.shared.utilities.text.MessageFormatter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration.Companion.milliseconds
 

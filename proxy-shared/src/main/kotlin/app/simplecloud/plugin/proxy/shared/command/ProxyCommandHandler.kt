@@ -1,5 +1,6 @@
 package app.simplecloud.plugin.proxy.shared.command
 
+import app.simplecloud.plugin.api.shared.command.CloudSender
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
 import app.simplecloud.plugin.proxy.shared.command.commands.JoinStateCommand
 import app.simplecloud.plugin.proxy.shared.command.commands.LayoutCommand
@@ -10,7 +11,7 @@ import org.incendo.cloud.CommandManager
 import org.incendo.cloud.context.CommandContext
 import org.incendo.cloud.permission.Permission
 
-class ProxyCommandHandler<C : ProxySender>(
+class ProxyCommandHandler<C : CloudSender>(
     private val manager: CommandManager<C>,
     private val plugin: ProxyEssentials
 ) {

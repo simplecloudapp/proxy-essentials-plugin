@@ -6,13 +6,10 @@ import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.proxy.shared.config.JoinStateConfig
 import app.simplecloud.plugin.proxy.shared.config.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import app.simplecloud.plugin.proxy.shared.platform.ProxyPlayer
+import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.seconds
 
@@ -40,33 +37,33 @@ class JoinGate(
         }
     }
 
-    fun checkProxyJoin(name: String, uuid: UUID, hasPermission: (String) -> Boolean): JoinResult {
-        if (config.get().whitelist.contains(name, uuid)) return JoinResult.Allowed
+    fun checkProxyJoin(player: ProxyPlayer): JoinResult {
+        if (config.get().whitelist.contains(player.getName(), player.getUniqueId())) return JoinResult.Allowed
 
         val kick = messages.get().kick
         val joinState = findJoinState(service.getLocalState()) ?: return JoinResult.Denied(kick.noJoinState)
-        if (!hasJoinPermission(joinState, hasPermission)) {
-            logger.info("$name is missing the permission '${joinState.permission.join}' to join the proxy")
+        if (!hasJoinPermission(joinState, player)) {
+            logger.info("${player.getName()} is missing the permission '${joinState.permission.join}' to join the proxy")
             return JoinResult.Denied(kick.noPermission)
         }
 
-        if (proxyFull.get() && !hasPermission(joinState.permission.full)) return JoinResult.Denied(kick.networkFull)
+        if (proxyFull.get() && !player.hasPermission(joinState.permission.full)) return JoinResult.Denied(kick.networkFull)
         return JoinResult.Allowed
     }
 
-    fun checkServerSwitch(name: String, uuid: UUID, serverName: String, hasPermission: (String) -> Boolean): JoinResult {
-        if (config.get().whitelist.contains(name, uuid)) return JoinResult.Allowed
+    fun checkServerSwitch(player: ProxyPlayer, serverName: String): JoinResult {
+        if (config.get().whitelist.contains(player.getName(), player.getUniqueId())) return JoinResult.Allowed
 
         val kick = messages.get().kick
         val state = service.getServerState(serverName)
         if (state == null) {
-            logger.warn("The join states of the servers are not loaded yet, so $name cannot join '$serverName'")
+            logger.warn("The join states of the servers are not loaded yet, so ${player.getName()} cannot join '$serverName'")
             return JoinResult.Denied(kick.noJoinState)
         }
 
         val joinState = findJoinState(state) ?: return JoinResult.Denied(kick.noJoinState)
-        if (!hasJoinPermission(joinState, hasPermission)) {
-            logger.info("$name is missing the permission '${joinState.permission.join}' to join '$serverName'")
+        if (!hasJoinPermission(joinState, player)) {
+            logger.info("${player.getName()} is missing the permission '${joinState.permission.join}' to join '$serverName'")
             return JoinResult.Denied(kick.noPermission)
         }
 
@@ -81,9 +78,9 @@ class JoinGate(
         return joinState
     }
 
-    private fun hasJoinPermission(joinState: JoinStateConfig, hasPermission: (String) -> Boolean): Boolean {
+    private fun hasJoinPermission(joinState: JoinStateConfig, player: ProxyPlayer): Boolean {
         val permission = joinState.permission.join
-        return permission.isBlank() || hasPermission(permission)
+        return permission.isBlank() || player.hasPermission(permission)
     }
 
     private suspend fun isProxyFull(): Boolean {

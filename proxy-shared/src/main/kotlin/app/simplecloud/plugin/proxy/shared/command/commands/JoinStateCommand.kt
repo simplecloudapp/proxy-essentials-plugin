@@ -1,9 +1,9 @@
 package app.simplecloud.plugin.proxy.shared.command.commands
 
 import app.simplecloud.api.CloudApi
+import app.simplecloud.plugin.api.shared.command.CloudSender
+import app.simplecloud.plugin.api.shared.command.CloudSuggestions
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
-import app.simplecloud.plugin.proxy.shared.command.ProxySender
-import app.simplecloud.plugin.proxy.shared.command.ProxySuggestions
 import app.simplecloud.plugin.proxy.shared.utilities.CommandPermissions
 import kotlinx.coroutines.future.await
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
@@ -13,15 +13,26 @@ import org.incendo.cloud.kotlin.coroutines.extension.suspendingHandler
 import org.incendo.cloud.parser.standard.IntegerParser.integerParser
 import org.incendo.cloud.parser.standard.StringParser.stringParser
 import org.incendo.cloud.permission.Permission
+import org.incendo.cloud.suggestion.Suggestion
+import org.incendo.cloud.suggestion.SuggestionProvider
 import org.slf4j.LoggerFactory
+import java.util.concurrent.CompletableFuture
 
-class JoinStateCommand<C : ProxySender>(
+class JoinStateCommand<C : CloudSender>(
     private val api: CloudApi,
     private val plugin: ProxyEssentials,
     private val manager: CommandManager<C>
 ) {
 
     private val logger = LoggerFactory.getLogger(JoinStateCommand::class.java)
+    private val groupServerIdSuggestions = CloudSuggestions.serverIds<C>(api, "target")
+    private val serverIdSuggestions = SuggestionProvider<C> { context, input ->
+        if (isPersistentServer(context.get<String>("targetType"))) {
+            CompletableFuture.completedFuture(emptyList<Suggestion>())
+        } else {
+            groupServerIdSuggestions.suggestionsFuture(context, input)
+        }
+    }
 
     fun register() {
         registerHelp()
@@ -95,9 +106,9 @@ class JoinStateCommand<C : ProxySender>(
             manager.commandBuilder("scproxy")
                 .literal("joinstate")
                 .literal("info")
-                .required("targetType", stringParser(), ProxySuggestions.targetTypes())
-                .required("target", stringParser(), ProxySuggestions.targets(api))
-                .optional("id", integerParser(1), ProxySuggestions.serverIds(api))
+                .required("targetType", stringParser(), CloudSuggestions.targetTypes())
+                .required("target", stringParser(), CloudSuggestions.targets(api))
+                .optional("id", integerParser(1), serverIdSuggestions)
                 .suspendingHandler { context ->
                     val sender = context.sender()
                     val targetType = context.get<String>("targetType")
@@ -110,8 +121,13 @@ class JoinStateCommand<C : ProxySender>(
                             return@suspendingHandler
                         }
 
+                        if (isPersistentServer(targetType) && id != null) {
+                            sender.sendMessage(plugin.messageFormatter.format(messages.persistentServerId))
+                            return@suspendingHandler
+                        }
+
                         when {
-                            targetType.equals("ps", true) -> sendState(sender, target, plugin.joinStateService.getPersistentServerState(target))
+                            isPersistentServer(targetType) -> sendState(sender, target, plugin.joinStateService.getPersistentServerState(target))
                             id != null -> sendState(sender, "$target-$id", plugin.joinStateService.getServiceState(target, id))
                             else -> sendState(sender, target, plugin.joinStateService.getGroupState(target))
                         }
@@ -130,10 +146,12 @@ class JoinStateCommand<C : ProxySender>(
             manager.commandBuilder("scproxy")
                 .literal("joinstate")
                 .literal("set")
-                .required("targetType", stringParser(), ProxySuggestions.targetTypes())
-                .required("target", stringParser(), ProxySuggestions.targets(api))
-                .required("joinstate", stringParser(), ProxySuggestions.joinStates(plugin.config))
-                .optional("id", integerParser(1), ProxySuggestions.serverIds(api))
+                .required("targetType", stringParser(), CloudSuggestions.targetTypes())
+                .required("target", stringParser(), CloudSuggestions.targets(api))
+                .required("joinstate", stringParser(), SuggestionProvider.blocking { _, _ ->
+                    plugin.config.get().joinstates.map { Suggestion.suggestion(it.name) }
+                })
+                .optional("id", integerParser(1), serverIdSuggestions)
                 .suspendingHandler { context ->
                     val sender = context.sender()
                     val targetType = context.get<String>("targetType")
@@ -141,11 +159,16 @@ class JoinStateCommand<C : ProxySender>(
                     val state = context.get<String>("joinstate")
                     val id = context.getOrDefault("id", null as Int?)
                     val messages = plugin.messages.get().command
-                    val isGroup = targetType.equals("group", true) && id == null
+                    val isGroup = targetType.equals(CloudSuggestions.TARGET_TYPE_GROUP, true) && id == null
                     val updateMessages = if (isGroup) messages.joinState.group else messages.joinState.server
 
                     if (!isTargetTypeValid(targetType)) {
                         sender.sendMessage(plugin.messageFormatter.format(messages.invalidTargetType))
+                        return@suspendingHandler
+                    }
+
+                    if (isPersistentServer(targetType) && id != null) {
+                        sender.sendMessage(plugin.messageFormatter.format(messages.persistentServerId))
                         return@suspendingHandler
                     }
 
@@ -156,7 +179,7 @@ class JoinStateCommand<C : ProxySender>(
 
                     try {
                         val unchanged = when {
-                            targetType.equals("ps", true) -> plugin.joinStateService.getPersistentServerState(target) == state
+                            isPersistentServer(targetType) -> plugin.joinStateService.getPersistentServerState(target) == state
                             id != null -> plugin.joinStateService.getServiceState(target, id) == state
                             else -> plugin.joinStateService.hasGroupState(target, state)
                         }
@@ -166,7 +189,7 @@ class JoinStateCommand<C : ProxySender>(
                         }
 
                         when {
-                            targetType.equals("ps", true) -> plugin.joinStateService.setPersistentServerState(target, state)
+                            isPersistentServer(targetType) -> plugin.joinStateService.setPersistentServerState(target, state)
                             id != null -> plugin.joinStateService.setServiceState(target, id, state)
                             else -> plugin.joinStateService.setGroupState(target, state)
                         }
@@ -202,6 +225,10 @@ class JoinStateCommand<C : ProxySender>(
     }
 
     private fun isTargetTypeValid(targetType: String): Boolean {
-        return targetType.equals("group", true) || targetType.equals("ps", true)
+        return targetType.equals(CloudSuggestions.TARGET_TYPE_GROUP, true) || isPersistentServer(targetType)
+    }
+
+    private fun isPersistentServer(targetType: String): Boolean {
+        return targetType.equals(CloudSuggestions.TARGET_TYPE_PERSISTENT_SERVER, true)
     }
 }

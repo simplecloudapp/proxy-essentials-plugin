@@ -7,6 +7,7 @@ plugins {
 dependencies {
     implementation(project(":proxy-shared"))
     implementation(libs.cloud.command.velocity)
+    implementation(libs.simplecloud.plugin.velocity)
     compileOnly(libs.velocity.api)
     kapt(libs.velocity.api)
 }

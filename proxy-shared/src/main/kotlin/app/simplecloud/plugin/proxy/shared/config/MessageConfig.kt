@@ -48,6 +48,7 @@ data class CommandMessages(
     ),
     val failure: String = "<prefix><color:#ff0000>The command failed, check the console for details.",
     val invalidTargetType: String = "<prefix><color:#ff0000>The target type has to be group or ps.",
+    val persistentServerId: String = "<prefix><color:#ff0000>Persistent servers do not have an id.",
     val reload: ReloadMessages = ReloadMessages(),
     val joinState: JoinStateMessages = JoinStateMessages(),
     val layout: LayoutMessages = LayoutMessages()

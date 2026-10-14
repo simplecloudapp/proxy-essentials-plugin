@@ -5,11 +5,8 @@ import app.simplecloud.api.runtime.SimpleCloudRuntime
 import app.simplecloud.api.server.Server
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.future.await
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.seconds

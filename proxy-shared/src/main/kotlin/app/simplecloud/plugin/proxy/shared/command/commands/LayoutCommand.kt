@@ -1,9 +1,9 @@
 package app.simplecloud.plugin.proxy.shared.command.commands
 
 import app.simplecloud.api.CloudApi
+import app.simplecloud.plugin.api.shared.command.CloudSender
+import app.simplecloud.plugin.api.shared.command.CloudSuggestions
 import app.simplecloud.plugin.proxy.shared.ProxyEssentials
-import app.simplecloud.plugin.proxy.shared.command.ProxySender
-import app.simplecloud.plugin.proxy.shared.command.ProxySuggestions
 import app.simplecloud.plugin.proxy.shared.utilities.CommandPermissions
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import org.incendo.cloud.CommandManager
@@ -11,9 +11,11 @@ import org.incendo.cloud.context.CommandContext
 import org.incendo.cloud.kotlin.coroutines.extension.suspendingHandler
 import org.incendo.cloud.parser.standard.StringParser.stringParser
 import org.incendo.cloud.permission.Permission
+import org.incendo.cloud.suggestion.Suggestion
+import org.incendo.cloud.suggestion.SuggestionProvider
 import org.slf4j.LoggerFactory
 
-class LayoutCommand<C : ProxySender>(
+class LayoutCommand<C : CloudSender>(
     private val api: CloudApi,
     private val plugin: ProxyEssentials,
     private val manager: CommandManager<C>
@@ -58,7 +60,7 @@ class LayoutCommand<C : ProxySender>(
             manager.commandBuilder("scproxy")
                 .literal("layout")
                 .literal("info")
-                .required("group", stringParser(), ProxySuggestions.groups(api))
+                .required("group", stringParser(), CloudSuggestions.groups(api))
                 .suspendingHandler { context ->
                     val sender = context.sender()
                     val groupName = context.get<String>("group")
@@ -83,8 +85,10 @@ class LayoutCommand<C : ProxySender>(
             manager.commandBuilder("scproxy")
                 .literal("layout")
                 .literal("set")
-                .required("group", stringParser(), ProxySuggestions.groups(api))
-                .required("layout", stringParser(), ProxySuggestions.layouts(plugin.layoutRepository))
+                .required("group", stringParser(), CloudSuggestions.groups(api))
+                .required("layout", stringParser(), SuggestionProvider.blocking { _, _ ->
+                    plugin.layoutRepository.getNames().map { Suggestion.suggestion(it) }
+                })
                 .suspendingHandler { context ->
                     val sender = context.sender()
                     val groupName = context.get<String>("group")

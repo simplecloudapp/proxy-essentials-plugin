@@ -19,7 +19,7 @@ class ConnectionListener(
     @EventHandler(priority = EventPriority.LOWEST)
     fun onPostLogin(event: PostLoginEvent) {
         val player = event.player
-        val result = essentials.joinGate.checkProxyJoin(player.name, player.uniqueId, player::hasPermission)
+        val result = essentials.joinGate.checkProxyJoin(BungeeProxyPlayer(player))
         if (result !is JoinResult.Denied) return
 
         val message = essentials.messageFormatter.formatForPlayer(result.message, "unknown", player.ping.toLong())
@@ -32,7 +32,7 @@ class ConnectionListener(
 
         val player = event.player
         val serverName = event.target.name
-        val result = essentials.joinGate.checkServerSwitch(player.name, player.uniqueId, serverName, player::hasPermission)
+        val result = essentials.joinGate.checkServerSwitch(BungeeProxyPlayer(player), serverName)
         if (result !is JoinResult.Denied) return
 
         val message = essentials.messageFormatter.formatForPlayer(result.message, serverName, player.ping.toLong())
