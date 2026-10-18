@@ -17,7 +17,7 @@ configurate-yaml = "4.2.0"
 configurate-kotlin = "4.2.0"
 
 simplecloud-api = "0.1.0-platform.54-dev.1.1-770dcc6"
-simplecloud-plugin = "1.0.0-dev.c40fdd8"
+simplecloud-plugin = "1.0.0"
 
 cloud-command-core = "2.1.0"
 cloud-command-velocity = "2.0.1"
@@ -40,6 +40,7 @@ bungeecord-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
 adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
 adventure-text-serializer-gson = { module = "net.kyori:adventure-text-serializer-gson", version.ref = "adventure" }
+adventure-text-serializer-legacy = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure" }
 
 configurate-yaml = { module = "org.spongepowered:configurate-yaml", version.ref = "configurate-yaml" }
 configurate-kotlin = { module = "org.spongepowered:configurate-extra-kotlin", version.ref = "configurate-kotlin" }
@@ -52,7 +53,7 @@ simplecloud-plugin-bungeecord = { module = "app.simplecloud.plugin:plugin-bungee
 [bundles]
 configurate = ["configurate-yaml", "configurate-kotlin"]
 cloud = ["cloud-command-core", "cloud-command-coroutines"]
-adventure = ["adventure-api", "adventure-text-minimessage"]
+adventure = ["adventure-api", "adventure-text-minimessage", "adventure-text-serializer-legacy"]
 
 [plugins]
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -4,9 +4,9 @@ import app.simplecloud.api.CloudApi
 import app.simplecloud.api.CloudApiOptions
 import app.simplecloud.api.runtime.SimpleCloudRuntime
 import app.simplecloud.plugin.api.shared.config.ConfigurationFactory
+import app.simplecloud.plugin.api.shared.config.DefaultConfigInstaller
 import app.simplecloud.plugin.proxy.shared.config.MessageConfig
 import app.simplecloud.plugin.proxy.shared.config.ProxyEssentialsConfig
-import app.simplecloud.plugin.proxy.shared.config.DefaultConfigInstaller
 import app.simplecloud.plugin.proxy.shared.config.migration.LegacyDirectoryMigrator
 import app.simplecloud.plugin.proxy.shared.joinstate.JoinGate
 import app.simplecloud.plugin.proxy.shared.joinstate.JoinStateService
@@ -44,7 +44,19 @@ class ProxyEssentials(
 
     fun start() {
         LegacyDirectoryMigrator.migrate(dir)
-        DefaultConfigInstaller.install(dir, javaClass.classLoader)
+        DefaultConfigInstaller.installAll(
+            dir,
+            listOf(
+                "config.yml",
+                "messages.yml",
+                "layout/public.yml",
+                "layout/maintenance.yml",
+                "layout/server-icons/simplecloud.png",
+                "layout/server-icons/simplecloud-gray.png"
+            ),
+            javaClass.classLoader,
+            "config"
+        )
         loadConfigs()
         layoutService.startDomainSync()
         tabListService.start()

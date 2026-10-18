@@ -34,7 +34,7 @@ class ProxyPingListener(
         }
 
         if (layout.version.name.enabled) {
-            builder.version(ServerPing.Version(event.ping.version.protocol, layout.version.name.text))
+            builder.version(ServerPing.Version(-1, essentials.messageFormatter.formatLegacy(layout.version.name.text)))
         }
 
         if (!LocalPingSourceMatcher.isLocal(event.connection.remoteAddress.address)) {

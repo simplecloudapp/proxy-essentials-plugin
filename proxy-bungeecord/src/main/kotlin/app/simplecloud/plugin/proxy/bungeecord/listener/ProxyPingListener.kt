@@ -41,7 +41,7 @@ class ProxyPingListener(
         }
 
         if (layout.version.name.enabled) {
-            response.version = ServerPing.Protocol(layout.version.name.text, response.version.protocol)
+            response.version = ServerPing.Protocol(essentials.messageFormatter.formatLegacy(layout.version.name.text), -1)
         }
 
         val address = event.connection.socketAddress as? InetSocketAddress

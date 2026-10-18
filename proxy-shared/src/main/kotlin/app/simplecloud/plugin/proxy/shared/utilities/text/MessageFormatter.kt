@@ -9,6 +9,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.Tag
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -19,12 +20,16 @@ class MessageFormatter(
 ) {
 
     private val miniMessage = MiniMessage.miniMessage()
+    private val legacySerializer = LegacyComponentSerializer.legacySection()
 
     fun format(text: String, vararg resolvers: TagResolver): Component =
         messages.get().msg(text, getPlaceholders("unknown", -1), *resolvers)
 
     fun formatForPlayer(text: String, serverName: String, ping: Long): Component =
         messages.get().msg(text, getPlaceholders(serverName, ping))
+
+    fun formatLegacy(text: String): String =
+        legacySerializer.serialize(format(text))
 
     fun formatMotd(line1: String, line2: String): Component =
         MotdFormatter.deserialize(miniMessage, line1, line2, listOf(getPlaceholders("unknown", -1)))
