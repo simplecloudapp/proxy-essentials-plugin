@@ -23,12 +23,12 @@ class ProxyPingListener(
 
     @EventHandler
     fun onProxyPing(event: ProxyPingEvent) {
-        val layoutService = essentials.layoutService
-        val layoutName = layoutService.getLayoutName(event.connection.virtualHost?.hostString)
-        val layout = layoutService.getLayout(layoutName)
+        val service = essentials.layoutService
+        val layoutName = service.getLayoutName(event.connection.virtualHost?.hostString)
+        val layout = service.getLayout(layoutName)
         val response = event.response
 
-        val motdEntry = if (layout.motd.enabled) layoutService.getMotdEntry(layoutName, layout) else null
+        val motdEntry = if (layout.motd.enabled) service.getMotdEntry(layoutName, layout) else null
         if (motdEntry != null) {
             val motd = essentials.messageFormatter.formatMotd(motdEntry.line1, motdEntry.line2)
             response.descriptionComponent = BungeeComponentConverter.toBungee(motd)
