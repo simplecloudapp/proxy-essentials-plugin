@@ -47,10 +47,12 @@ class TabListService(
 
     private fun getTabList(serverName: String): TabListEntry? {
         val groups = config.get().tablist
-        val group = groups.find { it.name.equals(serverName, ignoreCase = true) }
-            ?: groups.find { serverName.startsWith(it.name, ignoreCase = true) }
-            ?: groups.find { it.name == "*" }
-            ?: groups.find { it.name.equals("global", ignoreCase = true) }
+        val namedGroups = groups.filter { it.serverNameMatcher == null }
+        val group = groups.find { it.serverNameMatcher?.matches(serverName) == true }
+            ?: namedGroups.find { it.name.equals(serverName, ignoreCase = true) }
+            ?: namedGroups.find { serverName.startsWith(it.name, ignoreCase = true) }
+            ?: namedGroups.find { it.name == "*" }
+            ?: namedGroups.find { it.name.equals("global", ignoreCase = true) }
             ?: return null
         if (group.layout.isEmpty()) return null
         if (group.updateTime <= 0) return group.layout.first()

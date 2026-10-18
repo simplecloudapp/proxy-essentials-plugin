@@ -76,6 +76,12 @@ player-count:
 # ───────────────────────────────────────────────────────────────────────────────
 tablist:
   - name: global
+    # Optional: match servers explicitly instead of by name. If set, the name is only used as an identifier.
+    # Available: STARTS_WITH, ENDS_WITH, CONTAINS, EQUALS, REGEX, PATTERN
+    # server-name-matcher:
+    #   operation: STARTS_WITH
+    #   value: lobby
+    #   negate: false
     layout:
       - header: '<br><color:#0ea5e9>SimpleCloud v3<br>'
         footer: '<br> <color:#ffffff><online_players> players <color:#cbd5e1>are playing on your network <br> <color:#64748b>  sɪᴍᴘʟᴇᴄʟᴏᴜᴅ.ᴀᴘᴘ<br>'
