@@ -1,3 +1,6 @@
+> [!IMPORTANT]
+> **Moved:** Proxy Essentials now lives in [simplecloud-plugins](https://github.com/simplecloudapp/simplecloud-plugins/tree/main/proxy/proxy-essentials). This repository is archived.
+
 # Proxy Essentials Plugin
 
 ![Banner][banner]
